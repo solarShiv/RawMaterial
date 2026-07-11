@@ -629,7 +629,7 @@ const AppRoutes = () => {
          <Route
           path="pre-po-request-history"
           element={
-            <ProtectedRoute allowedRoles={["PrePurchase", "Purchase", "Production",]}>
+            <ProtectedRoute allowedRoles={["PrePurchase", "Purchase", "Production"]}>
               <PrePoRequestHistory />
             </ProtectedRoute>
           }
