@@ -70,7 +70,6 @@ const ReceivedPurchaseStock = () => {
     const updated = [...itemInputs];
     updated[index][field] = value;
     
-    // If receivedQty changes, auto-update goodQty to match (can be overridden by user)
     if (field === "receivedQty") {
       updated[index].goodQty = value;
     }
