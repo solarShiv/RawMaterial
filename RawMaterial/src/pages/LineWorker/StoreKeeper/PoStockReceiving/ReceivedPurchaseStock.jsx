@@ -28,8 +28,10 @@ const ReceivedPurchaseStock = () => {
     "67446a8b27dae6f7f4d985dd": "b691221b-af10-11ef-a344-1a2cd4d9c0d1"
   };
 
+
+
   // Target warehouses that require vehicle selection
-  const TARGET_WAREHOUSE_IDS = Object.keys(WAREHOUSE_VEHICLE_MAP);
+  const TARGET_WAREHOUSE_IDS = Object.keys(WAREHOUSE_VEHICLE_MAP);  
 
   // Get the vehicle warehouse ID based on user's warehouse
   const getVehicleWarehouseId = (warehouseId) => {
