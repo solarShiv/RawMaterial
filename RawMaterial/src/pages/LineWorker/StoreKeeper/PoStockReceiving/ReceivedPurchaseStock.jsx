@@ -786,3 +786,6 @@ const ReceivedPurchaseStock = () => {
 };
 
 export default ReceivedPurchaseStock;
+
+
+// uytuyt
