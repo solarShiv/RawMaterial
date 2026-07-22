@@ -22,35 +22,71 @@ const ReceivedPurchaseStock = () => {
   const [isVehicleDropdownOpen, setIsVehicleDropdownOpen] = useState(false);
   const vehicleSearchRef = useRef(null);
 
-  // ---------------------- CHANGE 1: Define array of target warehouses ----------------------
-  const TARGET_WAREHOUSE_IDS = [
-    "67446a8b27dae6f7f4d985dd",
-    "697b06b52da83d53d0e30731"
-  ];
+  // Warehouse to Vehicle Warehouse mapping
+  const WAREHOUSE_VEHICLE_MAP = {
+    "697b06b52da83d53d0e30731": "p891225a-af11-11ef-a344-1a2cd4d9c0d8",
+    "67446a8b27dae6f7f4d985dd": "b691221b-af10-11ef-a344-1a2cd4d9c0d1"
+  };
 
-  async function fetchvehicle () {
-    const response = await fetch(
-      "https://logistics.umanerp.com/api/vehicleIN/getVehicleSummary",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": null,
+
+
+  // Target warehouses that require vehicle selection
+  const TARGET_WAREHOUSE_IDS = Object.keys(WAREHOUSE_VEHICLE_MAP);  
+
+  // Get the vehicle warehouse ID based on user's warehouse
+  const getVehicleWarehouseId = (warehouseId) => {
+    return WAREHOUSE_VEHICLE_MAP[warehouseId] || null;
+  };
+
+  // Fetch vehicles from a specific warehouse
+  async function fetchVehiclesForWarehouse(vehicleWarehouseId) {
+    try {
+      const response = await fetch(
+        `https://logistics.umanerp.com/api/vehicleIN/getVehicleSummary?workLocation=${vehicleWarehouseId}`,
+        {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      }
-    );
-    const data = await response.json();
-    console.log("fetch vehicle entry: ", data?.data);
-    setFetchVehicle(data?.data);
+      );
+      const data = await response.json();
+      return data.data || [];
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
+      return [];
+    }
   }
-  useEffect(() => {
-    fetchvehicle();
-  }, [])
+
+  // Fetch vehicles based on user's warehouse
+  async function fetchVehicles() {
+    try {
+      if (!userWarehouseId) {
+        console.log("No warehouse ID available");
+        return;
+      }
+
+      const vehicleWarehouseId = getVehicleWarehouseId(userWarehouseId);
+      
+      if (!vehicleWarehouseId) {
+        console.log("No vehicle warehouse mapping found for:", userWarehouseId);
+        setFetchVehicle([]);
+        return;
+      }
+
+      const vehicles = await fetchVehiclesForWarehouse(vehicleWarehouseId);
+      console.log("Fetched vehicles for warehouse:", vehicleWarehouseId, vehicles);
+      setFetchVehicle(vehicles);
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
+      setFetchVehicle([]);
+    }
+  }
+
   // Get warehouse ID from logged-in user data
   useEffect(() => {
-    // Try to get warehouseId from multiple sources
     const getWarehouseId = () => {
-      // Option 1: From localStorage (if stored after login)
+      // Option 1: From localStorage
       const storedWarehouse = localStorage.getItem('warehouseId');
       if (storedWarehouse) return storedWarehouse;
       
@@ -70,8 +106,6 @@ const ReceivedPurchaseStock = () => {
         }
       }
       
-      // Option 4: From your auth context/API response
-      // You might need to fetch current user data
       return null;
     };
     
@@ -80,6 +114,16 @@ const ReceivedPurchaseStock = () => {
     console.log("User warehouse ID:", warehouseId);
   }, []);
 
+  // Fetch vehicles whenever userWarehouseId changes
+  useEffect(() => {
+    if (userWarehouseId && TARGET_WAREHOUSE_IDS.includes(userWarehouseId)) {
+      fetchVehicles();
+    } else {
+      setFetchVehicle([]);
+    }
+  }, [userWarehouseId]);
+
+  // Initialize items when poData changes
   useEffect(() => {
     if (poData?.items) {
       const pendingItems = poData.items.filter((item) => {
@@ -102,7 +146,7 @@ const ReceivedPurchaseStock = () => {
     }
   }, [poData]);
 
-
+  // Handle click outside vehicle dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (vehicleSearchRef.current && !vehicleSearchRef.current.contains(event.target)) {
@@ -113,6 +157,7 @@ const ReceivedPurchaseStock = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Filter vehicles based on search term
   const filteredVehicles = fetchVehicle.filter((vehicle) => {
     const searchLower = vehicleSearchTerm.toLowerCase();
     return (
@@ -142,6 +187,7 @@ const ReceivedPurchaseStock = () => {
     const updated = [...itemInputs];
     updated[index][field] = value;
 
+    // Auto-populate goodQty when receivedQty changes
     if (field === "receivedQty") {
       const prevReceived = parseFloat(updated[index].receivedQty || 0);
       const currentGood = parseFloat(updated[index].goodQty || 0);
@@ -217,7 +263,7 @@ const ReceivedPurchaseStock = () => {
         return;
       }
 
-      // ---------------------- CHANGE 2: Use array includes in condition ----------------------
+      // Validate vehicle selection for target warehouses
       if (TARGET_WAREHOUSE_IDS.includes(userWarehouseId) && !selectedVehicle) {
         alert("Please select a vehicle number");
         setIsSubmitting(false);
@@ -255,6 +301,11 @@ const ReceivedPurchaseStock = () => {
       if (TARGET_WAREHOUSE_IDS.includes(userWarehouseId)) {
         formData.append("vehicleId", selectedVehicle);
         formData.append("vehicleNumber", selectedVehicleNo);
+        // Optionally add the vehicle warehouse ID if needed by the backend
+        const vehicleWarehouseId = getVehicleWarehouseId(userWarehouseId);
+        if (vehicleWarehouseId) {
+          formData.append("vehicleWarehouseId", vehicleWarehouseId);
+        }
       }
 
       if (billFile) {
@@ -274,7 +325,7 @@ const ReceivedPurchaseStock = () => {
       alert(`Purchase stock received successfully!`);
       navigate(-1);
     } catch (error) {
-      console.log("Submission error:", error);
+      console.error("Submission error:", error);
       alert(error?.response?.data?.message || "Submission failed");
     } finally {
       setIsSubmitting(false);
@@ -309,7 +360,7 @@ const ReceivedPurchaseStock = () => {
     }).length;
   };
 
-  // ---------------------- CHANGE 3: Use array includes for show condition ----------------------
+  // Check if vehicle selection should be shown
   const shouldShowVehicleSelection = userWarehouseId && TARGET_WAREHOUSE_IDS.includes(userWarehouseId);
 
   return (
@@ -320,7 +371,7 @@ const ReceivedPurchaseStock = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-                Receive Purchase Stock
+                Receiving Purchase Stock
               </h1>
               <div className="flex flex-wrap items-center gap-2 mt-1">
                 <p className="text-gray-600 text-sm sm:text-base">
@@ -419,7 +470,7 @@ const ReceivedPurchaseStock = () => {
                       ))
                     ) : (
                       <div className="px-4 py-3 text-gray-500 text-sm">
-                        {fetchVehicle.length === 0 ? "No vehicles available" : "No matching vehicles found"}
+                        {fetchVehicle.length === 0 ? "No vehicles available for this warehouse" : "No matching vehicles found"}
                       </div>
                     )}
                   </div>
