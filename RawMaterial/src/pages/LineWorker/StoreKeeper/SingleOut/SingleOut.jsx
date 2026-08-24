@@ -1,12 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import Api from "../../../../auth/Api";
 
+const ISSUE_TYPES = ["PERMANENT", "RETURNABLE"];
+
 const SingleOut = () => {
   const [itemList, setItemList] = useState([]);
   const [uniqueItemList, setUniqueItemList] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [itemQuantities, setItemQuantities] = useState({});
+  const [itemIssueTypes, setItemIssueTypes] = useState({});
   const [remarks, setRemarks] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -107,6 +110,9 @@ const SingleOut = () => {
       const newQuantities = { ...itemQuantities };
       delete newQuantities[item.id];
       setItemQuantities(newQuantities);
+      const newIssueTypes = { ...itemIssueTypes };
+      delete newIssueTypes[item.id];
+      setItemIssueTypes(newIssueTypes);
     } else {
       // Add item
       setSelectedItems([
@@ -123,6 +129,10 @@ const SingleOut = () => {
       setItemQuantities({
         ...itemQuantities,
         [item.id]: "1" // Default quantity
+      });
+      setItemIssueTypes({
+        ...itemIssueTypes,
+        [item.id]: "PERMANENT" // Default issue type
       });
     }
   };
@@ -151,6 +161,13 @@ const SingleOut = () => {
     const newQuantities = { ...itemQuantities };
     delete newQuantities[itemId];
     setItemQuantities(newQuantities);
+    const newIssueTypes = { ...itemIssueTypes };
+    delete newIssueTypes[itemId];
+    setItemIssueTypes(newIssueTypes);
+  };
+
+  const handleIssueTypeChange = (itemId, issueType) => {
+    setItemIssueTypes({ ...itemIssueTypes, [itemId]: issueType });
   };
 
   const handleWorkerChange = (e) => {
@@ -178,6 +195,7 @@ const SingleOut = () => {
 
     selectedItems.forEach((item) => {
       const quantity = itemQuantities[item.id];
+      const issueType = itemIssueTypes[item.id];
       
       if (!quantity || quantity.trim() === "") {
         newErrors[`quantity_${item.id}`] = "Quantity is required";
@@ -185,6 +203,10 @@ const SingleOut = () => {
         newErrors[`quantity_${item.id}`] = "Quantity must be greater than 0";
       } else if (parseFloat(quantity) > item.stock) {
         newErrors[`quantity_${item.id}`] = `Maximum allowed: ${item.stock} ${item.unit}`;
+      }
+
+      if (!issueType || !ISSUE_TYPES.includes(issueType)) {
+        newErrors[`issueType_${item.id}`] = "Issue type is required";
       }
     });
 
@@ -223,6 +245,7 @@ const SingleOut = () => {
           rawMaterialId: item.id,
           quantity: String(itemQuantities[item.id]),
           unit: item.unit,
+          issueType: itemIssueTypes[item.id] || "PERMANENT",
         })),
         remarks: remarks || undefined,
       };
@@ -249,6 +272,7 @@ const SingleOut = () => {
   const handleReset = () => {
     setSelectedItems([]);
     setItemQuantities({});
+    setItemIssueTypes({});
     setSearchTerm("");
     setRemarks("");
     setErrors({});
@@ -479,7 +503,7 @@ const SingleOut = () => {
                   >
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                       {/* ITEM INFO */}
-                      <div className="md:col-span-4">
+                      <div className="md:col-span-3">
                         <div className="font-medium text-gray-900">{item.name}</div>
                         <div className="flex items-center mt-1">
                           <div className="text-xs text-gray-500 mr-3">
@@ -521,8 +545,33 @@ const SingleOut = () => {
                         )}
                       </div>
 
+                      {/* ISSUE TYPE */}
+                      <div className="md:col-span-3">
+                        <div className="flex rounded-lg overflow-hidden border border-gray-300 text-sm">
+                          {ISSUE_TYPES.map((type) => (
+                            <button
+                              key={type}
+                              type="button"
+                              onClick={() => handleIssueTypeChange(item.id, type)}
+                              className={`flex-1 px-2 py-2 font-medium transition-colors ${
+                                itemIssueTypes[item.id] === type
+                                  ? type === "RETURNABLE"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-gray-700 text-white"
+                                  : "bg-white text-gray-600 hover:bg-gray-100"
+                              }`}
+                            >
+                              {type === "RETURNABLE" ? "↩ Return" : "⬛ Perm"}
+                            </button>
+                          ))}
+                        </div>
+                        {errors[`issueType_${item.id}`] && (
+                          <p className="text-red-500 text-xs mt-1">{errors[`issueType_${item.id}`]}</p>
+                        )}
+                      </div>
+
                       {/* ACTIONS */}
-                      <div className="md:col-span-4 flex justify-end">
+                      <div className="md:col-span-2 flex justify-end">
                         <div className="flex items-center space-x-3">
                           <div className="text-sm text-gray-600">
                             <span className="font-semibold text-green-600">

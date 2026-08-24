@@ -38,6 +38,7 @@ import ItemDetails from "./pages/Purchase/ItemDetails";
 import ChangePassword from "./pages/Purchase/ChangePassword";
 import InstallationStock from "./pages/Purchase/InstallationStock";
 import SingleOut from "./pages/LineWorker/StoreKeeper/SingleOut/SingleOut";
+import ReturnMaterial from "./pages/LineWorker/StoreKeeper/ReturnMaterial/ReturnMaterial";
 import PoStockReceiving from "./pages/LineWorker/StoreKeeper/PoStockReceiving/PoStockReceiving";
 import ReceivedPurchaseStock from "./pages/LineWorker/StoreKeeper/PoStockReceiving/ReceivedPurchaseStock";
 import DirectItemIssueHistory from "./pages/LineWorker/StoreKeeper/SingleOut/DirectItemIssueHistory";
@@ -402,7 +403,7 @@ const AppRoutes = () => {
         <Route
           path="add-raw-material"
           element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "Production"]}>
               <AddRawMaterial />
             </ProtectedRoute>
           }
@@ -613,6 +614,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
               <SingleOut />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="return-material"
+          element={
+            <ProtectedRoute allowedRoles={["Store"]}>
+              <ReturnMaterial />
             </ProtectedRoute>
           }
         />

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Api from "../../auth/Api";
 
 const AddRawMaterial = ({
@@ -19,6 +20,13 @@ const AddRawMaterial = ({
   const [conversionFactor, setConversionFactor] = useState("");
   const [hsnCode, setHsnCode] = useState("");
   const [source, setSource] = useState("");
+
+  // mohit changes 
+    const [bulkFile, setBulkFile] = useState(null);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkResult, setBulkResult] = useState(null);
+  const bulkFileRef = useRef(null);
+
 
   const SourceOption = [
     { value: "Installation Material", label: "Installation Material" },
@@ -98,11 +106,13 @@ const AddRawMaterial = ({
         if (response?.data?.success) {
           alert(response?.data?.message || "Item updated successfully");
 
-          if (onSuccess)
+          if (onSuccess) {
+            // Pass back the updated item data (id + payload)
             onSuccess({
               ...payload,
               id: editData.id,
             });
+          }
 
           closeModal(false);
         }
@@ -111,7 +121,9 @@ const AddRawMaterial = ({
 
         if (response?.data?.success) {
           alert(response?.data?.message || "Item created successfully");
-          if (onSuccess) onSuccess();
+          // 🔽 Pass back the created item data (either from response or payload)
+          const createdData = response?.data?.data || payload;
+          if (onSuccess) onSuccess(createdData);
           resetForm();
         }
       }
@@ -136,7 +148,9 @@ const AddRawMaterial = ({
 
       if (response?.data?.success) {
         alert(response?.data?.message || "Item created successfully");
-        if (onSuccess) onSuccess();
+        // 🔽 Pass back the created item data
+        const createdData = response?.data?.data || payload;
+        if (onSuccess) onSuccess(createdData);
         resetForm();
         closeModal(false);
       }
@@ -151,6 +165,49 @@ const AddRawMaterial = ({
     setConversionUnit("");
     setConversionFactor("");
   };
+// mohit changes 
+  const downloadTemplate = () => {
+    const header = "name,unit,source,hsnCode,description,conversionUnit,conversionFactor";
+    const example1 = "Iron Rod,KG,Raw Material,7214,Iron rod 10mm,G,1000";
+    const example2 = "Cable 1.5mm,MTR,Installation Material,8544,1.5mm electrical cable,,";
+    const csv = [header, example1, example2].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "bulk_items_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleBulkUpload = async () => {
+    if (!bulkFile) {
+      alert("Please select a CSV file first");
+      return;
+    }
+    try {
+      setBulkLoading(true);
+      setBulkResult(null);
+      const formData = new FormData();
+      formData.append("file", bulkFile);
+      const res = await Api.post("/common/item/bulk-upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      if (res?.data?.success) {
+        setBulkResult(res.data.summary);
+        setBulkFile(null);
+        if (bulkFileRef.current) bulkFileRef.current.value = "";
+        if (onSuccess) onSuccess();
+      }
+    } catch (error) {
+      alert(error?.response?.data?.message || "Bulk upload failed");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
 
   return (
     <div className="w-full bg-gradient-to-br from-slate-100 flex items-center justify-center px-4">
@@ -185,7 +242,8 @@ const AddRawMaterial = ({
             <select
               value={source}
               onChange={(e) => setSource(e.target.value)}
-              className={`w-full px-4 py-3 rounded-lg border`}
+                            className={`w-full px-4 py-3 rounded-lg border`}
+
               required
             >
               <option value="">Select Source</option>
@@ -205,7 +263,8 @@ const AddRawMaterial = ({
             <select
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
-              className={`w-full px-4 py-3 rounded-lg border`}
+                            className={`w-full px-4 py-3 rounded-lg border`}
+
               required
             >
               <option value="">
@@ -253,15 +312,6 @@ const AddRawMaterial = ({
                 onChange={(e) => setConversionFactor(e.target.value)}
                 className="flex-1 px-4 py-3 rounded-lg border"
               />
-              {/* {(conversionUnit || conversionFactor) && (
-                <button
-                  type="button"
-                  onClick={handleClearConversion}
-                  className="px-3 bg-red-100 text-red-700 rounded-lg"
-                >
-                  Clear
-                </button>
-              )} */}
             </div>
           </div>
 
@@ -323,6 +373,74 @@ const AddRawMaterial = ({
             )}
           </div>
         </form>
+        {/* mohit changes */}
+        
+        {/* multiple items upload */}
+        {!isEditMode && (
+          <div className="mt-8 border-t pt-6">
+            <h3 className="text-lg font-bold text-gray-700 mb-1">Bulk Upload via CSV</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Upload a CSV with columns:{" "}
+              <code className="bg-gray-100 px-1 rounded text-xs">
+                name, unit, source, hsnCode, description, conversionUnit, conversionFactor
+              </code>
+              . Source must be <strong>Raw Material</strong> or{" "}
+              <strong>Installation Material</strong>.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={downloadTemplate}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+              >
+                ⬇ Download Template
+              </button>
+
+              <input
+                ref={bulkFileRef}
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                onChange={(e) => {
+                  setBulkResult(null);
+                  setBulkFile(e.target.files[0] || null);
+                }}
+                className="text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-400 file:font-semibold file:text-sm hover:file:bg-yellow-500"
+              />
+
+              <button
+                type="button"
+                onClick={handleBulkUpload}
+                disabled={bulkLoading || !bulkFile}
+                className="px-4 py-2 rounded-lg bg-yellow-400 font-semibold text-sm hover:bg-yellow-500 transition-all disabled:opacity-50"
+              >
+                {bulkLoading ? "Uploading..." : "Upload"}
+              </button>
+            </div>
+
+            {bulkResult && (
+              <div className="mt-4 p-4 rounded-lg bg-green-50 border border-green-200 text-sm">
+                <p className="font-semibold text-green-800 mb-1">Upload Summary</p>
+                <p>Total rows: <strong>{bulkResult.totalRows}</strong></p>
+                <p>Raw Materials inserted: <strong>{bulkResult.rawMaterialInserted}</strong></p>
+                <p>Installation Materials inserted: <strong>{bulkResult.installationInserted}</strong></p>
+                {bulkResult.skipped?.length > 0 && (
+                  <details className="mt-2">
+                    <summary className="cursor-pointer text-red-600 font-semibold">
+                      Skipped ({bulkResult.skipped.length})
+                    </summary>
+                    <ul className="mt-1 list-disc list-inside text-red-700">
+                      {bulkResult.skipped.map((s, i) => (
+                        <li key={i}>{s.name} — {s.reason}</li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );

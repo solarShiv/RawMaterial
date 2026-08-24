@@ -134,6 +134,12 @@ const SideMenubar = () => {
       roles: ["Store"],
     },
     {
+      path: "return-material",
+      label: "Return Material to Store",
+      icon: FaClipboardList,
+      roles: ["Store"],
+    },
+    {
       path: "po-stock-receiving",
       label: "PO Stock Receiving",
       icon: FaPlus,
@@ -305,7 +311,7 @@ const SideMenubar = () => {
       key: "Item",
       label: "Item",
       icon: FaBuilding,
-      roles: ["Purchase"],
+      roles: ["Purchase", "Production"],
       items: [
         { path: "add-raw-material", label: "Add Raw Material" },
         { path: "item-details", label: "Item Detail" },

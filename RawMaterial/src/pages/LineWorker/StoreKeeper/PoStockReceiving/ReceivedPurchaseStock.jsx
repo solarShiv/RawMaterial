@@ -774,7 +774,7 @@ const ReceivedPurchaseStock = () => {
                   </button>
                 </div>
                 <p className="text-sm text-gray-500 text-center mt-3">
-                  Only items with quantity entered will be received. You can make multiple deliveries.
+                  Only items with quantity entered will be received. You can make multiple deliveries
                 </p>
               </div>
             </div>
