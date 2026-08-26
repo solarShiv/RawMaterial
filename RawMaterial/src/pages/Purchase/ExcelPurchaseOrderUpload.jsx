@@ -117,29 +117,6 @@ const ExcelPurchaseOrderUpload = ({
         'GST Rate (%)': '18',
         'Item Description': 'Rope material'
       },
-      {
-        'PO Reference': 'PO-002',
-        'Company Name': 'XYZ Inc',
-        'Vendor Name': 'Vendor A',
-        'GST Type': 'IGST_5',
-        'Currency': 'USD',
-        'Exchange Rate': '83.50',
-        'Warehouse Name': 'South Warehouse',
-        'Expected Delivery Date': '2026-10-01',
-        'Payment Terms': 'Net 30',
-        'Delivery Terms': 'Ex-Works',
-        'Warranty': '2 Years',
-        'Contact Person': 'Jane Smith',
-        'Contact Number': '9988776655',
-        'Item Name': 'Component X',
-        'HSN Code': '11223344',
-        'Model Number': 'COMP001',
-        'Unit': 'PCS',
-        'Quantity': '200',
-        'Rate': '25.50',
-        'GST Rate (%)': '5',
-        'Item Description': 'Electronic component'
-      }
     ];
 
     const ws = XLSX.utils.json_to_sheet(template);
