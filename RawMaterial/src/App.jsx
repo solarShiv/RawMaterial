@@ -59,6 +59,7 @@ import PriceComparision from "./pages/Purchase/PriceComparison";
 import PrePo from "./pages/Production/PrePo";
 import PrePoRequestHistory from "./pages/Production/PrePoRequestHistory";
 import RegisterEmployee from "./pages/auth/RegisterEmployee";
+import ExcelPurchaseOrderUpload from "./pages/Purchase/ExcelPurchaseOrderUpload";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -369,6 +370,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <CreatePurchaseOrder />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="excel-create-purchase-order"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <ExcelPurchaseOrderUpload />
             </ProtectedRoute>
           }
         />

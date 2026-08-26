@@ -3,6 +3,7 @@
 // import { useLocation } from "react-router-dom";
 // import { removeStartingZero } from "../../utils/number/removeStartingZero";
 // import { usePODraft } from "../../hooks/usePODraft";
+// import AddRawMaterial from "../Purchase/AddRawMaterial";
 
 // const CreatePurchaseOrder = () => {
 //   const location = useLocation();
@@ -67,6 +68,11 @@
 //   const [draftRestoredAt, setDraftRestoredAt] = useState(null);
 //   const { saveDraft, loadDraft, clearDraft } = usePODraft();
 //   const dropdownRefs = useRef({});
+
+//   // NEW: state for the "Add Item" modal
+//   const [showAddItemModal, setShowAddItemModal] = useState(false);
+//   const [addItemRowId, setAddItemRowId] = useState(null);
+//   const [addItemDefaultName, setAddItemDefaultName] = useState("");
 
 //   const currencyOptions = [
 //     { value: "INR", label: "INR" },
@@ -953,6 +959,122 @@
 //     );
 //   };
 
+//   // NEW: open the "Add Item" modal for a specific row, optionally pre-filling the
+//   // name field with whatever the user had already typed into the search box.
+//   const openAddItemModal = (rowId, defaultName = "") => {
+//     setAddItemRowId(rowId);
+//     setAddItemDefaultName(defaultName);
+//     setShowAddItemModal(true);
+//     setOpenItemDropdown(null);
+//   };
+
+//   // NEW: handle a newly created item coming back from the AddRawMaterial form.
+//   // Populates the row with everything entered in the Add Item form (not just
+//   // the name), falling back to the refreshed item list only for whatever the
+//   // register didn't return.
+//   const handleNewItemCreated = async (createdItem) => {
+//     console.log("new item:", createdItem);
+//     setShowAddItemModal(false);
+
+//     try {
+//       const response = await Api.get("/purchase/items");
+//       const freshList = response?.data?.items || [];
+//       setItemList(freshList);
+
+//       let newItem = null;
+//       // mysql
+//       if (createdItem?.id) {
+//         newItem = freshList.find((i) => String(i.id) === String(createdItem.id));
+//       }
+
+//       // mongo
+//       if (createdItem?._id) {
+//         newItem = freshList.find((i) => String(i._id) === String(createdItem._id));
+//       }
+
+//       if (!newItem && createdItem?.name) {
+//         newItem = freshList.find(
+//           (i) => i.name.toLowerCase() === createdItem.name.toLowerCase()
+//         );
+//       }
+
+//       const rowId = addItemRowId;
+//       if (rowId) {
+//         // Prefer the values the user just typed into the Add Item form.
+//         // Only fall back to the refreshed item-list record for anything missing.
+//         let resolvedId;
+//         if (createdItem?.id) {
+//           resolvedId = newItem?.id ?? createdItem?.id ?? "";
+//         }
+//         if (createdItem?._id) {
+//           resolvedId = newItem?._id ?? createdItem?._id ?? "";
+//         }
+//         const resolvedName = createdItem?.name || newItem?.name || "";
+//         const resolvedHsn = (
+//           createdItem?.hsnCode ?? newItem?.hsnCode ?? ""
+//         ).toString();
+//         const resolvedModel = (
+//           createdItem?.modelNumber ?? newItem?.modelNumber ?? ""
+//         ).toString();
+//         const resolvedUnit = (
+//           createdItem?.unit ?? newItem?.unit ?? ""
+//         ).toString();
+//         const resolvedRate = (
+//           createdItem?.rate ?? newItem?.rate ?? ""
+//         ).toString();
+//         const resolvedDetail = (
+//           createdItem?.itemDetail ??
+//           createdItem?.description ??
+//           newItem?.itemDetail ??
+//           ""
+//         ).toString();
+//         const resolvedGstRate = (createdItem?.gstRate ?? "").toString();
+
+//         setItemDetails((prev) =>
+//           prev.map((item) => {
+//             if (item.id !== rowId) return item;
+//             const merged = {
+//               ...item,
+//               selectedItem: resolvedId,
+//               hsnCode: resolvedHsn,
+//               modelNumber: resolvedModel,
+//               selectedUnit: resolvedUnit,
+//               rate: resolvedRate,
+//               itemDetail: resolvedDetail,
+//               ...(isItemWiseGST ? { gstRate: resolvedGstRate } : {}),
+//             };
+//             const calculatedAmounts = calculateItemAmounts(merged);
+//             return {
+//               ...merged,
+//               rate: calculatedAmounts.rate.toString(),
+//               quantity: calculatedAmounts.quantity.toString(),
+//               amount: calculatedAmounts.amount.toString(),
+//               taxableAmount: calculatedAmounts.taxableAmount,
+//               gstAmount: calculatedAmounts.gstAmount,
+//               totalAmount: calculatedAmounts.totalAmount,
+//             };
+//           }),
+//         );
+
+//         setEditableHsn((prev) => ({
+//           ...prev,
+//           [rowId]: !resolvedHsn || resolvedHsn.trim() === "",
+//         }));
+//         setLoadingItems((prev) => ({ ...prev, [rowId]: false }));
+
+//         if (resolvedName) {
+//           fetchCheapestPrice(resolvedName);
+//         }
+//       }
+//     } catch (err) {
+//       console.error("Error refreshing item list after add:", err);
+//       alert("Item was added, but refreshing its details failed. Please re-select it from the list.");
+//     } finally {
+//       setAddItemRowId(null);
+//       setAddItemDefaultName("");
+//     }
+//   };
+
 //   const itemTotals = itemDetails.reduce(
 //     (acc, item) => {
 //       return {
@@ -1129,6 +1251,9 @@
 //       if (response.data.success) {
 //         const poId = response.data.data.id;
 //         const poNumber = response.data.data.poNumber;
+//           // ✅ CLEAR DRAFT FROM LOCAL STORAGE AFTER SUCCESS
+//       clearDraft(); // This removes the draft from localStorage
+//       setDraftRestoredAt(null); // Reset the restoration banner
 //         alert("Purchase Order created successfully!");
 
 //         const shouldDownload = window.confirm(
@@ -1198,6 +1323,9 @@
 //     setOpenItemDropdown(null);
 //     setSearchQuery({});
 //     setCheapestPriceData({});
+//     setShowAddItemModal(false);
+//     setAddItemRowId(null);
+//     setAddItemDefaultName("");
 //   };
 
 //   useEffect(() => {
@@ -1704,6 +1832,16 @@
 //                               {getFilteredItems(item.id).length} of{" "}
 //                               {itemList.length} items.
 //                             </div>
+//                             {/* NEW: Add Item button inside dropdown header */}
+//                             <button
+//                               type="button"
+//                               onClick={() =>
+//                                 openAddItemModal(item.id, searchQuery[item.id] || "")
+//                               }
+//                               className="mt-2 w-full flex items-center justify-center px-3 py-2 bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm font-medium rounded-lg hover:bg-yellow-100"
+//                             >
+//                               + Add New Item
+//                             </button>
 //                           </div>
 
 //                           <div className="overflow-y-auto max-h-64">
@@ -1776,6 +1914,16 @@
 //                                 <p className="text-sm text-gray-400 mt-1">
 //                                   Try different search terms
 //                                 </p>
+//                                 {/* NEW: Add button in empty state with search term */}
+//                                 <button
+//                                   type="button"
+//                                   onClick={() =>
+//                                     openAddItemModal(item.id, searchQuery[item.id] || "")
+//                                   }
+//                                   className="mt-3 px-4 py-2 bg-yellow-400 text-dark rounded-lg font-medium"
+//                                 >
+//                                   + Add "{searchQuery[item.id] || "New Item"}" as New Item
+//                                 </button>
 //                               </div>
 //                             )}
 //                           </div>
@@ -2405,13 +2553,44 @@
 //           </div>
 //         </div>
 //       </div>
+
+//       {/* Add Item Modal */}
+//       {showAddItemModal && (
+//         <div
+//           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
+//           onClick={(e) => {
+//             // close when clicking the backdrop (not the modal content itself)
+//             if (e.target === e.currentTarget) {
+//               setShowAddItemModal(false);
+//             }
+//           }}
+//         >
+//           <div className="bg-white rounded-xl shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto relative">
+//             <button
+//               type="button"
+//               onClick={() => setShowAddItemModal(false)}
+//               className="absolute top-3 right-3 z-10 p-1.5 rounded-full text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+//               aria-label="Close"
+//             >
+//               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+//               </svg>
+//             </button>
+//             <AddRawMaterial
+//               onSuccess={handleNewItemCreated}
+//               closeModal={() => setShowAddItemModal(false)}
+//               defaultName={addItemDefaultName} // if your AddRawMaterial accepts this prop (optional)
+//             />
+//           </div>
+//         </div>
+//       )}
 //     </div>
 //   );
 // };
 
 // export default CreatePurchaseOrder;
 
-
+// CreatePurchaseOrder.jsx
 
 import React, { useState, useEffect, useRef } from "react";
 import Api from "../../auth/Api";
@@ -2419,6 +2598,7 @@ import { useLocation } from "react-router-dom";
 import { removeStartingZero } from "../../utils/number/removeStartingZero";
 import { usePODraft } from "../../hooks/usePODraft";
 import AddRawMaterial from "../Purchase/AddRawMaterial";
+import ExcelPurchaseOrderUpload from "./ExcelPurchaseOrderUpload";
 
 const CreatePurchaseOrder = () => {
   const location = useLocation();
@@ -2441,7 +2621,6 @@ const CreatePurchaseOrder = () => {
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState("");
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [cheapestPriceData, setCheapestPriceData] = useState({});
-  // 🔽 NEW: state for prePoId
   const [selectedPrePo, setSelectedPrePo] = useState("");
   const [itemDetails, setItemDetails] = useState([
     {
@@ -2484,7 +2663,10 @@ const CreatePurchaseOrder = () => {
   const { saveDraft, loadDraft, clearDraft } = usePODraft();
   const dropdownRefs = useRef({});
 
-  // NEW: state for the "Add Item" modal
+  // Excel Upload States
+  const [showExcelUpload, setShowExcelUpload] = useState(false);
+
+  // Add Item Modal States
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [addItemRowId, setAddItemRowId] = useState(null);
   const [addItemDefaultName, setAddItemDefaultName] = useState("");
@@ -2522,7 +2704,6 @@ const CreatePurchaseOrder = () => {
     return currency ? currency.label.match(/\((.*?)\)/)?.[1] || "" : "₹";
   };
 
-  // FIX: Guard against undefined selectedGstType
   const getFixedGSTRate = () => {
     if (!selectedGstType) return 0;
     if (selectedGstType.includes("EXEMPTED")) return 0;
@@ -2530,13 +2711,11 @@ const CreatePurchaseOrder = () => {
     return rateMatch ? parseFloat(rateMatch[1]) : 0;
   };
 
-  // Function to fetch cheapest price for an item using item name
+  // Fetch cheapest price
   const fetchCheapestPrice = async (itemName) => {
     if (!itemName) return null;
-
     try {
       const response = await Api.get(`/common/item/price/cheapest?item=${encodeURIComponent(itemName)}`);
-
       if (response.data.success && response.data.data) {
         const priceData = response.data.data;
         setCheapestPriceData((prev) => ({
@@ -2551,7 +2730,7 @@ const CreatePurchaseOrder = () => {
     }
   };
 
-  // Fetch units from API
+  // Fetch units
   const fetchUnits = async () => {
     try {
       const response = await Api.get("/common/unit/view");
@@ -2609,6 +2788,7 @@ const CreatePurchaseOrder = () => {
     });
   }, [itemDetails]);
 
+  // Fetch warehouses
   const fetchWarehouses = async () => {
     try {
       const res = await Api.get(`/purchase/warehouses`);
@@ -2622,6 +2802,7 @@ const CreatePurchaseOrder = () => {
     }
   };
 
+  // Fetch companies
   const fetchCompanies = async () => {
     setLoading(true);
     try {
@@ -2634,6 +2815,7 @@ const CreatePurchaseOrder = () => {
     }
   };
 
+  // Fetch vendors
   const fetchVendors = async () => {
     setLoading(true);
     try {
@@ -2646,6 +2828,7 @@ const CreatePurchaseOrder = () => {
     }
   };
 
+  // Fetch item list
   const fetchItemList = async () => {
     setLoading(true);
     try {
@@ -2659,50 +2842,46 @@ const CreatePurchaseOrder = () => {
     }
   };
 
+  // Process reorder data
   useEffect(() => {
-  if (location.state?.reorderData) {
-    const reorderData = location.state.reorderData;
-    console.log("From Pre Po: ", reorderData )
-    const fromPrePo = reorderData.fromPrePo || false;
+    if (location.state?.reorderData) {
+      const reorderData = location.state.reorderData;
+      console.log("From Pre Po: ", reorderData);
+      const fromPrePo = reorderData.fromPrePo || false;
 
-    // console.log("Received reorder data:", reorderData);
+      setSelectedVendor(reorderData.vendorId || "");
+      setSelectedPrePo(reorderData.prePoId || "");
+      setSelectedGstType(reorderData.gstType || "");
+      setCurrency(reorderData.currency || "INR");
+      setExchangeRate(reorderData.exchangeRate || "1.00");
+      setPaymentTerms(reorderData.paymentTerms || "");
+      setDeliveryTerms(reorderData.deliveryTerms || "");
+      setWarranty(reorderData.warranty || "");
+      setSelectedWarehouse(reorderData.warehouseId || "");
 
-    // setSelectedCompany(reorderData.companyId || ""); // (currently commented)
-    setSelectedVendor(reorderData.vendorId || "");
-    setSelectedPrePo(reorderData.prePoId || "");
-    setSelectedGstType(reorderData.gstType || "");
-    setCurrency(reorderData.currency || "INR");
-    setExchangeRate(reorderData.exchangeRate || "1.00");
-    setPaymentTerms(reorderData.paymentTerms || "");
-    setDeliveryTerms(reorderData.deliveryTerms || "");
-    setWarranty(reorderData.warranty || "");
-    setSelectedWarehouse(reorderData.warehouseId || "");
+      if (!fromPrePo) {
+        setContactPerson(reorderData.contactPerson || "");
+        setCellNo(reorderData.cellNo || "");
+      } else {
+        setContactPerson("");
+        setCellNo("");
+      }
 
-    // 🔽 Conditionally set contact fields
-    if (!fromPrePo) {
-      setContactPerson(reorderData.contactPerson || "");
-      setCellNo(reorderData.cellNo || "");
-    } else {
-      // When coming from Pre-PO, force user to enter these manually
-      setContactPerson("");
-      setCellNo("");
+      if (reorderData.items && reorderData.items.length > 0) {
+        setPendingReorderItems(reorderData.items);
+      }
+
+      if (reorderData.otherCharges && reorderData.otherCharges.length > 0) {
+        const mappedCharges = reorderData.otherCharges.map((charge, index) => ({
+          id: index + 1,
+          name: charge.name || "",
+          amount: charge.amount || "",
+        }));
+        setOtherCharges(mappedCharges);
+        setShowOtherCharges(true);
+      }
     }
-
-    if (reorderData.items && reorderData.items.length > 0) {
-      setPendingReorderItems(reorderData.items);
-    }
-
-    if (reorderData.otherCharges && reorderData.otherCharges.length > 0) {
-      const mappedCharges = reorderData.otherCharges.map((charge, index) => ({
-        id: index + 1,
-        name: charge.name || "",
-        amount: charge.amount || "",
-      }));
-      setOtherCharges(mappedCharges);
-      setShowOtherCharges(true);
-    }
-  }
-}, [location.state]);
+  }, [location.state]);
 
   // Process reorder items when itemList is loaded
   useEffect(() => {
@@ -2776,7 +2955,7 @@ const CreatePurchaseOrder = () => {
     }
   }, [currency]);
 
-  // Guard against undefined selectedGstType in this effect as well
+  // Guard against undefined selectedGstType
   useEffect(() => {
     if (selectedGstType) {
       setItemDetails(
@@ -2794,6 +2973,7 @@ const CreatePurchaseOrder = () => {
     }
   }, [selectedGstType]);
 
+  // Add item detail
   const addItemDetail = () => {
     const newId = itemDetails.length + 1;
     setItemDetails([
@@ -2816,6 +2996,7 @@ const CreatePurchaseOrder = () => {
     ]);
   };
 
+  // Remove item detail
   const removeItemDetail = (id) => {
     if (itemDetails.length > 1) {
       setItemDetails(itemDetails.filter((item) => item.id !== id));
@@ -2832,6 +3013,7 @@ const CreatePurchaseOrder = () => {
     }
   };
 
+  // Add other charge
   const addOtherCharge = () => {
     const newId = otherCharges.length + 1;
     setOtherCharges([
@@ -2844,12 +3026,14 @@ const CreatePurchaseOrder = () => {
     ]);
   };
 
+  // Remove other charge
   const removeOtherCharge = (id) => {
     if (otherCharges.length > 1) {
       setOtherCharges(otherCharges.filter((charge) => charge.id !== id));
     }
   };
 
+  // Update other charge
   const updateOtherCharge = (id, field, value) => {
     setOtherCharges(
       otherCharges.map((charge) => {
@@ -2861,6 +3045,7 @@ const CreatePurchaseOrder = () => {
     );
   };
 
+  // Calculate missing value
   const calculateMissingValue = (rate, quantity, amount) => {
     const r = rate === "" ? 0 : parseFloat(rate) || 0;
     const q = quantity === "" ? 0 : parseFloat(quantity) || 0;
@@ -2891,6 +3076,7 @@ const CreatePurchaseOrder = () => {
     return { amount: a, rate: r, quantity: q };
   };
 
+  // Calculate item amounts
   const calculateItemAmounts = (item) => {
     const rate = item.rate || 0;
     const quantity = item.quantity || 0;
@@ -2922,6 +3108,7 @@ const CreatePurchaseOrder = () => {
     };
   };
 
+  // Handle item select
   const handleItemSelect = async (id, itemId) => {
     console.log(`Item changed: ${itemId} for item ${id}`);
 
@@ -2974,7 +3161,7 @@ const CreatePurchaseOrder = () => {
           if (item.id === id) {
             const updatedItem = {
               ...item,
-              selectedItem: itemId,  
+              selectedItem: itemId,
               hsnCode: hasHsnCode ? selectedItemData.hsnCode : "",
               modelNumber: selectedItemData.modelNumber || "",
               selectedUnit: "",
@@ -3097,6 +3284,7 @@ const CreatePurchaseOrder = () => {
     }
   };
 
+  // Toggle HSN edit mode
   const toggleHsnEditMode = (itemId) => {
     setEditableHsn((prev) => ({
       ...prev,
@@ -3104,6 +3292,7 @@ const CreatePurchaseOrder = () => {
     }));
   };
 
+  // Handle HSN code change
   const handleHsnCodeChange = (itemId, value) => {
     setItemDetails(
       itemDetails.map((item) => {
@@ -3115,6 +3304,7 @@ const CreatePurchaseOrder = () => {
     );
   };
 
+  // Update item detail
   const updateItemDetail = (id, field, value) => {
     if (
       value === "" &&
@@ -3290,7 +3480,7 @@ const CreatePurchaseOrder = () => {
     if (draft.editableHsn) setEditableHsn(draft.editableHsn);
 
     setDraftRestoredAt(draft.savedAt);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Auto-save draft whenever any form field changes
   useEffect(() => {
@@ -3334,7 +3524,7 @@ const CreatePurchaseOrder = () => {
     showOtherCharges,
     selectedPrePo,
     editableHsn,
-  ]); // eslint-disable-line react-hooks/exhaustive-deps
+  ]);
 
   const getCheapestPriceDisplay = (itemId) => {
     const selectedItemData = itemList.find((item) => item.id === itemId);
@@ -3374,8 +3564,7 @@ const CreatePurchaseOrder = () => {
     );
   };
 
-  // NEW: open the "Add Item" modal for a specific row, optionally pre-filling the
-  // name field with whatever the user had already typed into the search box.
+  // Open add item modal
   const openAddItemModal = (rowId, defaultName = "") => {
     setAddItemRowId(rowId);
     setAddItemDefaultName(defaultName);
@@ -3383,10 +3572,7 @@ const CreatePurchaseOrder = () => {
     setOpenItemDropdown(null);
   };
 
-  // NEW: handle a newly created item coming back from the AddRawMaterial form.
-  // Populates the row with everything entered in the Add Item form (not just
-  // the name), falling back to the refreshed item list only for whatever the
-  // register didn't return.
+  // Handle new item created
   const handleNewItemCreated = async (createdItem) => {
     console.log("new item:", createdItem);
     setShowAddItemModal(false);
@@ -3397,12 +3583,10 @@ const CreatePurchaseOrder = () => {
       setItemList(freshList);
 
       let newItem = null;
-      // mysql
       if (createdItem?.id) {
         newItem = freshList.find((i) => String(i.id) === String(createdItem.id));
       }
 
-      // mongo
       if (createdItem?._id) {
         newItem = freshList.find((i) => String(i._id) === String(createdItem._id));
       }
@@ -3415,8 +3599,6 @@ const CreatePurchaseOrder = () => {
 
       const rowId = addItemRowId;
       if (rowId) {
-        // Prefer the values the user just typed into the Add Item form.
-        // Only fall back to the refreshed item-list record for anything missing.
         let resolvedId;
         if (createdItem?.id) {
           resolvedId = newItem?.id ?? createdItem?.id ?? "";
@@ -3490,6 +3672,103 @@ const CreatePurchaseOrder = () => {
     }
   };
 
+  // Handle auto-fill from Excel
+  const handleAutoFillFromExcel = (data) => {
+    console.log('Auto-filling from Excel:', data);
+
+    // Fill header information
+    if (data.companyId) {
+      setSelectedCompany(data.companyId);
+    }
+    if (data.vendorId) {
+      setSelectedVendor(data.vendorId);
+    }
+    if (data.gstType) {
+      setSelectedGstType(data.gstType);
+    }
+    if (data.currency) {
+      setCurrency(data.currency);
+    }
+    if (data.exchangeRate) {
+      setExchangeRate(data.exchangeRate);
+    }
+    if (data.warehouseId) {
+      setSelectedWarehouse(data.warehouseId);
+    }
+    if (data.expectedDeliveryDate) {
+      setExpectedDeliveryDate(data.expectedDeliveryDate);
+    }
+    if (data.paymentTerms) {
+      setPaymentTerms(data.paymentTerms);
+    }
+    if (data.deliveryTerms) {
+      setDeliveryTerms(data.deliveryTerms);
+    }
+    if (data.warranty) {
+      setWarranty(data.warranty);
+    }
+    if (data.contactPerson) {
+      setContactPerson(data.contactPerson);
+    }
+    if (data.cellNo) {
+      setCellNo(data.cellNo);
+    }
+
+    // Fill items (multiple items from Excel)
+    if (data.items && data.items.length > 0) {
+      const newItemDetails = data.items.map((item, index) => {
+        const quantity = parseFloat(item.quantity) || 0;
+        const rate = parseFloat(item.rate) || 0;
+        const amount = quantity * rate;
+
+        const newItem = {
+          id: index + 1,
+          selectedItem: item.id || '',
+          hsnCode: item.hsnCode || '',
+          modelNumber: item.modelNumber || '',
+          selectedUnit: item.unit || '',
+          rate: item.rate || '',
+          quantity: item.quantity || '',
+          gstRate: item.gstRate || '',
+          amount: amount.toString(),
+          taxableAmount: 0,
+          gstAmount: 0,
+          totalAmount: 0,
+          itemDetail: item.itemDetail || '',
+        };
+
+        const calculatedAmounts = calculateItemAmounts(newItem);
+        newItem.taxableAmount = calculatedAmounts.taxableAmount;
+        newItem.gstAmount = calculatedAmounts.gstAmount;
+        newItem.totalAmount = calculatedAmounts.totalAmount;
+
+        return newItem;
+      });
+
+      setItemDetails(newItemDetails);
+    }
+
+    alert(`✅ Successfully auto-filled ${data.items?.length || 0} item(s) from Excel!`);
+  };
+
+  // Handle Excel upload success
+  const handleExcelUploadSuccess = (result) => {
+    console.log('Excel upload results:', result);
+    setShowExcelUpload(false);
+    
+    if (result.successful > 0) {
+      alert(`✅ Successfully created ${result.successful} purchase orders!`);
+    }
+    if (result.failed > 0) {
+      alert(`⚠️ ${result.failed} orders failed. Check the error details.`);
+    }
+    
+    clearDraft();
+    setDraftRestoredAt(null);
+    handleReset();
+  };
+
+  // Calculate totals
   const itemTotals = itemDetails.reduce(
     (acc, item) => {
       return {
@@ -3516,6 +3795,7 @@ const CreatePurchaseOrder = () => {
       itemTotals.taxableAmount + itemTotals.gstAmount + otherChargesTotal,
   };
 
+  // Handle download
   const handleDownload = async (poId, poName) => {
     if (!poId) return;
     console.log("Downloading purchase order:", poName);
@@ -3561,6 +3841,7 @@ const CreatePurchaseOrder = () => {
     }
   };
 
+  // Handle submit
   const handleSubmit = async () => {
     if (!selectedWarehouse) {
       alert("Please select a warehouse");
@@ -3628,7 +3909,6 @@ const CreatePurchaseOrder = () => {
         expectedDeliveryDate,
         cellNo,
         warehouseId: selectedWarehouse,
-        // 🔽 NEW: include prePoId if available
         prePoId: selectedPrePo || undefined,
         items: itemDetails.map((item) => {
           const selectedItemData = itemList.find(
@@ -3666,6 +3946,11 @@ const CreatePurchaseOrder = () => {
       if (response.data.success) {
         const poId = response.data.data.id;
         const poNumber = response.data.data.poNumber;
+        
+        // Clear draft after successful creation
+        clearDraft();
+        setDraftRestoredAt(null);
+        
         alert("Purchase Order created successfully!");
 
         const shouldDownload = window.confirm(
@@ -3687,6 +3972,7 @@ const CreatePurchaseOrder = () => {
     }
   };
 
+  // Handle reset
   const handleReset = () => {
     clearDraft();
     setDraftRestoredAt(null);
@@ -3702,7 +3988,7 @@ const CreatePurchaseOrder = () => {
     setWarranty("");
     setContactPerson("");
     setCellNo("");
-    setSelectedPrePo(""); // 🔽 NEW
+    setSelectedPrePo("");
     setItemDetails([
       {
         id: 1,
@@ -3740,6 +4026,7 @@ const CreatePurchaseOrder = () => {
     setAddItemDefaultName("");
   };
 
+  // Fetch data on mount
   useEffect(() => {
     fetchCompanies();
     fetchVendors();
@@ -3748,7 +4035,6 @@ const CreatePurchaseOrder = () => {
     fetchUnits();
   }, []);
 
-  // 🔽 NEW: determine if we are coming from a Pre-PO
   const fromPrePo = location.state?.reorderData?.fromPrePo || false;
 
   return (
@@ -3766,6 +4052,49 @@ const CreatePurchaseOrder = () => {
           </div>
         )}
 
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
+                {fromPrePo
+                  ? "Purchase Order from Pre-PO"
+                  : location.state?.reorderData
+                  ? "ReOrder Purchase Order"
+                  : "Create Purchase Order"}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {fromPrePo
+                  ? "Create a purchase order based on the approved Pre-PO request"
+                  : location.state?.reorderData
+                  ? "Review and modify the reorder details below"
+                  : "Fill in the details below to create a new purchase order"}
+              </p>
+            </div>
+            
+            {/* Excel Upload Button */}
+            <button
+              onClick={() => setShowExcelUpload(true)}
+              className="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center shadow-sm whitespace-nowrap"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Upload Excel
+            </button>
+          </div>
+
+          {location.state?.reorderData && (
+            <div className="mt-4 inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {fromPrePo ? "Pre-PO Based Order" : "Reorder Mode - All fields are editable"}
+            </div>
+          )}
+        </div>
+
+        {/* Draft Restored Banner */}
         {draftRestoredAt && (
           <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -3789,42 +4118,7 @@ const CreatePurchaseOrder = () => {
           </div>
         )}
 
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-            {fromPrePo
-              ? "Purchase Order from Pre-PO"
-              : location.state?.reorderData
-              ? "ReOrder Purchase Order"
-              : "Create Purchase Order"}
-          </h1>
-          <p className="text-gray-600">
-            {fromPrePo
-              ? "Create a purchase order based on the approved Pre-PO request"
-              : location.state?.reorderData
-              ? "Review and modify the reorder details below"
-              : "Fill in the details below to create a new purchase order"}
-          </p>
-
-          {location.state?.reorderData && (
-            <div className="mt-4 inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-              {fromPrePo ? "Pre-PO Based Order" : "Reorder Mode - All fields are editable"}
-            </div>
-          )}
-        </div>
-
+        {/* Basic Information */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200">
             Basic Information
@@ -3907,25 +4201,20 @@ const CreatePurchaseOrder = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Exchange Rate{" "}
-                  {currency !== "INR" && `(1 ${currency} = ? INR)`}
+                  Exchange Rate {currency !== "INR" && `(1 ${currency} = ? INR)`}
                 </label>
                 <input
                   type="text"
                   value={exchangeRate}
                   onChange={(e) => setExchangeRate(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                  placeholder={
-                    currency === "INR" ? "1.00 (Fixed)" : "Enter exchange rate"
-                  }
+                  placeholder={currency === "INR" ? "1.00 (Fixed)" : "Enter exchange rate"}
                   step="0.01"
                   min="0.01"
                   disabled={currency === "INR"}
                 />
                 {currency === "INR" && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    INR is base currency
-                  </p>
+                  <p className="mt-1 text-sm text-gray-500">INR is base currency</p>
                 )}
               </div>
 
@@ -3988,16 +4277,15 @@ const CreatePurchaseOrder = () => {
                 />
               </div>
 
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  Expected Delivery Date
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Expected Delivery Date *
                 </label>
                 <input
                   type="date"
                   value={expectedDeliveryDate}
                   onChange={(e) => setExpectedDeliveryDate(e.target.value)}
-                  // min={new Date().toISOString().split("T")[0]}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                 />
               </div>
 
@@ -4030,36 +4318,22 @@ const CreatePurchaseOrder = () => {
           </div>
         </div>
 
-        {/* ITEM SECTION */}
+        {/* Items Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           {selectedGstType && (
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center">
-                <svg
-                  className="w-5 h-5 text-blue-600 mr-2"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clipRule="evenodd"
-                  />
+                <svg className="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
-                <span className="font-medium text-blue-800">
-                  Selected GST Type:
-                </span>
+                <span className="font-medium text-blue-800">Selected GST Type:</span>
                 <span className="ml-2 text-blue-700">
                   {gstTypes.find((gst) => gst.value === selectedGstType)?.label}
                   {!isItemWiseGST && (
-                    <span className="ml-2 font-medium">
-                      (Rate: {getFixedGSTRate()}%)
-                    </span>
+                    <span className="ml-2 font-medium">(Rate: {getFixedGSTRate()}%)</span>
                   )}
                   {isItemWiseGST && (
-                    <span className="ml-2 font-medium">
-                      (Itemwise GST - Enter rate for each item)
-                    </span>
+                    <span className="ml-2 font-medium">(Itemwise GST - Enter rate for each item)</span>
                   )}
                 </span>
               </div>
@@ -4068,24 +4342,15 @@ const CreatePurchaseOrder = () => {
 
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <div className="flex items-center">
-              <svg
-                className="w-5 h-5 text-yellow-600 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                  clipRule="evenodd"
-                />
+              <svg className="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
               </svg>
               <span className="font-medium text-yellow-800">Currency:</span>
               <span className="ml-2 text-yellow-700">
                 All amounts are in {currency} ({getCurrencySymbol(currency)})
                 {currency !== "INR" && exchangeRate && (
                   <span className="ml-2">
-                    (Exchange Rate: 1 {currency} ={" "}
-                    {parseFloat(exchangeRate).toFixed(3)} INR)
+                    (Exchange Rate: 1 {currency} = {parseFloat(exchangeRate).toFixed(3)} INR)
                   </span>
                 )}
               </span>
@@ -4094,14 +4359,9 @@ const CreatePurchaseOrder = () => {
 
           <div className="space-y-6">
             {itemDetails.map((item, index) => (
-              <div
-                key={item.id}
-                className="border border-gray-200 rounded-xl overflow-hidden"
-              >
+              <div key={item.id} className="border border-gray-200 rounded-xl overflow-hidden">
                 <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Item {index + 1}
-                  </h3>
+                  <h3 className="text-lg font-semibold text-gray-800">Item {index + 1}</h3>
                   {itemDetails.length > 1 && (
                     <button
                       type="button"
@@ -4114,37 +4374,18 @@ const CreatePurchaseOrder = () => {
                 </div>
 
                 <div className="p-6">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4 sm:mb-0">
-                    Item Details
-                  </h2>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4 sm:mb-0">Item Details</h2>
+                  
+                  {/* Item selection */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <div
-                      className="relative"
-                      ref={(el) => (dropdownRefs.current[item.id] = el)}
-                    >
+                    <div className="relative" ref={(el) => (dropdownRefs.current[item.id] = el)}>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Select Item *
                         {loadingItems[item.id] && (
                           <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                            <svg
-                              className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
+                            <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                             Loading...
                           </span>
@@ -4162,29 +4403,13 @@ const CreatePurchaseOrder = () => {
                         <span className="truncate">
                           {item.selectedItem
                             ? (() => {
-                                const selected = itemList.find(
-                                  (i) => i.id === item.selectedItem,
-                                );
-                                return selected
-                                  ? selected.name
-                                  : "-- Choose Item --";
+                                const selected = itemList.find((i) => i.id === item.selectedItem);
+                                return selected ? selected.name : "-- Choose Item --";
                               })()
                             : "-- Choose Item --"}
                         </span>
-                        <svg
-                          className={`w-5 h-5 text-gray-400 transform transition-transform ${
-                            openItemDropdown === item.id ? "rotate-180" : ""
-                          }`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 9l-7 7-7-7"
-                          />
+                        <svg className={`w-5 h-5 text-gray-400 transform transition-transform ${openItemDropdown === item.id ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                       </button>
 
@@ -4192,64 +4417,21 @@ const CreatePurchaseOrder = () => {
                         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-96 overflow-hidden">
                           <div className="sticky top-0 bg-white p-2 border-b border-gray-200">
                             <div className="relative">
-                              <svg
-                                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                />
+                              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                               </svg>
                               <input
                                 type="text"
                                 value={searchQuery[item.id] || ""}
-                                onChange={(e) =>
-                                  handleSearchChange(item.id, e.target.value)
-                                }
+                                onChange={(e) => handleSearchChange(item.id, e.target.value)}
                                 placeholder="Search items by name, HSN, or model..."
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 autoFocus
                               />
-                              {searchQuery[item.id] && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleSearchChange(item.id, "")
-                                  }
-                                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                  <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M6 18L18 6M6 6l12 12"
-                                    />
-                                  </svg>
-                                </button>
-                              )}
                             </div>
-                            <div className="mt-1 text-xs text-gray-500">
-                              Type to search items. Showing{" "}
-                              {getFilteredItems(item.id).length} of{" "}
-                              {itemList.length} items.
-                            </div>
-                            {/* NEW: Add Item button inside dropdown header */}
                             <button
                               type="button"
-                              onClick={() =>
-                                openAddItemModal(item.id, searchQuery[item.id] || "")
-                              }
+                              onClick={() => openAddItemModal(item.id, searchQuery[item.id] || "")}
                               className="mt-2 w-full flex items-center justify-center px-3 py-2 bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm font-medium rounded-lg hover:bg-yellow-100"
                             >
                               + Add New Item
@@ -4262,23 +4444,14 @@ const CreatePurchaseOrder = () => {
                                 <button
                                   key={itemOption.id}
                                   type="button"
-                                  onClick={() =>
-                                    handleItemSelectFromDropdown(
-                                      item.id,
-                                      itemOption.id,
-                                    )
-                                  }
+                                  onClick={() => handleItemSelectFromDropdown(item.id, itemOption.id)}
                                   className={`w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-100 focus:outline-none border-b border-gray-100 last:border-b-0 ${
-                                    item.selectedItem === itemOption.id
-                                      ? "bg-blue-50"
-                                      : ""
+                                    item.selectedItem === itemOption.id ? "bg-blue-50" : ""
                                   }`}
                                 >
                                   <div className="font-medium text-gray-900">
                                     {itemOption.name + " - "}
-                                    {itemOption.source === "mongo"
-                                      ? "Installation Material"
-                                      : "Raw Material"}
+                                    {itemOption.source === "mongo" ? "Installation Material" : "Raw Material"}
                                   </div>
                                   <div className="flex flex-wrap gap-2 mt-1">
                                     {itemOption.hsnCode && (
@@ -4307,31 +4480,13 @@ const CreatePurchaseOrder = () => {
                               ))
                             ) : (
                               <div className="px-4 py-8 text-center">
-                                <svg
-                                  className="w-12 h-12 text-gray-300 mx-auto mb-3"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={1.5}
-                                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                  />
+                                <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <p className="text-gray-500">
-                                  No items found for "{searchQuery[item.id]}"
-                                </p>
-                                <p className="text-sm text-gray-400 mt-1">
-                                  Try different search terms
-                                </p>
-                                {/* NEW: Add button in empty state with search term */}
+                                <p className="text-gray-500">No items found for "{searchQuery[item.id]}"</p>
                                 <button
                                   type="button"
-                                  onClick={() =>
-                                    openAddItemModal(item.id, searchQuery[item.id] || "")
-                                  }
+                                  onClick={() => openAddItemModal(item.id, searchQuery[item.id] || "")}
                                   className="mt-3 px-4 py-2 bg-yellow-400 text-dark rounded-lg font-medium"
                                 >
                                   + Add "{searchQuery[item.id] || "New Item"}" as New Item
@@ -4341,14 +4496,6 @@ const CreatePurchaseOrder = () => {
                           </div>
                         </div>
                       )}
-
-                      {!item.selectedItem &&
-                        location.state?.reorderData?.items?.[index] && (
-                          <p className="mt-1 text-sm text-gray-500">
-                            Original:{" "}
-                            {location.state.reorderData.items[index].itemName}
-                          </p>
-                        )}
                     </div>
 
                     <div>
@@ -4356,25 +4503,9 @@ const CreatePurchaseOrder = () => {
                         Select Unit
                         {loadingItems[item.id] && (
                           <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                            <svg
-                              className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
+                            <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                             Loading...
                           </span>
@@ -4382,90 +4513,36 @@ const CreatePurchaseOrder = () => {
                       </label>
                       <select
                         value={item.selectedUnit}
-                        onChange={(e) =>
-                          updateItemDetail(
-                            item.id,
-                            "selectedUnit",
-                            e.target.value,
-                          )
-                        }
+                        onChange={(e) => updateItemDetail(item.id, "selectedUnit", e.target.value)}
                         disabled={loadingItems[item.id]}
                         className={`w-full px-4 py-2.5 border ${
-                          item.selectedItem && !item.selectedUnit
-                            ? "border-orange-300"
-                            : "border-gray-300"
+                          item.selectedItem && !item.selectedUnit ? "border-orange-300" : "border-gray-300"
                         } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
                           loadingItems[item.id] ? "opacity-50" : ""
                         }`}
                       >
                         <option value="">-- Choose Unit --</option>
                         {unitTypes.length === 0 ? (
-                          <option value="" disabled>
-                            Loading units...
-                          </option>
+                          <option value="" disabled>Loading units...</option>
                         ) : (
                           unitTypes.map((u) => (
-                            <option key={u.value} value={u.value}>
-                              {u.label}
-                            </option>
+                            <option key={u.value} value={u.value}>{u.label}</option>
                           ))
                         )}
                       </select>
-                      {item.selectedUnit ? (
-                        <p className="mt-1 text-xs text-green-600">
-                          Current unit: {item.selectedUnit}
-                        </p>
-                      ) : item.selectedItem && !loadingItems[item.id] ? (
-                        <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded">
-                          <p className="text-xs text-orange-600 flex items-center">
-                            <svg
-                              className="w-4 h-4 mr-1"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                              />
-                            </svg>
-                            No unit available for this item. Please select a
-                            unit manually.
-                          </p>
-                        </div>
-                      ) : null}
                     </div>
                   </div>
 
+                  {/* HSN and Model */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        HSN Code *
-                      </label>
-
-                      {!editableHsn[item.id] &&
-                      item.hsnCode &&
-                      item.hsnCode.trim() !== "" ? (
+                      <label className="block text-sm font-medium text-gray-700 mb-2">HSN Code *</label>
+                      {!editableHsn[item.id] && item.hsnCode && item.hsnCode.trim() !== "" ? (
                         <div className="relative">
                           <div className="w-full px-4 py-2.5 border border-green-300 bg-green-50 rounded-lg text-gray-700 font-medium flex items-center justify-between">
                             <div className="flex items-center">
-                              <span className="font-semibold">
-                                {item.hsnCode}
-                              </span>
+                              <span className="font-semibold">{item.hsnCode}</span>
                               <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                <svg
-                                  className="w-3 h-3 mr-1"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
                                 From Item
                               </span>
                             </div>
@@ -4477,100 +4554,40 @@ const CreatePurchaseOrder = () => {
                               Edit
                             </button>
                           </div>
-                          <p className="mt-1 text-xs text-green-600">
-                            HSN code loaded from item data
-                          </p>
                         </div>
                       ) : (
                         <div className="relative">
                           <input
                             type="text"
                             value={item.hsnCode}
-                            onChange={(e) =>
-                              handleHsnCodeChange(item.id, e.target.value)
-                            }
+                            onChange={(e) => handleHsnCodeChange(item.id, e.target.value)}
                             className={`w-full px-4 py-2.5 border ${
-                              !item.hsnCode
-                                ? "border-orange-300"
-                                : "border-gray-300"
+                              !item.hsnCode ? "border-orange-300" : "border-gray-300"
                             } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200`}
                             placeholder="Enter HSN code"
                             required
                           />
-
-                          {editableHsn[item.id] &&
-                          item.hsnCode &&
-                          item.hsnCode.trim() !== "" ? (
-                            <p className="mt-1 text-xs text-blue-600">
-                              Enter HSN code for this item
-                            </p>
-                          ) : editableHsn[item.id] &&
-                            (!item.hsnCode || item.hsnCode.trim() === "") ? (
-                            <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded">
-                              <p className="text-xs text-orange-600 flex items-center">
-                                <svg
-                                  className="w-4 h-4 mr-1"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                                  />
-                                </svg>
-                                This item doesn't have HSN code. Please enter
-                                one.
-                              </p>
-                            </div>
-                          ) : null}
-
-                          {editableHsn[item.id] &&
-                            item.hsnCode &&
-                            item.hsnCode.trim() !== "" && (
-                              <div className="absolute right-2 top-2">
-                                <button
-                                  type="button"
-                                  onClick={() => toggleHsnEditMode(item.id)}
-                                  className="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
-                                >
-                                  Save
-                                </button>
-                              </div>
-                            )}
                         </div>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Model Number
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Model Number</label>
                       <input
                         type="text"
                         value={item.modelNumber}
-                        onChange={(e) =>
-                          updateItemDetail(
-                            item.id,
-                            "modelNumber",
-                            e.target.value,
-                          )
-                        }
+                        onChange={(e) => updateItemDetail(item.id, "modelNumber", e.target.value)}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                         placeholder="Enter model number"
                       />
-
                       {item.selectedItem && getCheapestPriceDisplay(item.selectedItem)}
                     </div>
                   </div>
 
+                  {/* Quantity, Rate, Amount */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Quantity
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
                       <input
                         type="text"
                         value={item.quantity}
@@ -4583,16 +4600,10 @@ const CreatePurchaseOrder = () => {
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                         placeholder="0"
                         inputMode="numeric"
-                        pattern="[0-9]*"
                       />
-                      <p className="mt-1 text-xs text-gray-500">
-                        Enter quantity in {item.selectedUnit || "unit"}
-                      </p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Rate
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Rate</label>
                       <input
                         type="text"
                         value={item.rate}
@@ -4605,18 +4616,10 @@ const CreatePurchaseOrder = () => {
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                         placeholder="0"
                         inputMode="numeric"
-                        pattern="[0-9]*"
-                        disabled={!item.quantity.toString().length >= 1}
                       />
-                      <p className="mt-1 text-xs text-gray-500">
-                        Enter rate per unit
-                      </p>
                     </div>
-
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Total Amount
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Total Amount</label>
                       <input
                         type="text"
                         value={item.amount}
@@ -4629,180 +4632,82 @@ const CreatePurchaseOrder = () => {
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                         placeholder="0"
                         inputMode="numeric"
-                        pattern="[0-9]*"
-                        disabled={!item.quantity.toString().length >= 1}
                       />
-                      <p className="mt-1 text-xs text-gray-500">
-                        Total without GST
-                      </p>
                     </div>
                   </div>
 
+                  {/* GST for Itemwise */}
                   {isItemWiseGST && (
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            GST Rate (%) *
-                          </label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">GST Rate (%) *</label>
                           <input
                             type="text"
                             value={item.gstRate}
-                            onChange={(e) =>
-                              updateItemDetail(
-                                item.id,
-                                "gstRate",
-                                e.target.value,
-                              )
-                            }
+                            onChange={(e) => updateItemDetail(item.id, "gstRate", e.target.value)}
                             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                             placeholder="0.00"
-                            step="0.01"
-                            min="0"
-                            max="100"
                           />
                         </div>
-
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Taxable Amount 
-                          </label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Taxable Amount</label>
                           <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
                             {item.taxableAmount.toFixed(3)}
                           </div>
                         </div>
-
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            GST Amount
-                          </label>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">GST Amount</label>
                           <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
                             {item.gstAmount.toFixed(3)}
                           </div>
                         </div>
                       </div>
-
-                      {item.gstRate && (
-                        <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
-                          <svg
-                            className="w-4 h-4 mr-1.5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          Item GST Rate: {item.gstRate}%
-                        </div>
-                      )}
                     </div>
                   )}
 
+                  {/* Item Description */}
                   <div className="mt-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Item Description
-                      {loadingItems[item.id] && (
-                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          <svg
-                            className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                          Loading...
-                        </span>
-                      )}
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Item Description</label>
                     <textarea
                       value={item.itemDetail}
-                      onChange={(e) =>
-                        updateItemDetail(item.id, "itemDetail", e.target.value)
-                      }
-                      disabled={loadingItems[item.id]}
-                      className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
-                        loadingItems[item.id] ? "opacity-50" : ""
-                      }`}
+                      onChange={(e) => updateItemDetail(item.id, "itemDetail", e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                       placeholder="Enter item specifications, description, and other details..."
                       rows="3"
                     />
-                    {loadingItems[item.id] && (
-                      <p className="mt-1 text-xs text-blue-600">
-                        Item description will be auto-filled from database if
-                        available
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
             ))}
           </div>
+
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-3 border-b border-gray-200">
             <button
               type="button"
               className="px-4 py-2.5 bg-yellow-400 text-dark rounded-lg transition-colors duration-200 font-medium flex items-center"
               onClick={addItemDetail}
             >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               Add Item
             </button>
           </div>
         </div>
 
-        {/* OTHER CHARGES SECTION - Collapsible */}
+        {/* Other Charges */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-3 border-b border-gray-200">
             <div className="flex items-center space-x-4">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4 sm:mb-0">
-                Other Charges
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 sm:mb-0">Other Charges</h2>
               <button
                 type="button"
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium flex items-center"
                 onClick={() => setShowOtherCharges(!showOtherCharges)}
               >
-                <svg
-                  className={`w-5 h-5 mr-2 transform transition-transform ${
-                    showOtherCharges ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
+                <svg className={`w-5 h-5 mr-2 transform transition-transform ${showOtherCharges ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
                 {showOtherCharges ? "Hide Charges" : "Show Charges"}
               </button>
@@ -4814,18 +4719,8 @@ const CreatePurchaseOrder = () => {
                 className="px-4 py-2.5 bg-yellow-400 text-dark rounded-lg hover:bg-yellow-400 transition-colors duration-200 font-medium flex items-center"
                 onClick={addOtherCharge}
               >
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 Add Charge
               </button>
@@ -4835,14 +4730,9 @@ const CreatePurchaseOrder = () => {
           {showOtherCharges && (
             <div className="space-y-6">
               {otherCharges.map((charge, index) => (
-                <div
-                  key={charge.id}
-                  className="border border-gray-200 rounded-xl overflow-hidden"
-                >
+                <div key={charge.id} className="border border-gray-200 rounded-xl overflow-hidden">
                   <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      Charge {index + 1}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-800">Charge {index + 1}</h3>
                     {otherCharges.length > 1 && (
                       <button
                         type="button"
@@ -4857,38 +4747,23 @@ const CreatePurchaseOrder = () => {
                   <div className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Charge Name
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Charge Name</label>
                         <input
                           type="text"
                           value={charge.name}
-                          onChange={(e) =>
-                            updateOtherCharge(charge.id, "name", e.target.value)
-                          }
+                          onChange={(e) => updateOtherCharge(charge.id, "name", e.target.value)}
                           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                           placeholder="e.g., Freight, Loading, Packaging, etc."
                         />
                       </div>
-
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Amount
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
                         <input
                           type="text"
                           value={charge.amount}
-                          onChange={(e) =>
-                            updateOtherCharge(
-                              charge.id,
-                              "amount",
-                              e.target.value,
-                            )
-                          }
+                          onChange={(e) => updateOtherCharge(charge.id, "amount", e.target.value)}
                           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                           placeholder="0.00"
-                          step="0.01"
-                          min="0"
                         />
                       </div>
                     </div>
@@ -4900,18 +4775,8 @@ const CreatePurchaseOrder = () => {
 
           {!showOtherCharges && (
             <div className="text-center py-8">
-              <svg
-                className="w-16 h-16 text-gray-300 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
+              <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p className="text-gray-500 mb-4">No charges added yet</p>
               <button
@@ -4922,18 +4787,8 @@ const CreatePurchaseOrder = () => {
                   addOtherCharge();
                 }}
               >
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 Add Charge
               </button>
@@ -4941,7 +4796,7 @@ const CreatePurchaseOrder = () => {
           )}
         </div>
 
-        {/* Submit Buttons */}
+        {/* Submit Button */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex flex-col sm:flex-row justify-center sm:justify-end space-y-4 sm:space-y-0 sm:space-x-4">
             <button
@@ -4952,8 +4807,7 @@ const CreatePurchaseOrder = () => {
                 !selectedCompany ||
                 !selectedVendor ||
                 !selectedGstType ||
-                (currency !== "INR" &&
-                  (!exchangeRate || parseFloat(exchangeRate) <= 0))
+                (currency !== "INR" && (!exchangeRate || parseFloat(exchangeRate) <= 0))
               }
             >
               {fromPrePo
@@ -4964,38 +4818,58 @@ const CreatePurchaseOrder = () => {
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Add Item Modal */}
-      {showAddItemModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
-          onClick={(e) => {
-            // close when clicking the backdrop (not the modal content itself)
-            if (e.target === e.currentTarget) {
-              setShowAddItemModal(false);
-            }
-          }}
-        >
-          <div className="bg-white rounded-xl shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto relative">
-            <button
-              type="button"
-              onClick={() => setShowAddItemModal(false)}
-              className="absolute top-3 right-3 z-10 p-1.5 rounded-full text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-              aria-label="Close"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <AddRawMaterial
-              onSuccess={handleNewItemCreated}
-              closeModal={() => setShowAddItemModal(false)}
-              defaultName={addItemDefaultName} // if your AddRawMaterial accepts this prop (optional)
+        {/* Excel Upload Modal */}
+        {showExcelUpload && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowExcelUpload(false);
+              }
+            }}
+          >
+            <ExcelPurchaseOrderUpload
+              onSuccess={handleExcelUploadSuccess}
+              onClose={() => setShowExcelUpload(false)}
+              vendorList={vendorsList}
+              companyList={companies}
+              warehouseList={warehouseList}
+              itemList={itemList}
+              onAutoFill={handleAutoFillFromExcel}
             />
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Add Item Modal */}
+        {showAddItemModal && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowAddItemModal(false);
+              }
+            }}
+          >
+            <div className="bg-white rounded-xl shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto relative">
+              <button
+                type="button"
+                onClick={() => setShowAddItemModal(false)}
+                className="absolute top-3 right-3 z-10 p-1.5 rounded-full text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <AddRawMaterial
+                onSuccess={handleNewItemCreated}
+                closeModal={() => setShowAddItemModal(false)}
+                defaultName={addItemDefaultName}
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
