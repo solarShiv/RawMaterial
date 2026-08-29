@@ -3153,7 +3153,7 @@ const CreatePurchaseOrder = () => {
         await fetchCheapestPrice(selectedItemData.name);
 
         const hasHsnCode =
-          selectedItemData.hsnCode && selectedItemData.hsnCode.trim() !== "";
+          selectedItemData.hsnCode && selectedItemData.hsnCode?.trim() !== "";
 
         let initialRate = selectedItemData.rate || "";
 
@@ -3196,7 +3196,7 @@ const CreatePurchaseOrder = () => {
           if (response.data.success) {
             const detailedItem = response.data.item;
             const apiHasHsnCode =
-              detailedItem.hsnCode && detailedItem.hsnCode.trim() !== "";
+              detailedItem.hsnCode && detailedItem.hsnCode?.trim() !== "";
 
             setItemDetails((prevItemDetails) =>
               prevItemDetails.map((item) => {
@@ -3225,7 +3225,7 @@ const CreatePurchaseOrder = () => {
 
                   let newHsnCode = item.hsnCode;
                   if (apiHasHsnCode) {
-                    newHsnCode = detailedItem.hsnCode.trim();
+                    newHsnCode = detailedItem.hsnCode?.trim();
                   }
 
                   const updatedItem = {
@@ -3866,9 +3866,9 @@ const CreatePurchaseOrder = () => {
       alert("Please enter a valid exchange rate for non-INR currency");
       return;
     }
-
+ console.log("Item List: ", itemDetails)
     const itemsWithoutHsn = itemDetails.filter(
-      (item) => !item.hsnCode || item.hsnCode.trim() === "",
+      (item) => !item.hsnCode || item.hsnCode?.trim() === "",
     );
 
     if (itemsWithoutHsn.length > 0) {
@@ -4537,7 +4537,8 @@ const CreatePurchaseOrder = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">HSN Code *</label>
-                      {!editableHsn[item.id] && item.hsnCode && item.hsnCode.trim() !== "" ? (
+                      {/* {!editableHsn[item.id] && item.hsnCode && item?.hsnCode?.trim() !== "" ? ( */}
+                      {!editableHsn[item.id] && String(item?.hsnCode ?? "").trim() !== "" ? (
                         <div className="relative">
                           <div className="w-full px-4 py-2.5 border border-green-300 bg-green-50 rounded-lg text-gray-700 font-medium flex items-center justify-between">
                             <div className="flex items-center">
