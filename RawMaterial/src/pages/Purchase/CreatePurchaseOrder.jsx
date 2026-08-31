@@ -2590,7 +2590,6 @@
 
 // export default CreatePurchaseOrder;
 
-// CreatePurchaseOrder.jsx
 
 import React, { useState, useEffect, useRef } from "react";
 import Api from "../../auth/Api";
@@ -2919,10 +2918,18 @@ const CreatePurchaseOrder = () => {
 
         const gstAmount = (total * itemGstRate) / 100;
 
+        // Ensure hsnCode is a string
+        const hsnCode =
+          foundItem?.hsnCode !== undefined && foundItem?.hsnCode !== null
+            ? String(foundItem.hsnCode)
+            : item.hsnCode
+            ? String(item.hsnCode)
+            : "";
+
         return {
           id: index + 1,
           selectedItem: foundItem?.id || "",
-          hsnCode: foundItem?.hsnCode || item.hsnCode || "",
+          hsnCode: hsnCode,
           modelNumber: foundItem?.modelNumber || item.modelNumber || "",
           selectedUnit: foundItem?.unit || item.unit || "",
           rate: rate.toString(),
@@ -3152,8 +3159,12 @@ const CreatePurchaseOrder = () => {
       try {
         await fetchCheapestPrice(selectedItemData.name);
 
-        const hasHsnCode =
-          selectedItemData.hsnCode && selectedItemData.hsnCode?.trim() !== "";
+        // Ensure hsnCode is a string
+        const hsnCode =
+          selectedItemData.hsnCode !== undefined && selectedItemData.hsnCode !== null
+            ? String(selectedItemData.hsnCode)
+            : "";
+        const hasHsnCode = hsnCode.trim() !== "";
 
         let initialRate = selectedItemData.rate || "";
 
@@ -3162,7 +3173,7 @@ const CreatePurchaseOrder = () => {
             const updatedItem = {
               ...item,
               selectedItem: itemId,
-              hsnCode: hasHsnCode ? selectedItemData.hsnCode : "",
+              hsnCode: hasHsnCode ? hsnCode : "",
               modelNumber: selectedItemData.modelNumber || "",
               selectedUnit: "",
               rate: initialRate,
@@ -3195,8 +3206,11 @@ const CreatePurchaseOrder = () => {
 
           if (response.data.success) {
             const detailedItem = response.data.item;
-            const apiHasHsnCode =
-              detailedItem.hsnCode && detailedItem.hsnCode?.trim() !== "";
+            const apiHsn =
+              detailedItem.hsnCode !== undefined && detailedItem.hsnCode !== null
+                ? String(detailedItem.hsnCode)
+                : "";
+            const apiHasHsnCode = apiHsn.trim() !== "";
 
             setItemDetails((prevItemDetails) =>
               prevItemDetails.map((item) => {
@@ -3225,7 +3239,7 @@ const CreatePurchaseOrder = () => {
 
                   let newHsnCode = item.hsnCode;
                   if (apiHasHsnCode) {
-                    newHsnCode = detailedItem.hsnCode?.trim();
+                    newHsnCode = apiHsn.trim();
                   }
 
                   const updatedItem = {
@@ -3389,7 +3403,7 @@ const CreatePurchaseOrder = () => {
       (item) =>
         item.name.toLowerCase().includes(query.toLowerCase()) ||
         (item.hsnCode &&
-          item.hsnCode.toLowerCase().includes(query.toLowerCase())) ||
+          String(item.hsnCode).toLowerCase().includes(query.toLowerCase())) ||
         (item.modelNumber &&
           item.modelNumber.toLowerCase().includes(query.toLowerCase())),
     );
@@ -3721,10 +3735,13 @@ const CreatePurchaseOrder = () => {
         const rate = parseFloat(item.rate) || 0;
         const amount = quantity * rate;
 
+        // Ensure hsnCode is a string
+        const hsnCode = item.hsnCode ? String(item.hsnCode) : '';
+
         const newItem = {
           id: index + 1,
           selectedItem: item.id || '',
-          hsnCode: item.hsnCode || '',
+          hsnCode: hsnCode,
           modelNumber: item.modelNumber || '',
           selectedUnit: item.unit || '',
           rate: item.rate || '',
@@ -3866,9 +3883,11 @@ const CreatePurchaseOrder = () => {
       alert("Please enter a valid exchange rate for non-INR currency");
       return;
     }
- console.log("Item List: ", itemDetails)
+    console.log("Item List: ", itemDetails);
+
+    // --- FIX: Safely check HSN codes using String() ---
     const itemsWithoutHsn = itemDetails.filter(
-      (item) => !item.hsnCode || item.hsnCode?.trim() === "",
+      (item) => !item.hsnCode || String(item.hsnCode).trim() === "",
     );
 
     if (itemsWithoutHsn.length > 0) {
@@ -3907,7 +3926,7 @@ const CreatePurchaseOrder = () => {
         warranty,
         contactPerson,
         expectedDeliveryDate,
-        cellNo,
+        cellNo:String(cellNo),
         warehouseId: selectedWarehouse,
         prePoId: selectedPrePo || undefined,
         items: itemDetails.map((item) => {
@@ -4456,7 +4475,7 @@ const CreatePurchaseOrder = () => {
                                   <div className="flex flex-wrap gap-2 mt-1">
                                     {itemOption.hsnCode && (
                                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                                        HSN: {itemOption.hsnCode}
+                                        HSN: {String(itemOption.hsnCode)}
                                       </span>
                                     )}
                                     {itemOption.modelNumber && (
@@ -4537,12 +4556,11 @@ const CreatePurchaseOrder = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">HSN Code *</label>
-                      {/* {!editableHsn[item.id] && item.hsnCode && item?.hsnCode?.trim() !== "" ? ( */}
                       {!editableHsn[item.id] && String(item?.hsnCode ?? "").trim() !== "" ? (
                         <div className="relative">
                           <div className="w-full px-4 py-2.5 border border-green-300 bg-green-50 rounded-lg text-gray-700 font-medium flex items-center justify-between">
                             <div className="flex items-center">
-                              <span className="font-semibold">{item.hsnCode}</span>
+                              <span className="font-semibold">{String(item.hsnCode)}</span>
                               <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                 From Item
                               </span>
@@ -4563,7 +4581,7 @@ const CreatePurchaseOrder = () => {
                             value={item.hsnCode}
                             onChange={(e) => handleHsnCodeChange(item.id, e.target.value)}
                             className={`w-full px-4 py-2.5 border ${
-                              !item.hsnCode ? "border-orange-300" : "border-gray-300"
+                              !String(item.hsnCode).trim() ? "border-orange-300" : "border-gray-300"
                             } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200`}
                             placeholder="Enter HSN code"
                             required
