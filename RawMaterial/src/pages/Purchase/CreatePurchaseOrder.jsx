@@ -3687,86 +3687,157 @@ const CreatePurchaseOrder = () => {
   };
 
   // Handle auto-fill from Excel
+  // const handleAutoFillFromExcel = (data) => {
+  //   console.log('Auto-filling from Excel:', data);
+
+  //   // Fill header information
+  //   if (data.companyId) {
+  //     setSelectedCompany(data.companyId);
+  //   }
+  //   if (data.vendorId) {
+  //     setSelectedVendor(data.vendorId);
+  //   }
+  //   if (data.gstType) {
+  //     setSelectedGstType(data.gstType);
+  //   }
+  //   if (data.currency) {
+  //     setCurrency(data.currency);
+  //   }
+  //   if (data.exchangeRate) {
+  //     setExchangeRate(data.exchangeRate);
+  //   }
+  //   if (data.warehouseId) {
+  //     setSelectedWarehouse(data.warehouseId);
+  //   }
+  //   if (data.expectedDeliveryDate) {
+  //     setExpectedDeliveryDate(data.expectedDeliveryDate);
+  //   }
+  //   if (data.paymentTerms) {
+  //     setPaymentTerms(data.paymentTerms);
+  //   }
+  //   if (data.deliveryTerms) {
+  //     setDeliveryTerms(data.deliveryTerms);
+  //   }
+  //   if (data.warranty) {
+  //     setWarranty(data.warranty);
+  //   }
+  //   if (data.contactPerson) {
+  //     setContactPerson(data.contactPerson);
+  //   }
+  //   if (data.cellNo) {
+  //     setCellNo(data.cellNo);
+  //   }
+
+  //   // Fill items (multiple items from Excel)
+  //   if (data.items && data.items.length > 0) {
+  //     const newItemDetails = data.items.map((item, index) => {
+  //       const quantity = parseFloat(item.quantity) || 0;
+  //       const rate = parseFloat(item.rate) || 0;
+  //       const amount = quantity * rate;
+
+  //       // Ensure hsnCode is a string
+  //       const hsnCode = item.hsnCode ? String(item.hsnCode) : '';
+
+  //       const newItem = {
+  //         id: index + 1,
+  //         selectedItem: item.id || '',
+  //         hsnCode: hsnCode,
+  //         modelNumber: item.modelNumber || '',
+  //         selectedUnit: item.unit || '',
+  //         rate: item.rate || '',
+  //         quantity: item.quantity || '',
+  //         gstRate: item.gstRate || '',
+  //         amount: amount.toString(),
+  //         taxableAmount: 0,
+  //         gstAmount: 0,
+  //         totalAmount: 0,
+  //         itemDetail: item.itemDetail || '',
+  //       };
+
+  //       const calculatedAmounts = calculateItemAmounts(newItem);
+  //       newItem.taxableAmount = calculatedAmounts.taxableAmount;
+  //       newItem.gstAmount = calculatedAmounts.gstAmount;
+  //       newItem.totalAmount = calculatedAmounts.totalAmount;
+
+  //       return newItem;
+  //     });
+
+  //     setItemDetails(newItemDetails);
+  //   }
+
+  //   alert(`✅ Successfully auto-filled ${data.items?.length || 0} item(s) from Excel!`);
+  // };
+
+  
   const handleAutoFillFromExcel = (data) => {
-    console.log('Auto-filling from Excel:', data);
+  console.log('Auto-filling from Excel:', data);
 
-    // Fill header information
-    if (data.companyId) {
-      setSelectedCompany(data.companyId);
-    }
-    if (data.vendorId) {
-      setSelectedVendor(data.vendorId);
-    }
-    if (data.gstType) {
-      setSelectedGstType(data.gstType);
-    }
-    if (data.currency) {
-      setCurrency(data.currency);
-    }
-    if (data.exchangeRate) {
-      setExchangeRate(data.exchangeRate);
-    }
-    if (data.warehouseId) {
-      setSelectedWarehouse(data.warehouseId);
-    }
-    if (data.expectedDeliveryDate) {
-      setExpectedDeliveryDate(data.expectedDeliveryDate);
-    }
-    if (data.paymentTerms) {
-      setPaymentTerms(data.paymentTerms);
-    }
-    if (data.deliveryTerms) {
-      setDeliveryTerms(data.deliveryTerms);
-    }
-    if (data.warranty) {
-      setWarranty(data.warranty);
-    }
-    if (data.contactPerson) {
-      setContactPerson(data.contactPerson);
-    }
-    if (data.cellNo) {
-      setCellNo(data.cellNo);
-    }
+  // Fill header information
+  if (data.companyId) setSelectedCompany(data.companyId);
+  if (data.vendorId) setSelectedVendor(data.vendorId);
+  if (data.gstType) setSelectedGstType(data.gstType);
+  if (data.currency) setCurrency(data.currency);
+  if (data.exchangeRate) setExchangeRate(data.exchangeRate);
+  if (data.warehouseId) setSelectedWarehouse(data.warehouseId);
+  if (data.expectedDeliveryDate) setExpectedDeliveryDate(data.expectedDeliveryDate);
+  if (data.paymentTerms) setPaymentTerms(data.paymentTerms);
+  if (data.deliveryTerms) setDeliveryTerms(data.deliveryTerms);
+  if (data.warranty) setWarranty(data.warranty);
+  if (data.contactPerson) setContactPerson(data.contactPerson);
+  if (data.cellNo) setCellNo(data.cellNo);
 
-    // Fill items (multiple items from Excel)
-    if (data.items && data.items.length > 0) {
-      const newItemDetails = data.items.map((item, index) => {
-        const quantity = parseFloat(item.quantity) || 0;
-        const rate = parseFloat(item.rate) || 0;
-        const amount = quantity * rate;
+  // Fill Other Charges
+  if (data.otherCharges && data.otherCharges.length > 0) {
+    const mappedCharges = data.otherCharges.map((charge, index) => ({
+      id: index + 1,
+      name: charge.name || '',
+      amount: charge.amount || '',
+    }));
+    setOtherCharges(mappedCharges);
+    setShowOtherCharges(true);
+  } else {
+    setOtherCharges([{ id: 1, name: '', amount: '' }]);
+    setShowOtherCharges(false);
+  }
 
-        // Ensure hsnCode is a string
-        const hsnCode = item.hsnCode ? String(item.hsnCode) : '';
+  // Fill items
+  if (data.items && data.items.length > 0) {
+    const newItemDetails = data.items.map((item, index) => {
+      const quantity = parseFloat(item.quantity) || 0;
+      const rate = parseFloat(item.rate) || 0;
+      const amount = quantity * rate;
 
-        const newItem = {
-          id: index + 1,
-          selectedItem: item.id || '',
-          hsnCode: hsnCode,
-          modelNumber: item.modelNumber || '',
-          selectedUnit: item.unit || '',
-          rate: item.rate || '',
-          quantity: item.quantity || '',
-          gstRate: item.gstRate || '',
-          amount: amount.toString(),
-          taxableAmount: 0,
-          gstAmount: 0,
-          totalAmount: 0,
-          itemDetail: item.itemDetail || '',
-        };
+      const hsnCode = item.hsnCode ? String(item.hsnCode) : '';
 
-        const calculatedAmounts = calculateItemAmounts(newItem);
-        newItem.taxableAmount = calculatedAmounts.taxableAmount;
-        newItem.gstAmount = calculatedAmounts.gstAmount;
-        newItem.totalAmount = calculatedAmounts.totalAmount;
+      const newItem = {
+        id: index + 1,
+        selectedItem: item.id || '',
+        hsnCode: hsnCode,
+        modelNumber: item.modelNumber || '',
+        selectedUnit: item.unit || '',
+        rate: item.rate || '',
+        quantity: item.quantity || '',
+        gstRate: item.gstRate || '',
+        amount: amount.toString(),
+        taxableAmount: 0,
+        gstAmount: 0,
+        totalAmount: 0,
+        itemDetail: item.itemDetail || '',
+      };
 
-        return newItem;
-      });
+      const calculatedAmounts = calculateItemAmounts(newItem);
+      newItem.taxableAmount = calculatedAmounts.taxableAmount;
+      newItem.gstAmount = calculatedAmounts.gstAmount;
+      newItem.totalAmount = calculatedAmounts.totalAmount;
 
-      setItemDetails(newItemDetails);
-    }
+      return newItem;
+    });
 
-    alert(`✅ Successfully auto-filled ${data.items?.length || 0} item(s) from Excel!`);
-  };
+    setItemDetails(newItemDetails);
+  }
+
+  alert(`✅ Successfully auto-filled ${data.items?.length || 0} item(s) and ${data.otherCharges?.length || 0} other charge(s) from Excel!`);
+};
 
   // Handle Excel upload success
   const handleExcelUploadSuccess = (result) => {
@@ -4094,7 +4165,7 @@ const CreatePurchaseOrder = () => {
             {/* Excel Upload Button */}
             <button
               onClick={() => setShowExcelUpload(true)}
-              className="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center shadow-sm whitespace-nowrap"
+              className="px-4 py-2.5 bg-yellow-400 text-dark rounded-lg hover:bg-yellow-400 transition-colors flex items-center shadow-sm whitespace-nowrap"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

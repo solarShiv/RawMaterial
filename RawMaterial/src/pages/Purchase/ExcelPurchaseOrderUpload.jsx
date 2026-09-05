@@ -1,17 +1,23 @@
-// components/Purchase/ExcelPurchaseOrderUpload.jsx
-
 import React, { useState, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import Api from '../../auth/Api';
 
-const ExcelPurchaseOrderUpload = ({ 
-  onSuccess, 
-  onClose, 
-  vendorList, 
-  companyList, 
-  warehouseList, 
+// Helper to clean and parse numeric values (removes commas, spaces)
+const parseNumericAmount = (value) => {
+  if (value === null || value === undefined || value === '') return 0;
+  const str = String(value).replace(/,/g, '').trim();
+  const num = parseFloat(str);
+  return isNaN(num) ? 0 : num;
+};
+
+const ExcelPurchaseOrderUpload = ({
+  onSuccess,
+  onClose,
+  vendorList,
+  companyList,
+  warehouseList,
   itemList,
-  onAutoFill 
+  onAutoFill
 }) => {
   const [file, setFile] = useState(null);
   const [previewData, setPreviewData] = useState([]);
@@ -22,7 +28,7 @@ const ExcelPurchaseOrderUpload = ({
   const [results, setResults] = useState(null);
   const [groupedData, setGroupedData] = useState([]);
 
-  // Download template with multi-item support
+  // Download template with multi-item support and other charges columns
   const downloadTemplate = useCallback(() => {
     const template = [
       {
@@ -46,7 +52,9 @@ const ExcelPurchaseOrderUpload = ({
         'Quantity': '100',
         'Rate': '500.00',
         'GST Rate (%)': '18',
-        'Item Description': 'High quality raw material'
+        'Item Description': 'High quality raw material',
+        'Other Charge Name': 'Freight',
+        'Other Charge Amount': '1000'
       },
       {
         'PO Reference': 'PO-001',
@@ -69,53 +77,34 @@ const ExcelPurchaseOrderUpload = ({
         'Quantity': '101',
         'Rate': '500.01',
         'GST Rate (%)': '18',
-        'Item Description': 'Premium quality material'
+        'Item Description': 'Premium quality material',
+        'Other Charge Name': 'Packaging',
+        'Other Charge Amount': '500'
       },
       {
-        'PO Reference': 'PO-001',
-        'Company Name': 'ABC Corp',
-        'Vendor Name': 'Supplier Ltd',
-        'GST Type': 'IGST_18',
-        'Currency': 'INR',
-        'Exchange Rate': '1.00',
-        'Warehouse Name': 'Main Warehouse',
-        'Expected Delivery Date': '2026-09-01',
-        'Payment Terms': '60 Days Credit',
-        'Delivery Terms': 'Immediate',
-        'Warranty': '1 Year',
-        'Contact Person': 'John Doe',
-        'Contact Number': '9876543210',
-        'Item Name': 'Panel Side Tube',
-        'HSN Code': '12345600',
-        'Model Number': 'MODEL003',
+        'PO Reference': 'PO-002',
+        'Company Name': 'XYZ Ltd',
+        'Vendor Name': 'Vendor Inc',
+        'GST Type': 'LGST_18',
+        'Currency': 'USD',
+        'Exchange Rate': '83.50',
+        'Warehouse Name': 'Secondary Warehouse',
+        'Expected Delivery Date': '2026-10-01',
+        'Payment Terms': '30 Days',
+        'Delivery Terms': 'FOB',
+        'Warranty': '6 Months',
+        'Contact Person': 'Jane Smith',
+        'Contact Number': '9876543211',
+        'Item Name': 'Steel Sheets',
+        'HSN Code': '87654322',
+        'Model Number': 'MODEL005',
         'Unit': 'KG',
-        'Quantity': '102',
-        'Rate': '500.02',
+        'Quantity': '50',
+        'Rate': '1200.00',
         'GST Rate (%)': '18',
-        'Item Description': 'Side tube material'
-      },
-      {
-        'PO Reference': 'PO-001',
-        'Company Name': 'ABC Corp',
-        'Vendor Name': 'Supplier Ltd',
-        'GST Type': 'IGST_18',
-        'Currency': 'INR',
-        'Exchange Rate': '1.00',
-        'Warehouse Name': 'Main Warehouse',
-        'Expected Delivery Date': '2026-09-01',
-        'Payment Terms': '60 Days Credit',
-        'Delivery Terms': 'Immediate',
-        'Warranty': '1 Year',
-        'Contact Person': 'John Doe',
-        'Contact Number': '9876543210',
-        'Item Name': '14mm Rope - 103M',
-        'HSN Code': '54816851',
-        'Model Number': 'MODEL004',
-        'Unit': 'KG',
-        'Quantity': '103',
-        'Rate': '500.03',
-        'GST Rate (%)': '18',
-        'Item Description': 'Rope material'
+        'Item Description': 'High quality steel',
+        'Other Charge Name': 'Insurance',
+        'Other Charge Amount': '250'
       },
     ];
 
@@ -144,6 +133,8 @@ const ExcelPurchaseOrderUpload = ({
       { wch: 15 }, // Rate
       { wch: 15 }, // GST Rate (%)
       { wch: 40 }, // Item Description
+      { wch: 30 }, // Other Charge Name
+      { wch: 20 }, // Other Charge Amount
     ];
 
     ws['!cols'] = colWidths;
@@ -178,7 +169,7 @@ const ExcelPurchaseOrderUpload = ({
     readExcelFile(selectedFile);
   }, []);
 
-  // Read Excel file
+  // Read Excel file - ALL fields are now safely converted to String
   const readExcelFile = useCallback((file) => {
     const reader = new FileReader();
 
@@ -210,48 +201,50 @@ const ExcelPurchaseOrderUpload = ({
           return;
         }
 
-        // Map and validate data
+        // Map and validate data - all fields are String() to avoid .trim() errors
         const mappedData = jsonData.map((row, index) => {
           const company = companyList?.find(c =>
-            c.companyName?.toLowerCase() === row['Company Name']?.toLowerCase()
+            c.companyName?.toLowerCase() === String(row['Company Name'] || '').toLowerCase()
           );
           const vendor = vendorList?.find(v =>
-            v.displayName?.toLowerCase() === row['Vendor Name']?.toLowerCase()
+            v.displayName?.toLowerCase() === String(row['Vendor Name'] || '').toLowerCase()
           );
           const warehouse = warehouseList?.find(w =>
-            w.label?.toLowerCase() === row['Warehouse Name']?.toLowerCase()
+            w.label?.toLowerCase() === String(row['Warehouse Name'] || '').toLowerCase()
           );
           const item = itemList?.find(i =>
-            i.name?.toLowerCase() === row['Item Name']?.toLowerCase()
+            i.name?.toLowerCase() === String(row['Item Name'] || '').toLowerCase()
           );
 
           return {
             rowIndex: index + 2,
-            poReference: row['PO Reference'] || `PO-${Date.now()}-${index}`,
+            poReference: String(row['PO Reference'] || `PO-${Date.now()}-${index}`),
             companyId: company?.id || '',
-            companyName: row['Company Name'] || '',
+            companyName: String(row['Company Name'] || ''),
             vendorId: vendor?.id || '',
-            vendorName: row['Vendor Name'] || '',
-            gstType: row['GST Type'] || '',
-            currency: row['Currency'] || 'INR',
-            exchangeRate: row['Exchange Rate'] || '1.00',
+            vendorName: String(row['Vendor Name'] || ''),
+            gstType: String(row['GST Type'] || ''),
+            currency: String(row['Currency'] || 'INR'),
+            exchangeRate: String(row['Exchange Rate'] || '1.00'),
             warehouseId: warehouse?.value || '',
-            warehouseName: row['Warehouse Name'] || '',
-            expectedDeliveryDate: row['Expected Delivery Date'] || '',
-            paymentTerms: row['Payment Terms'] || '',
-            deliveryTerms: row['Delivery Terms'] || '',
-            warranty: row['Warranty'] || '',
-            contactPerson: row['Contact Person'] || '',
-            cellNo: row['Contact Number'] || '',
+            warehouseName: String(row['Warehouse Name'] || ''),
+            expectedDeliveryDate: String(row['Expected Delivery Date'] || ''),
+            paymentTerms: String(row['Payment Terms'] || ''),
+            deliveryTerms: String(row['Delivery Terms'] || ''),
+            warranty: String(row['Warranty'] || ''),
+            contactPerson: String(row['Contact Person'] || ''),
+            cellNo: String(row['Contact Number'] || ''),
             itemId: item?.id || '',
-            itemName: row['Item Name'] || '',
-            hsnCode: row['HSN Code'] || '',
-            modelNumber: row['Model Number'] || '',
-            unit: row['Unit'] || '',
-            quantity: row['Quantity'] || '',
-            rate: row['Rate'] || '',
-            gstRate: row['GST Rate (%)'] || '',
-            itemDetail: row['Item Description'] || '',
+            itemName: String(row['Item Name'] || ''),
+            hsnCode: String(row['HSN Code'] || ''),
+            modelNumber: String(row['Model Number'] || ''),
+            unit: String(row['Unit'] || ''),
+            quantity: String(row['Quantity'] || ''),
+            rate: String(row['Rate'] || ''),
+            gstRate: String(row['GST Rate (%)'] || ''),
+            itemDetail: String(row['Item Description'] || ''),
+            otherChargeName: String(row['Other Charge Name'] || ''),
+            otherChargeAmount: String(row['Other Charge Amount'] || ''),
             _raw: row
           };
         });
@@ -296,11 +289,28 @@ const ExcelPurchaseOrderUpload = ({
           warranty: row.warranty,
           contactPerson: row.contactPerson,
           cellNo: row.cellNo,
+          otherCharges: [], // will collect unique charges
           isValid: true,
           errors: []
         };
       }
       groups[key].rows.push(row);
+
+      // Collect other charge if present
+      const chargeName = row.otherChargeName?.trim();
+      const chargeAmountRaw = row.otherChargeAmount?.trim();
+      if (chargeName) {
+        // Use helper to parse amount (removes commas, spaces)
+        const amount = parseNumericAmount(chargeAmountRaw);
+        // Check if this charge name already exists in the group's otherCharges
+        const existing = groups[key].otherCharges.find(c => c.name === chargeName);
+        if (existing) {
+          // Sum amounts if same name
+          existing.amount += amount;
+        } else {
+          groups[key].otherCharges.push({ name: chargeName, amount });
+        }
+      }
     });
 
     // Validate each group
@@ -356,12 +366,12 @@ const ExcelPurchaseOrderUpload = ({
         errors.push(`Row ${index + 1}: Unit is required`);
       }
 
-      const quantity = parseFloat(row.quantity);
+      const quantity = parseNumericAmount(row.quantity);
       if (!row.quantity || isNaN(quantity) || quantity <= 0) {
         errors.push(`Row ${index + 1}: Valid quantity is required`);
       }
 
-      const rate = parseFloat(row.rate);
+      const rate = parseNumericAmount(row.rate);
       if (!row.rate || isNaN(rate) || rate <= 0) {
         errors.push(`Row ${index + 1}: Valid rate is required`);
       }
@@ -376,6 +386,13 @@ const ExcelPurchaseOrderUpload = ({
       alert('This PO has validation errors. Please fix them first.');
       return;
     }
+
+    // Build otherCharges array from group.otherCharges
+    const otherCharges = group.otherCharges.map((charge, index) => ({
+      id: index + 1,
+      name: charge.name,
+      amount: charge.amount.toString()
+    }));
 
     // Prepare data for auto-fill
     const autoFillData = {
@@ -392,6 +409,7 @@ const ExcelPurchaseOrderUpload = ({
       warranty: group.warranty || '',
       contactPerson: group.contactPerson || '',
       cellNo: group.cellNo || '',
+      otherCharges: otherCharges,
       // Items
       items: group.rows.map(row => ({
         id: row.itemId,
@@ -460,7 +478,10 @@ const ExcelPurchaseOrderUpload = ({
               rate: row.rate.toString(),
               ...(row.gstRate ? { gstRate: row.gstRate.toString() } : {})
             })),
-            otherCharges: []
+            otherCharges: group.otherCharges.map(charge => ({
+              name: charge.name,
+              amount: charge.amount.toString()
+            }))
           };
 
           const response = await Api.post('/purchase/purchase-orders/create', poData);
@@ -528,11 +549,9 @@ const ExcelPurchaseOrderUpload = ({
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <h3 className="font-semibold text-blue-800 mb-2">📋 Instructions:</h3>
         <ul className="text-sm text-blue-700 list-disc pl-5 space-y-1">
-          <li>Use <strong>PO Reference</strong> to group items into one PO</li>
-          <li>Rows with the same PO Reference will be combined into one PO</li>
-          <li>Fill in all required fields (marked with *)</li>
           <li>Supported formats: .xlsx, .xls, .csv</li>
-          <li>Maximum file size: 10MB</li>
+          <li><strong>Other Charge Name</strong> and <strong>Other Charge Amount</strong>: add multiple charges per PO – rows with the same PO Reference will aggregate charges with the same name (sum amounts)</li>
+          <li>Amounts can include commas (e.g., 20,650,000) – they will be automatically removed.</li>
         </ul>
       </div>
 
@@ -603,26 +622,6 @@ const ExcelPurchaseOrderUpload = ({
             Review the data. Click "Auto-fill Form" to fill the form with selected PO data.
           </p>
         </div>
-        {/* <div className="space-x-2">
-          <button
-            onClick={() => {
-              setStep(1);
-              setFile(null);
-              setPreviewData([]);
-              setGroupedData([]);
-            }}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-          >
-            Back
-          </button>
-          <button
-            onClick={processAllGroups}
-            disabled={loading || groupedData.filter(g => g.isValid).length === 0}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-          >
-            Process All POs
-          </button>
-        </div> */}
       </div>
 
       {loading && (
@@ -653,6 +652,11 @@ const ExcelPurchaseOrderUpload = ({
                   {group.rows.length} item(s) | 
                   Company: {group.companyName || '⚠️'} | 
                   Vendor: {group.vendorName || '⚠️'}
+                  {group.otherCharges.length > 0 && (
+                    <span className="ml-2 text-blue-600">
+                      | Other Charges: {group.otherCharges.map(c => `${c.name}(${c.amount})`).join(', ')}
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="flex space-x-2">
