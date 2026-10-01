@@ -10,6 +10,78 @@ const parseNumericAmount = (value) => {
   return isNaN(num) ? 0 : num;
 };
 
+// Convert an Expected Delivery Date value from the upload (expected as mm/dd/yyyy)
+// into the yyyy-mm-dd format required by the <input type="date"> form field.
+// Also tolerates Excel date serial numbers / JS Date objects in case the cell
+// is formatted as a date rather than plain text.
+const normalizeExpectedDeliveryDate = (value) => {
+  if (value === null || value === undefined || value === '') return '';
+
+  // Excel serial date number (e.g. 45900)
+  if (typeof value === 'number') {
+    const parsed = XLSX.SSF.parse_date_code(value);
+    if (!parsed) return '';
+    const mm = String(parsed.m).padStart(2, '0');
+    const dd = String(parsed.d).padStart(2, '0');
+    return `${parsed.y}-${mm}-${dd}`;
+  }
+
+  // JS Date object (if cellDates option is used)
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    const mm = String(value.getMonth() + 1).padStart(2, '0');
+    const dd = String(value.getDate()).padStart(2, '0');
+    return `${value.getFullYear()}-${mm}-${dd}`;
+  }
+
+  const str = String(value).trim();
+  if (!str) return '';
+
+  // Expected format: mm/dd/yyyy (also tolerate m/d/yyyy)
+  const mdy = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mdy) {
+    const [, m, d, y] = mdy;
+    const month = parseInt(m, 10);
+    const day = parseInt(d, 10);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      return `${y}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+    return '';
+  }
+
+  // Already in yyyy-mm-dd - accept as-is
+  const ymd = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (ymd) {
+    const [, y, m, d] = ymd;
+    return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  }
+
+  return '';
+};
+
+// GST Type options exactly as used by the "Select GST Type" dropdown.
+// The form binds by `value` (e.g. "IGST_18"), not by the displayed `label`
+// (e.g. "IGST 18%") - so uploads must be mapped from label -> value.
+const GST_TYPE_OPTIONS = [
+  { value: 'IGST_5', label: 'IGST 5%' },
+  { value: 'IGST_12', label: 'IGST 12%' },
+  { value: 'IGST_18', label: 'IGST 18%' },
+  { value: 'IGST_28', label: 'IGST 28%' },
+  { value: 'IGST_EXEMPTED', label: 'IGST Exempted' },
+  { value: 'LGST_5', label: 'LGST 5%' },
+  { value: 'LGST_12', label: 'LGST 12%' },
+  { value: 'LGST_18', label: 'LGST 18%' },
+  { value: 'LGST_28', label: 'LGST 28%' },
+  { value: 'LGST_EXEMPTED', label: 'LGST Exempted' },
+  { value: 'IGST_ITEMWISE', label: 'IGST Itemwise' },
+  { value: 'LGST_ITEMWISE', label: 'LGST Itemwise' },
+];
+
+const VALID_GST_TYPE_LABELS = GST_TYPE_OPTIONS.map(o => o.label);
+
+// Look up the display label for a stored GST Type value (for previews)
+const getGstTypeLabel = (value) =>
+  GST_TYPE_OPTIONS.find(o => o.value === value)?.label || value;
+
 const ExcelPurchaseOrderUpload = ({
   onSuccess,
   onClose,
@@ -35,11 +107,11 @@ const ExcelPurchaseOrderUpload = ({
         'PO Reference': 'PO-001',
         'Company Name': 'ABC Corp',
         'Vendor Name': 'Supplier Ltd',
-        'GST Type': 'IGST_18',
+        'GST Type': 'IGST 18%',
         'Currency': 'INR',
         'Exchange Rate': '1.00',
         'Warehouse Name': 'Main Warehouse',
-        'Expected Delivery Date': '2026-09-01',
+        'Expected Delivery Date': '09/01/2026',
         'Payment Terms': '60 Days Credit',
         'Delivery Terms': 'Immediate',
         'Warranty': '1 Year',
@@ -60,11 +132,11 @@ const ExcelPurchaseOrderUpload = ({
         'PO Reference': 'PO-001',
         'Company Name': 'ABC Corp',
         'Vendor Name': 'Supplier Ltd',
-        'GST Type': 'IGST_18',
+        'GST Type': 'IGST 18%',
         'Currency': 'INR',
         'Exchange Rate': '1.00',
         'Warehouse Name': 'Main Warehouse',
-        'Expected Delivery Date': '2026-09-01',
+        'Expected Delivery Date': '09/01/2026',
         'Payment Terms': '60 Days Credit',
         'Delivery Terms': 'Immediate',
         'Warranty': '1 Year',
@@ -85,11 +157,11 @@ const ExcelPurchaseOrderUpload = ({
         'PO Reference': 'PO-002',
         'Company Name': 'XYZ Ltd',
         'Vendor Name': 'Vendor Inc',
-        'GST Type': 'LGST_18',
+        'GST Type': 'LGST 18%',
         'Currency': 'USD',
         'Exchange Rate': '83.50',
         'Warehouse Name': 'Secondary Warehouse',
-        'Expected Delivery Date': '2026-10-01',
+        'Expected Delivery Date': '10/01/2026',
         'Payment Terms': '30 Days',
         'Delivery Terms': 'FOB',
         'Warranty': '6 Months',
@@ -109,7 +181,7 @@ const ExcelPurchaseOrderUpload = ({
     ];
 
     const ws = XLSX.utils.json_to_sheet(template);
-    
+
     // Set column widths
     const colWidths = [
       { wch: 15 }, // PO Reference
@@ -139,8 +211,16 @@ const ExcelPurchaseOrderUpload = ({
 
     ws['!cols'] = colWidths;
 
+    // Add a second sheet listing the valid GST Type values, for reference
+    const gstTypeSheet = XLSX.utils.aoa_to_sheet([
+      ['Valid GST Type Values'],
+      ...VALID_GST_TYPE_LABELS.map(t => [t])
+    ]);
+    gstTypeSheet['!cols'] = [{ wch: 20 }];
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Purchase Orders');
+    XLSX.utils.book_append_sheet(wb, gstTypeSheet, 'GST Type Reference');
     XLSX.writeFile(wb, 'purchase_order_template.xlsx');
   }, []);
 
@@ -168,6 +248,24 @@ const ExcelPurchaseOrderUpload = ({
     setFile(selectedFile);
     readExcelFile(selectedFile);
   }, []);
+
+  // Normalize a GST Type input to the internal option value (e.g. "IGST_18").
+  // Accepts the display label ("IGST 18%"), the raw value ("IGST_18"), or
+  // minor case/spacing variations - matches against both label and value.
+  const normalizeGstType = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const collapsed = raw.replace(/\s+/g, ' ').toLowerCase();
+    const collapsedNoUnderscore = collapsed.replace(/_/g, ' ');
+
+    const match = GST_TYPE_OPTIONS.find(o => {
+      const label = o.label.toLowerCase();
+      const val = o.value.toLowerCase().replace(/_/g, ' ');
+      return label === collapsed || val === collapsed || val === collapsedNoUnderscore;
+    });
+
+    return match ? match.value : '';
+  };
 
   // Read Excel file - ALL fields are now safely converted to String
   const readExcelFile = useCallback((file) => {
@@ -223,12 +321,14 @@ const ExcelPurchaseOrderUpload = ({
             companyName: String(row['Company Name'] || ''),
             vendorId: vendor?.id || '',
             vendorName: String(row['Vendor Name'] || ''),
-            gstType: String(row['GST Type'] || ''),
+            gstType: normalizeGstType(row['GST Type']),
+            gstTypeRaw: String(row['GST Type'] || ''),
             currency: String(row['Currency'] || 'INR'),
-            exchangeRate: String(row['Exchange Rate'] || '1.00'),
+            exchangeRate: String(row['Exchange Rate'] ?? '1.00'),
             warehouseId: warehouse?.value || '',
             warehouseName: String(row['Warehouse Name'] || ''),
-            expectedDeliveryDate: String(row['Expected Delivery Date'] || ''),
+            expectedDeliveryDateRaw: String(row['Expected Delivery Date'] || ''),
+            expectedDeliveryDate: normalizeExpectedDeliveryDate(row['Expected Delivery Date']),
             paymentTerms: String(row['Payment Terms'] || ''),
             deliveryTerms: String(row['Delivery Terms'] || ''),
             warranty: String(row['Warranty'] || ''),
@@ -239,12 +339,13 @@ const ExcelPurchaseOrderUpload = ({
             hsnCode: String(row['HSN Code'] || ''),
             modelNumber: String(row['Model Number'] || ''),
             unit: String(row['Unit'] || ''),
-            quantity: String(row['Quantity'] || ''),
-            rate: String(row['Rate'] || ''),
-            gstRate: String(row['GST Rate (%)'] || ''),
+            // Use ?? so a legitimate numeric 0 doesn't get collapsed to ''
+            quantity: String(row['Quantity'] ?? ''),
+            rate: String(row['Rate'] ?? ''),
+            gstRate: String(row['GST Rate (%)'] ?? ''),
             itemDetail: String(row['Item Description'] || ''),
             otherChargeName: String(row['Other Charge Name'] || ''),
-            otherChargeAmount: String(row['Other Charge Amount'] || ''),
+            otherChargeAmount: String(row['Other Charge Amount'] ?? ''),
             _raw: row
           };
         });
@@ -267,7 +368,7 @@ const ExcelPurchaseOrderUpload = ({
   // Group data by PO Reference
   const groupByPOReference = (data) => {
     const groups = {};
-    
+
     data.forEach(row => {
       const key = row.poReference;
       if (!groups[key]) {
@@ -279,11 +380,13 @@ const ExcelPurchaseOrderUpload = ({
           vendorId: row.vendorId,
           vendorName: row.vendorName,
           gstType: row.gstType,
+          gstTypeRaw: row.gstTypeRaw,
           currency: row.currency,
           exchangeRate: row.exchangeRate,
           warehouseId: row.warehouseId,
           warehouseName: row.warehouseName,
           expectedDeliveryDate: row.expectedDeliveryDate,
+          expectedDeliveryDateRaw: row.expectedDeliveryDateRaw,
           paymentTerms: row.paymentTerms,
           deliveryTerms: row.deliveryTerms,
           warranty: row.warranty,
@@ -342,12 +445,20 @@ const ExcelPurchaseOrderUpload = ({
       errors.push(`Vendor "${group.vendorName}" not found in system`);
     }
 
-    if (!group.gstType) {
+    if (!group.gstTypeRaw) {
       errors.push('GST Type is required');
+    } else if (!group.gstType) {
+      errors.push(
+        `GST Type "${group.gstTypeRaw}" is not valid. Must be one of: ${VALID_GST_TYPE_LABELS.join(', ')}`
+      );
     }
 
-    if (!group.expectedDeliveryDate) {
+    if (!group.expectedDeliveryDateRaw) {
       errors.push('Expected delivery date is required');
+    } else if (!group.expectedDeliveryDate) {
+      errors.push(
+        `Expected Delivery Date "${group.expectedDeliveryDateRaw}" is not a valid date. Use mm/dd/yyyy format`
+      );
     }
 
     // Check items
@@ -366,13 +477,17 @@ const ExcelPurchaseOrderUpload = ({
         errors.push(`Row ${index + 1}: Unit is required`);
       }
 
-      const quantity = parseNumericAmount(row.quantity);
-      if (!row.quantity || isNaN(quantity) || quantity <= 0) {
+      // Quantity: must be present and > 0 (a zero-quantity line makes no sense)
+      const quantityRaw = String(row.quantity ?? '').trim();
+      const quantity = parseNumericAmount(quantityRaw);
+      if (!quantityRaw || isNaN(quantity) || quantity <= 0) {
         errors.push(`Row ${index + 1}: Valid quantity is required`);
       }
 
-      const rate = parseNumericAmount(row.rate);
-      if (!row.rate || isNaN(rate) || rate <= 0) {
+      // Rate: must be present and >= 0 (0 is a valid rate, e.g. free samples)
+      const rateRaw = String(row.rate ?? '').trim();
+      const rate = parseNumericAmount(rateRaw);
+      if (!rateRaw || isNaN(rate) || rate < 0) {
         errors.push(`Row ${index + 1}: Valid rate is required`);
       }
     });
@@ -394,14 +509,15 @@ const ExcelPurchaseOrderUpload = ({
       amount: charge.amount.toString()
     }));
 
-    // Prepare data for auto-fill
+    // Prepare data for auto-fill.
+    // Use ?? (not ||) so numeric 0 values are preserved.
     const autoFillData = {
       // Header information
       companyId: group.companyId,
       vendorId: group.vendorId,
       gstType: group.gstType,
       currency: group.currency || 'INR',
-      exchangeRate: group.exchangeRate || '1.00',
+      exchangeRate: group.exchangeRate ?? '1.00',
       warehouseId: group.warehouseId,
       expectedDeliveryDate: group.expectedDeliveryDate,
       paymentTerms: group.paymentTerms || '',
@@ -414,13 +530,13 @@ const ExcelPurchaseOrderUpload = ({
       items: group.rows.map(row => ({
         id: row.itemId,
         name: row.itemName,
-        hsnCode: row.hsnCode || '',
-        modelNumber: row.modelNumber || '',
-        unit: row.unit || '',
-        quantity: row.quantity || '',
-        rate: row.rate || '',
-        gstRate: row.gstRate || '',
-        itemDetail: row.itemDetail || '',
+        hsnCode: row.hsnCode ?? '',
+        modelNumber: row.modelNumber ?? '',
+        unit: row.unit ?? '',
+        quantity: row.quantity ?? '',
+        rate: row.rate ?? '',
+        gstRate: row.gstRate ?? '',
+        itemDetail: row.itemDetail ?? '',
       }))
     };
 
@@ -436,7 +552,7 @@ const ExcelPurchaseOrderUpload = ({
   // Process all grouped data and create multiple POs
   const processAllGroups = async () => {
     const validGroups = groupedData.filter(group => group.isValid);
-    
+
     if (validGroups.length === 0) {
       alert('No valid PO groups found to process');
       return;
@@ -459,7 +575,7 @@ const ExcelPurchaseOrderUpload = ({
             vendorId: group.vendorId,
             gstType: group.gstType,
             currency: group.currency || 'INR',
-            exchangeRate: group.exchangeRate || '1.00',
+            exchangeRate: group.exchangeRate ?? '1.00',
             paymentTerms: group.paymentTerms || '',
             deliveryTerms: group.deliveryTerms || '',
             warranty: group.warranty || '',
@@ -474,9 +590,11 @@ const ExcelPurchaseOrderUpload = ({
               modelNumber: row.modelNumber || '',
               itemDetail: row.itemDetail || '',
               unit: row.unit,
-              quantity: row.quantity.toString(),
-              rate: row.rate.toString(),
-              ...(row.gstRate ? { gstRate: row.gstRate.toString() } : {})
+              quantity: String(row.quantity ?? ''),
+              rate: String(row.rate ?? ''),
+              ...(row.gstRate !== '' && row.gstRate !== undefined && row.gstRate !== null
+                ? { gstRate: String(row.gstRate) }
+                : {})
             })),
             otherCharges: group.otherCharges.map(charge => ({
               name: charge.name,
@@ -485,7 +603,7 @@ const ExcelPurchaseOrderUpload = ({
           };
 
           const response = await Api.post('/purchase/purchase-orders/create', poData);
-          
+
           if (response.data.success) {
             successCount++;
           } else {
@@ -521,14 +639,14 @@ const ExcelPurchaseOrderUpload = ({
       let message = `✅ Processed ${validGroups.length} PO(s)\n`;
       message += `✅ Success: ${successCount}\n`;
       message += `❌ Failed: ${failCount}`;
-      
+
       if (failedGroups.length > 0) {
         message += '\n\nFailed PO Groups:\n';
         failedGroups.forEach(f => {
           message += `${f.poReference}: ${f.error}\n`;
         });
       }
-      
+
       alert(message);
 
       if (successCount > 0) {
@@ -550,6 +668,12 @@ const ExcelPurchaseOrderUpload = ({
         <h3 className="font-semibold text-blue-800 mb-2">📋 Instructions:</h3>
         <ul className="text-sm text-blue-700 list-disc pl-5 space-y-1">
           <li>Supported formats: .xlsx, .xls, .csv</li>
+          <li>
+            <strong>GST Type</strong> must be one of:{' '}
+            {VALID_GST_TYPE_LABELS.join(', ')}
+          </li>
+          <li><strong>Expected Delivery Date</strong> must be in mm/dd/yyyy format (e.g., 09/01/2026)</li>
+          <li><strong>Rate</strong> can be 0 (useful for free samples / warranty replacements)</li>
           <li><strong>Other Charge Name</strong> and <strong>Other Charge Amount</strong>: add multiple charges per PO – rows with the same PO Reference will aggregate charges with the same name (sum amounts)</li>
           <li>Amounts can include commas (e.g., 20,650,000) – they will be automatically removed.</li>
         </ul>
@@ -649,9 +773,10 @@ const ExcelPurchaseOrderUpload = ({
                   PO: {group.poReference}
                 </h4>
                 <p className="text-sm text-gray-500">
-                  {group.rows.length} item(s) | 
-                  Company: {group.companyName || '⚠️'} | 
-                  Vendor: {group.vendorName || '⚠️'}
+                  {group.rows.length} item(s) |
+                  Company: {group.companyName || '⚠️'} |
+                  Vendor: {group.vendorName || '⚠️'} |
+                  GST Type: {group.gstType ? getGstTypeLabel(group.gstType) : (group.gstTypeRaw || '⚠️')}
                   {group.otherCharges.length > 0 && (
                     <span className="ml-2 text-blue-600">
                       | Other Charges: {group.otherCharges.map(c => `${c.name}(${c.amount})`).join(', ')}

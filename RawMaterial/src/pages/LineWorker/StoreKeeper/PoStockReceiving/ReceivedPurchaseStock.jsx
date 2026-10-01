@@ -25,13 +25,11 @@ const ReceivedPurchaseStock = () => {
   // Warehouse to Vehicle Warehouse mapping
   const WAREHOUSE_VEHICLE_MAP = {
     "697b06b52da83d53d0e30731": "p891225a-af11-11ef-a344-1a2cd4d9c0d8",
-    "67446a8b27dae6f7f4d985dd": "b691221b-af10-11ef-a344-1a2cd4d9c0d1"
+    "67446a8b27dae6f7f4d985dd": "b691221b-af10-11ef-a344-1a2cd4d9c0d1",
   };
 
-
-
   // Target warehouses that require vehicle selection
-  const TARGET_WAREHOUSE_IDS = Object.keys(WAREHOUSE_VEHICLE_MAP);  
+  const TARGET_WAREHOUSE_IDS = Object.keys(WAREHOUSE_VEHICLE_MAP);
 
   // Get the vehicle warehouse ID based on user's warehouse
   const getVehicleWarehouseId = (warehouseId) => {
@@ -48,7 +46,7 @@ const ReceivedPurchaseStock = () => {
           headers: {
             "Content-Type": "application/json",
           },
-        }
+        },
       );
       const data = await response.json();
       return data.data || [];
@@ -67,7 +65,7 @@ const ReceivedPurchaseStock = () => {
       }
 
       const vehicleWarehouseId = getVehicleWarehouseId(userWarehouseId);
-      
+
       if (!vehicleWarehouseId) {
         console.log("No vehicle warehouse mapping found for:", userWarehouseId);
         setFetchVehicle([]);
@@ -75,7 +73,11 @@ const ReceivedPurchaseStock = () => {
       }
 
       const vehicles = await fetchVehiclesForWarehouse(vehicleWarehouseId);
-      console.log("Fetched vehicles for warehouse:", vehicleWarehouseId, vehicles);
+      console.log(
+        "Fetched vehicles for warehouse:",
+        vehicleWarehouseId,
+        vehicles,
+      );
       setFetchVehicle(vehicles);
     } catch (error) {
       console.error("Error fetching vehicles:", error);
@@ -87,15 +89,15 @@ const ReceivedPurchaseStock = () => {
   useEffect(() => {
     const getWarehouseId = () => {
       // Option 1: From localStorage
-      const storedWarehouse = localStorage.getItem('warehouseId');
+      const storedWarehouse = localStorage.getItem("warehouseId");
       if (storedWarehouse) return storedWarehouse;
-      
+
       // Option 2: From sessionStorage
-      const sessionWarehouse = sessionStorage.getItem('warehouseId');
+      const sessionWarehouse = sessionStorage.getItem("warehouseId");
       if (sessionWarehouse) return sessionWarehouse;
-      
+
       // Option 3: From user object in localStorage
-      const userData = localStorage.getItem('user');
+      const userData = localStorage.getItem("user");
       if (userData) {
         try {
           const user = JSON.parse(userData);
@@ -105,10 +107,10 @@ const ReceivedPurchaseStock = () => {
           console.error("Error parsing user data:", e);
         }
       }
-      
+
       return null;
     };
-    
+
     const warehouseId = getWarehouseId();
     setUserWarehouseId(warehouseId);
     console.log("User warehouse ID:", warehouseId);
@@ -149,7 +151,10 @@ const ReceivedPurchaseStock = () => {
   // Handle click outside vehicle dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (vehicleSearchRef.current && !vehicleSearchRef.current.contains(event.target)) {
+      if (
+        vehicleSearchRef.current &&
+        !vehicleSearchRef.current.contains(event.target)
+      ) {
         setIsVehicleDropdownOpen(false);
       }
     };
@@ -228,26 +233,28 @@ const ReceivedPurchaseStock = () => {
         const damagedQty = parseFloat(input.damagedQty) || 0;
 
         if (receivedQty <= 0) {
-          console.log(`Skipping ${item.itemName} - no quantity received in this batch`);
+          console.log(
+            `Skipping ${item.itemName} - no quantity received in this batch`,
+          );
           return;
         }
 
         if (receivedQty > remainingQty) {
           validationErrors.push(
-            `Received quantity for ${item.itemName} cannot exceed remaining quantity (${remainingQty})`
+            `Received quantity for ${item.itemName} cannot exceed remaining quantity (${remainingQty})`,
           );
         }
 
         if (goodQty + damagedQty !== receivedQty) {
           validationErrors.push(
-            `For ${item.itemName}, Good Qty + Damaged Qty must equal Received Qty`
+            `For ${item.itemName}, Good Qty + Damaged Qty must equal Received Qty`,
           );
         }
 
         itemsToProcess.push({
           index: i,
           item: item,
-          input: input
+          input: input,
         });
       });
 
@@ -296,7 +303,7 @@ const ReceivedPurchaseStock = () => {
       formData.append("purchaseOrderId", poData.id);
       formData.append("items", JSON.stringify(itemsToSend));
       formData.append("invoiceNumber", invoiceNumber);
-      
+
       // Only append vehicle data if warehouse matches
       if (TARGET_WAREHOUSE_IDS.includes(userWarehouseId)) {
         formData.append("vehicleId", selectedVehicle);
@@ -313,13 +320,13 @@ const ReceivedPurchaseStock = () => {
       }
 
       const response = await Api.post(
-        "/store-keeper/purchaseOrder/receive", 
+        "/store-keeper/purchaseOrder/receive",
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       alert(`Purchase stock received successfully!`);
@@ -361,7 +368,8 @@ const ReceivedPurchaseStock = () => {
   };
 
   // Check if vehicle selection should be shown
-  const shouldShowVehicleSelection = userWarehouseId && TARGET_WAREHOUSE_IDS.includes(userWarehouseId);
+  const shouldShowVehicleSelection =
+    userWarehouseId && TARGET_WAREHOUSE_IDS.includes(userWarehouseId);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-4 px-3 sm:py-8 sm:px-5">
@@ -419,7 +427,10 @@ const ReceivedPurchaseStock = () => {
 
             {/* Conditional Vehicle Selection - Only show for specific warehouses */}
             {shouldShowVehicleSelection && (
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-20 overflow-visible relative" ref={vehicleSearchRef}>
+              <div
+                className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-20 overflow-visible relative"
+                ref={vehicleSearchRef}
+              >
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select Vehicle Number *
                 </label>
@@ -441,8 +452,18 @@ const ReceivedPurchaseStock = () => {
                       setIsVehicleDropdownOpen(!isVehicleDropdownOpen);
                     }}
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -454,11 +475,13 @@ const ReceivedPurchaseStock = () => {
                         <div
                           key={vehicle.vehicleId}
                           className="px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
-                          onClick={() => handleVehicleSelect(
-                            vehicle.vehicleId,
-                            vehicle.vehicleNo,
-                            vehicle.partyName
-                          )}
+                          onClick={() =>
+                            handleVehicleSelect(
+                              vehicle.vehicleId,
+                              vehicle.vehicleNo,
+                              vehicle.partyName,
+                            )
+                          }
                         >
                           <div className="font-medium text-gray-800">
                             {vehicle.vehicleNo}
@@ -470,7 +493,9 @@ const ReceivedPurchaseStock = () => {
                       ))
                     ) : (
                       <div className="px-4 py-3 text-gray-500 text-sm">
-                        {fetchVehicle.length === 0 ? "No vehicles available for this warehouse" : "No matching vehicles found"}
+                        {fetchVehicle.length === 0
+                          ? "No vehicles available for this warehouse"
+                          : "No matching vehicles found"}
                       </div>
                     )}
                   </div>
@@ -589,14 +614,26 @@ const ReceivedPurchaseStock = () => {
                   >
                     {/* Item Header */}
                     <div className="mb-4 pb-4 border-b border-gray-100">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      {/* <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <h2 className="text-lg font-semibold text-gray-800 truncate">
                           {item.itemName}
                         </h2>
-                        <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                          {item.modelNumber || "N/A"}
-                        </span>
+                      </div> */}
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h2 className="text-lg font-semibold text-gray-800 truncate">
+                          <span className="text-dark font-medium">
+                            Item Name:
+                          </span>{" "}
+                          {item.itemName}
+                        </h2>
                       </div>
+
+                      {item.itemDetail && (
+                        <p className="mt-2 text-sm text-gray-600 whitespace-normal break-words">
+                          {item.itemDetail}
+                        </p>
+                      )}
                       <div className="grid grid-cols-3 gap-3 mt-3">
                         <div className="bg-blue-50 p-3 rounded-lg">
                           <p className="text-xs text-gray-500">Ordered</p>
@@ -636,7 +673,7 @@ const ReceivedPurchaseStock = () => {
                               handleInputChange(
                                 index,
                                 "receivedQty",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             placeholder="Enter quantity"
@@ -661,7 +698,7 @@ const ReceivedPurchaseStock = () => {
                               handleInputChange(
                                 index,
                                 "goodQty",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             placeholder="Good condition"
@@ -684,7 +721,7 @@ const ReceivedPurchaseStock = () => {
                               handleInputChange(
                                 index,
                                 "damagedQty",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             placeholder="Damaged items"
@@ -695,24 +732,28 @@ const ReceivedPurchaseStock = () => {
 
                       {parseFloat(itemInputs[index]?.receivedQty || 0) > 0 && (
                         <div
-                          className={`p-2 rounded-lg text-sm ${(parseFloat(itemInputs[index].goodQty) || 0) +
-                            (parseFloat(itemInputs[index].damagedQty) || 0) ===
+                          className={`p-2 rounded-lg text-sm ${
+                            (parseFloat(itemInputs[index].goodQty) || 0) +
+                              (parseFloat(itemInputs[index].damagedQty) ||
+                                0) ===
                             (parseFloat(itemInputs[index].receivedQty) || 0)
-                            ? "bg-green-50 text-green-700"
-                            : "bg-red-50 text-red-700"
-                            }`}
+                              ? "bg-green-50 text-green-700"
+                              : "bg-red-50 text-red-700"
+                          }`}
                         >
                           Good ({itemInputs[index].goodQty || 0}) + Damaged (
                           {itemInputs[index].damagedQty || 0}) ={" "}
                           {(parseFloat(itemInputs[index].goodQty) || 0) +
-                            (parseFloat(itemInputs[index].damagedQty) || 0)}{" "}
+                            (parseFloat(itemInputs[index].damagedQty) ||
+                              0)}{" "}
                           | Received: {itemInputs[index].receivedQty}
                         </div>
                       )}
 
                       {!itemInputs[index]?.receivedQty && (
                         <div className="p-2 rounded-lg text-sm bg-gray-50 text-gray-600">
-                          Enter a quantity above to receive this item, or leave empty to skip
+                          Enter a quantity above to receive this item, or leave
+                          empty to skip
                         </div>
                       )}
 
@@ -774,7 +815,8 @@ const ReceivedPurchaseStock = () => {
                   </button>
                 </div>
                 <p className="text-sm text-gray-500 text-center mt-3">
-                  Only items with quantity entered will be received. You can make multiple deliveries
+                  Only items with quantity entered will be received. You can
+                  make multiple deliveries
                 </p>
               </div>
             </div>
