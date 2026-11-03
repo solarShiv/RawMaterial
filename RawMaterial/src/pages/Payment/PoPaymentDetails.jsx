@@ -1,5 +1,31 @@
 import React, { useEffect, useState } from "react";
 import Api from "../../auth/Api";
+import {
+  Search,
+  X,
+  RefreshCw,
+  ChevronDown,
+  FileText,
+  Clock,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  CreditCard,
+  Building2,
+  Store,
+  CalendarDays,
+  User,
+  Ban,
+  Inbox,
+} from "lucide-react";
+
+const STATUS_FILTERS = [
+  { key: "all", label: "All" },
+  { key: "pending", label: "Pending" },
+  { key: "progress", label: "In Progress" },
+  { key: "completed", label: "Completed" },
+  { key: "rejected", label: "Rejected" },
+];
 
 const PoPaymentDetails = () => {
   const [data, setData] = useState([]);
@@ -7,6 +33,7 @@ const PoPaymentDetails = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [expandedRows, setExpandedRows] = useState({});
   const [cancelingRequestId, setCancelingRequestId] = useState(null);
 
@@ -14,31 +41,51 @@ const PoPaymentDetails = () => {
     fetchPaymentRequests();
   }, []);
 
+  const getOverallStatus = (request) => {
+    const docs = request.docsVerification?.status;
+    const admin = request.adminVerification?.status;
+    const accounts = request.accountsVerification?.status;
+
+    if (accounts === true) return "Completed";
+    if (accounts === false) return "Rejected by Accounts";
+    if (admin === true) return "Admin Approved";
+    if (admin === false) return "Rejected by Admin";
+    if (docs === true) return "Docs Verified";
+    if (docs === false) return "Rejected by Docs";
+    return "Pending";
+  };
+
+  const getStatusGroup = (request) => {
+    const status = getOverallStatus(request);
+    if (status === "Completed") return "completed";
+    if (status.includes("Rejected")) return "rejected";
+    if (status === "Pending") return "pending";
+    return "progress";
+  };
+
   useEffect(() => {
-    if (searchTerm) {
-      const filtered = data.filter((request) => {
-        const searchLower = searchTerm.toLowerCase();
-        return (
-          request.poNumber?.toLowerCase().includes(searchLower) ||
-          request.vendorName?.toLowerCase().includes(searchLower) ||
-          request.companyName?.toLowerCase().includes(searchLower) ||
-          request.paymentRequestId?.toLowerCase().includes(searchLower) ||
-          request.requestedAmount?.toString().includes(searchTerm) ||
-          request.currency?.toLowerCase().includes(searchLower)
-        );
-      });
-      setFilteredData(filtered);
-    } else {
-      setFilteredData(data);
-    }
-  }, [searchTerm, data]);
+    const searchLower = searchTerm.toLowerCase();
+    const filtered = data.filter((request) => {
+      const matchesSearch =
+        !searchTerm ||
+        request.poNumber?.toLowerCase().includes(searchLower) ||
+        request.vendorName?.toLowerCase().includes(searchLower) ||
+        request.companyName?.toLowerCase().includes(searchLower) ||
+        request.paymentRequestId?.toLowerCase().includes(searchLower) ||
+        request.requestedAmount?.toString().includes(searchTerm) ||
+        request.currency?.toLowerCase().includes(searchLower);
+      const matchesStatus = statusFilter === "all" || getStatusGroup(request) === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+    setFilteredData(filtered);
+  }, [searchTerm, statusFilter, data]);
 
   const fetchPaymentRequests = async () => {
     try {
       setLoading(true);
+      setError("");
       const response = await Api.get("/purchase/purchase-orders/payments/show");
       setData(response?.data?.data || []);
-      setFilteredData(response?.data?.data || []);
     } catch (err) {
       setError("Failed to connect to server");
       console.error("API Error:", err);
@@ -81,12 +128,6 @@ const PoPaymentDetails = () => {
 
   const formatAmount = (amount, currencyCode) => {
     const symbol = getCurrencySymbol(currencyCode);
-    if (currencyCode?.toUpperCase() === "USD") {
-      return `${symbol}${Number(amount).toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`;
-    }
     if (currencyCode?.toUpperCase() === "INR") {
       return `${symbol} ${Number(amount).toLocaleString("en-IN")}`;
     }
@@ -96,47 +137,11 @@ const PoPaymentDetails = () => {
     })}`;
   };
 
-  const getVerificationStatus = (verification) => {
-    if (verification.status === true) return "Approved";
-    if (verification.status === false) return "Rejected";
-    return "Pending";
-  };
-
-  const getVerificationColor = (verification) => {
-    if (verification.status === true) return "bg-green-100 text-green-800";
-    if (verification.status === false) return "bg-red-100 text-red-800";
-    return "bg-yellow-100 text-yellow-800";
-  };
-
-  const getOverallStatus = (request) => {
-    const docs = request.docsVerification?.status;
-    const admin = request.adminVerification?.status;
-    const accounts = request.accountsVerification?.status;
-
-    if (accounts === true) return "Completed";
-    if (accounts === false) return "Rejected by Accounts";
-    if (admin === true) return "Admin Approved";
-    if (admin === false) return "Rejected by Admin";
-    if (docs === true) return "Docs Verified";
-    if (docs === false) return "Rejected by Docs";
-    return "Pending";
-  };
-
-  const getOverallStatusColor = (request) => {
-    const status = getOverallStatus(request);
-    if (status === "Completed") return "bg-green-100 text-green-800";
-    if (status.includes("Rejected")) return "bg-red-100 text-red-800";
-    if (status.includes("Approved") || status.includes("Verified"))
-      return "bg-blue-100 text-blue-800";
-    return "bg-yellow-100 text-yellow-800";
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const clearSearch = () => {
-    setSearchTerm("");
+  const STATUS_STYLES = {
+    completed: "badge-green",
+    rejected: "badge-red",
+    progress: "badge bg-blue-50 text-blue-700",
+    pending: "badge-yellow",
   };
 
   const handleCancel = async (paymentRequestId) => {
@@ -152,284 +157,370 @@ const PoPaymentDetails = () => {
       await Api.put(`/purchase/purchase-orders/payments/reject?id=${paymentRequestId}`);
       await fetchPaymentRequests();
     } catch (err) {
-      setError("Error", err?.response?.data?.message);
+      setError(err?.response?.data?.message || "Failed to cancel payment request");
       console.log("Cancel error:", err?.response?.data?.message);
     } finally {
       setCancelingRequestId(null);
     }
   };
 
-  return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-        <h2 className="text-2xl font-semibold">Payment Requests</h2>
+  const counts = data.reduce(
+    (acc, r) => {
+      acc[getStatusGroup(r)] += 1;
+      return acc;
+    },
+    { pending: 0, progress: 0, completed: 0, rejected: 0 }
+  );
 
-        <div className="flex items-center space-x-4">
-          <div className="relative">
+  const stats = [
+    { label: "Total Requests", value: data.length, icon: FileText, tone: "bg-ink-100 text-ink-700", key: "all" },
+    { label: "Pending", value: counts.pending, icon: Clock, tone: "bg-brand-100 text-brand-700", key: "pending" },
+    { label: "In Progress", value: counts.progress, icon: Loader2, tone: "bg-blue-50 text-blue-600", key: "progress" },
+    { label: "Completed", value: counts.completed, icon: CheckCircle2, tone: "bg-green-50 text-green-600", key: "completed" },
+    { label: "Rejected", value: counts.rejected, icon: XCircle, tone: "bg-red-50 text-red-600", key: "rejected" },
+  ];
+
+  // ---------- Approval steps ----------
+  const getSteps = (request) => [
+    { title: "Accounts Verification", v: request.docsVerification || {} },
+    { title: "Payment Approval", sub: "Super Admin", v: request.adminVerification || {} },
+    { title: "Payment Done", v: request.accountsVerification || {} },
+  ];
+
+  const stepState = (v) => (v.status === true ? "done" : v.status === false ? "rejected" : "pending");
+
+  const StepIcon = ({ state }) => {
+    if (state === "done")
+      return (
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-600 text-white">
+          <CheckCircle2 className="h-4 w-4" />
+        </span>
+      );
+    if (state === "rejected")
+      return (
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-600 text-white">
+          <XCircle className="h-4 w-4" />
+        </span>
+      );
+    return (
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-ink-300 bg-white text-ink-400">
+        <Clock className="h-4 w-4" />
+      </span>
+    );
+  };
+
+  const ApprovalTracker = ({ request }) => (
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h4 className="text-sm font-semibold text-ink-900">Approval Progress</h4>
+        <div className="flex items-center gap-1.5 text-xs text-ink-500">
+          <User className="h-3.5 w-3.5" />
+          Requested by <span className="font-semibold text-ink-800">{request.requestedBy || "N/A"}</span>
+        </div>
+      </div>
+
+      <ol className="grid gap-3 md:grid-cols-3">
+        {getSteps(request).map((step, i) => {
+          const state = stepState(step.v);
+          return (
+            <li
+              key={i}
+              className={`rounded-xl border bg-white p-4 ${
+                state === "done" ? "border-green-200" : state === "rejected" ? "border-red-200" : "border-ink-200"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <StepIcon state={state} />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">Step {i + 1}</div>
+                  <div className="font-semibold text-ink-950 leading-tight">
+                    {step.title}
+                    {step.sub && <span className="ml-1 text-xs font-normal text-ink-500">({step.sub})</span>}
+                  </div>
+                  <span
+                    className={`mt-1.5 ${
+                      state === "done" ? "badge-green" : state === "rejected" ? "badge-red" : "badge-yellow"
+                    }`}
+                  >
+                    {state === "done" ? "Approved" : state === "rejected" ? "Rejected" : "Pending"}
+                  </span>
+                </div>
+              </div>
+
+              <dl className="mt-3 space-y-1.5 border-t border-ink-100 pt-3 text-xs">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-ink-500">By</dt>
+                  <dd className="font-medium text-ink-800 text-right break-words">{step.v.approvedBy || "N/A"}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-ink-500">Date</dt>
+                  <dd className="text-ink-800 text-right">{formatDate(step.v.approvedDate)}</dd>
+                </div>
+                <div>
+                  <dt className="text-ink-500">Remarks</dt>
+                  <dd className="mt-0.5 text-ink-800 break-words">{step.v.remarks || "No remarks"}</dd>
+                </div>
+              </dl>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+
+  const Actions = ({ request, full = false }) => {
+    const expanded = !!expandedRows[request.paymentRequestId];
+    return (
+      <div className={`flex items-center gap-2 ${full ? "w-full" : "justify-end"}`}>
+        <button
+          onClick={() => toggleRowExpansion(request.paymentRequestId)}
+          className={`btn-outline py-1.5 ${full ? "flex-1" : ""}`}
+        >
+          {expanded ? "Hide" : "Details"}
+          <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
+        </button>
+        {getOverallStatus(request) !== "Completed" && (
+          <button
+            onClick={() => handleCancel(request.paymentRequestId)}
+            disabled={cancelingRequestId === request.paymentRequestId}
+            className={`btn py-1.5 border border-red-200 bg-white text-red-600 hover:bg-red-50 ${full ? "flex-1" : ""}`}
+            title="Cancel request"
+          >
+            {cancelingRequestId === request.paymentRequestId ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Ban className="h-4 w-4" />
+            )}
+            Cancel
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="page space-y-5">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+        {stats.map((s, i) => {
+          const Icon = s.icon;
+          const active = statusFilter === s.key;
+          return (
+            <button
+              key={s.label}
+              onClick={() => setStatusFilter(s.key)}
+              className={`card flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:border-ink-300 ${
+                active ? "ring-2 ring-brand-400 border-brand-400" : ""
+              } ${i === 0 ? "col-span-2 md:col-span-1" : ""}`}
+            >
+              <div>
+                <div className="text-xs font-medium text-ink-500">{s.label}</div>
+                <div className="text-2xl font-bold tabular-nums text-ink-950">{s.value}</div>
+              </div>
+              <span className={`flex h-10 w-10 items-center justify-center rounded-lg ${s.tone}`}>
+                <Icon className="h-5 w-5" />
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Toolbar */}
+      <div className="card p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
             <input
               type="text"
-              placeholder="Search by PO, Vendor, Company, Amount, Currency..."
+              placeholder="Search PO, vendor, company, amount, currency..."
               value={searchTerm}
-              onChange={handleSearchChange}
-              className="w-80 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input h-10 pl-9 pr-9"
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              🔍
-            </div>
             {searchTerm && (
               <button
-                onClick={clearSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setSearchTerm("")}
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-ink-400 hover:bg-ink-100 hover:text-ink-900"
+                aria-label="Clear search"
               >
-                ✕
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
 
-          <span className="text-sm text-gray-500 whitespace-nowrap">
-            {filteredData.length} of {data.length} requests
-          </span>
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
+            {STATUS_FILTERS.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setStatusFilter(f.key)}
+                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  statusFilter === f.key
+                    ? "bg-ink-950 text-brand-400"
+                    : "bg-ink-100 text-ink-600 hover:bg-ink-200"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+            <button onClick={fetchPaymentRequests} disabled={loading} className="btn-outline ml-1 h-9 py-0" title="Refresh">
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {loading && (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
-      )}
-
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-          {error}
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <span>{error}</span>
+          <button onClick={() => setError("")} className="text-red-500 hover:text-red-700" aria-label="Dismiss">
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
 
-      {!loading && filteredData.length === 0 && (
-        <div className="text-center py-10">
-          <div className="text-gray-400 text-5xl mb-4">💳</div>
-          <p className="text-gray-500 text-lg">
-            {searchTerm ? "No matching payment requests found" : "No payment requests found"}
+      {/* Content */}
+      {loading && data.length === 0 ? (
+        <div className="card space-y-3 p-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-12 animate-pulse rounded-lg bg-ink-100" />
+          ))}
+        </div>
+      ) : filteredData.length === 0 ? (
+        <div className="card py-14 text-center">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-ink-100 text-ink-400">
+            <Inbox className="h-6 w-6" />
+          </div>
+          <p className="font-semibold text-ink-800">
+            {searchTerm || statusFilter !== "all" ? "No matching payment requests" : "No payment requests yet"}
           </p>
-          {searchTerm && (
-            <button onClick={clearSearch} className="mt-2 text-blue-600 hover:text-blue-800">
-              Clear search
+          {(searchTerm || statusFilter !== "all") && (
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("all");
+              }}
+              className="mt-2 text-sm font-semibold text-ink-900 underline underline-offset-2 hover:text-brand-600"
+            >
+              Clear filters
             </button>
           )}
         </div>
-      )}
+      ) : (
+        <>
+          {/* Desktop table */}
+          <div className="hidden lg:block table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>PO Number</th>
+                  <th>Company</th>
+                  <th>Vendor</th>
+                  <th className="!text-right">Amount</th>
+                  <th>Created</th>
+                  <th>Status</th>
+                  <th className="!text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.map((request) => {
+                  const group = getStatusGroup(request);
+                  const expanded = !!expandedRows[request.paymentRequestId];
+                  return (
+                    <React.Fragment key={request.paymentRequestId}>
+                      <tr className={expanded ? "bg-brand-50" : ""}>
+                        <td className="font-semibold text-ink-950 whitespace-nowrap">{request.poNumber}</td>
+                        <td className="max-w-[220px] break-words">{request.companyName}</td>
+                        <td className="max-w-[220px] break-words">{request.vendorName}</td>
+                        <td className="text-right whitespace-nowrap">
+                          <div className="font-bold tabular-nums text-ink-950">
+                            {formatAmount(request.requestedAmount, request.currency)}
+                          </div>
+                          <div className="text-[11px] text-ink-400">{request.currency}</div>
+                        </td>
+                        <td className="whitespace-nowrap text-ink-600">{formatDate(request.createdAt)}</td>
+                        <td>
+                          <span className={`${STATUS_STYLES[group]} whitespace-nowrap`}>{getOverallStatus(request)}</span>
+                        </td>
+                        <td>
+                          <Actions request={request} />
+                        </td>
+                      </tr>
+                      {expanded && (
+                        <tr className="!bg-ink-50">
+                          <td colSpan={7} className="!py-5">
+                            <ApprovalTracker request={request} />
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
-      {!loading && filteredData.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-          <table className="min-w-full border-collapse">
-            <thead className="bg-gray-100">
-              <tr className="text-left text-sm font-semibold text-gray-700">
-                <th className="px-6 py-3">PO Number</th>
-                <th className="px-6 py-3">Company</th>
-                <th className="px-6 py-3">Vendor</th>
-                <th className="px-6 py-3">Amount</th>
-                <th className="px-6 py-3">Created Date</th>
-                <th className="px-6 py-3">Overall Status</th>
-                <th className="px-6 py-3">Actions</th>
-               </tr>
-            </thead>
+          {/* Mobile / tablet cards */}
+          <div className="grid gap-3 md:grid-cols-2 lg:hidden">
+            {filteredData.map((request) => {
+              const group = getStatusGroup(request);
+              const expanded = !!expandedRows[request.paymentRequestId];
+              return (
+                <div key={request.paymentRequestId} className={`card overflow-hidden ${expanded ? "md:col-span-2" : ""}`}>
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-400">PO Number</div>
+                        <div className="font-bold text-ink-950 break-words">{request.poNumber}</div>
+                      </div>
+                      <span className={`${STATUS_STYLES[group]} shrink-0`}>{getOverallStatus(request)}</span>
+                    </div>
 
-            <tbody>
-              {filteredData.map((request) => (
-                <React.Fragment key={request.paymentRequestId}>
-                  <tr className="border-t hover:bg-gray-50 text-sm transition-colors">
-                    <td className="px-6 py-4 font-medium">{request.poNumber}</td>
-                    <td className="px-6 py-4">{request.companyName}</td>
-                    <td className="px-6 py-4">{request.vendorName}</td>
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-blue-700">
+                    <div className="mt-3 flex items-end justify-between gap-3 rounded-lg bg-ink-50 px-3 py-2.5">
+                      <div className="flex items-center gap-2 text-ink-500">
+                        <CreditCard className="h-4 w-4" />
+                        <span className="text-xs">Amount</span>
+                      </div>
+                      <div className="text-lg font-bold tabular-nums text-ink-950">
                         {formatAmount(request.requestedAmount, request.currency)}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">{request.currency}</div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600">{formatDate(request.createdAt)}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 text-xs rounded-full font-medium ${getOverallStatusColor(
-                          request
-                        )}`}
-                      >
-                        {getOverallStatus(request)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {/* Responsive action buttons: stack on mobile, row on larger screens */}
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:space-x-2">
-                        <button
-                          onClick={() => toggleRowExpansion(request.paymentRequestId)}
-                          className="flex items-center text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
-                        >
-                          <span className="mr-2">
-                            {expandedRows[request.paymentRequestId] ? "Hide" : "View"} Details
-                          </span>
-                          <span
-                            className={`transform transition-transform ${
-                              expandedRows[request.paymentRequestId] ? "rotate-180" : ""
-                            }`}
-                          >
-                            ▼
-                          </span>
-                        </button>
+                    </div>
 
-                        {getOverallStatus(request) !== "Completed" && (
-                          <button
-                            onClick={() => handleCancel(request.paymentRequestId)}
-                            disabled={cancelingRequestId === request.paymentRequestId}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium whitespace-nowrap"
-                          >
-                            {cancelingRequestId === request.paymentRequestId ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
-                            ) : (
-                              "Cancel"
-                            )}
-                          </button>
-                        )}
+                    <dl className="mt-3 space-y-2 text-sm">
+                      <div className="flex items-start gap-2">
+                        <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-ink-400" />
+                        <dd className="text-ink-800 break-words">{request.companyName}</dd>
                       </div>
-                    </td>
-                  </tr>
+                      <div className="flex items-start gap-2">
+                        <Store className="mt-0.5 h-4 w-4 shrink-0 text-ink-400" />
+                        <dd className="text-ink-800 break-words">{request.vendorName}</dd>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-ink-400" />
+                        <dd className="text-ink-600">{formatDate(request.createdAt)}</dd>
+                      </div>
+                    </dl>
 
-                  {expandedRows[request.paymentRequestId] && (
-                    <tr className="bg-gray-50">
-                      <td colSpan="8" className="px-6 py-4">
-                        <div className="ml-4 pl-4 border-l-2 border-blue-200">
-                          <div className="flex justify-between items-start mb-4 flex-wrap gap-2">
-                            <h4 className="font-medium text-gray-700">Payment Request History</h4>
-                            <div className="text-sm text-gray-500">
-                              Requested by: <span className="font-medium">{request.requestedBy}</span>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                            {/* Docs Verification */}
-                            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                              <h5 className="font-semibold text-gray-800 mb-3">
-                                Accounts Verification
-                              </h5>
-                              <div className="space-y-2 text-sm">
-                                <div>
-                                  <span className="text-gray-500">Status:</span>
-                                  <span
-                                    className={`ml-2 px-2 py-1 rounded-full text-xs ${getVerificationColor(
-                                      request.docsVerification
-                                    )}`}
-                                  >
-                                    {getVerificationStatus(request.docsVerification)}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Approved By:</span>
-                                  <span className="ml-2 font-medium">
-                                    {request.docsVerification.approvedBy || "N/A"}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Date:</span>
-                                  <span className="ml-2">
-                                    {formatDate(request.docsVerification.approvedDate)}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Remarks:</span>
-                                  <span className="ml-2">
-                                    {request.docsVerification.remarks || "No remarks"}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
+                    <div className="mt-4">
+                      <Actions request={request} full />
+                    </div>
+                  </div>
 
-                            {/* Admin Verification */}
-                            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                              <h5 className="font-semibold text-gray-800 mb-3">
-                                Payment Approval (Super Admin)
-                              </h5>
-                              <div className="space-y-2 text-sm">
-                                <div>
-                                  <span className="text-gray-500">Status:</span>
-                                  <span
-                                    className={`ml-2 px-2 py-1 rounded-full text-xs ${getVerificationColor(
-                                      request.adminVerification
-                                    )}`}
-                                  >
-                                    {getVerificationStatus(request.adminVerification)}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Approved By:</span>
-                                  <span className="ml-2 font-medium">
-                                    {request.adminVerification.approvedBy || "N/A"}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Date:</span>
-                                  <span className="ml-2">
-                                    {formatDate(request.adminVerification.approvedDate)}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Remarks:</span>
-                                  <span className="ml-2">
-                                    {request.adminVerification.remarks || "No remarks"}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Accounts Verification */}
-                            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                              <h5 className="font-semibold text-gray-800 mb-3">Payment Done</h5>
-                              <div className="space-y-2 text-sm">
-                                <div>
-                                  <span className="text-gray-500">Status:</span>
-                                  <span
-                                    className={`ml-2 px-2 py-1 rounded-full text-xs ${getVerificationColor(
-                                      request.accountsVerification
-                                    )}`}
-                                  >
-                                    {getVerificationStatus(request.accountsVerification)}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Approved By:</span>
-                                  <span className="ml-2 font-medium">
-                                    {request.accountsVerification.approvedBy || "N/A"}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Date:</span>
-                                  <span className="ml-2">
-                                    {formatDate(request.accountsVerification.approvedDate)}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500">Remarks:</span>
-                                  <span className="ml-2">
-                                    {request.accountsVerification.remarks || "No remarks"}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
+                  {expanded && (
+                    <div className="border-t border-ink-200 bg-ink-50 p-4">
+                      <ApprovalTracker request={request} />
+                    </div>
                   )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                </div>
+              );
+            })}
+          </div>
 
-      {!loading && data.length > 0 && (
-        <div className="mt-4 text-sm text-gray-500">
-          <p>
+          <p className="text-xs text-ink-500">
             Showing {filteredData.length} of {data.length} payment requests
             {searchTerm && ` matching "${searchTerm}"`}
           </p>
-        </div>
+        </>
       )}
     </div>
   );

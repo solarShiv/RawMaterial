@@ -312,7 +312,7 @@ const ApprovalPOInvoice = () => {
               <button
                 onClick={() => handleBulkApprovalAction("APPROVED")}
                 disabled={bulkActionLoading}
-                className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                className="px-4 py-2 btn-approve text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
               >
                 {bulkActionLoading ? (
                   <>
@@ -361,7 +361,7 @@ const ApprovalPOInvoice = () => {
               <button
                 onClick={() => handleBulkApprovalAction("REJECTED")}
                 disabled={bulkActionLoading}
-                className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                className="px-4 py-2 btn-decline text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
               >
                 <svg
                   className="w-4 h-4 mr-2"
@@ -390,10 +390,7 @@ const ApprovalPOInvoice = () => {
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
-          PO Approval Requests
-        </h2>
+      <div className="flex justify-end items-center mb-6">
         <div className="flex space-x-3">
           <button
             onClick={fetchApprovalData}
@@ -615,7 +612,7 @@ const ApprovalPOInvoice = () => {
                               disabled={
                                 actionLoading[po.poId] || selectedPOs.size > 0
                               }
-                              className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                              className="px-4 py-2 btn-approve text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                             >
                               {actionLoading[po.poId] ? (
                                 <svg
@@ -665,7 +662,7 @@ const ApprovalPOInvoice = () => {
                               disabled={
                                 actionLoading[po.poId] || selectedPOs.size > 0
                               }
-                              className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                              className="px-4 py-2 btn-decline text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                             >
                               <svg
                                 className="w-4 h-4 mr-2"

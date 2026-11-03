@@ -647,12 +647,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900"></h1>
-        
-      </div>
-
       {/* Selection Summary Bar */}
       {selectedRequests.length > 0 && (
         <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm">
@@ -685,7 +679,7 @@ const AdminDashboard = () => {
               </button>
               <button
                 onClick={() => handleBulkActionClick('APPROVE')}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center"
+                className="px-4 py-2 text-sm font-medium btn-approve rounded-lg transition-colors flex items-center"
                 disabled={updateLoading}
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -695,7 +689,7 @@ const AdminDashboard = () => {
               </button>
               <button
                 onClick={() => handleBulkActionClick('REJECT')}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center"
+                className="px-4 py-2 text-sm font-medium btn-decline rounded-lg transition-colors flex items-center"
                 disabled={updateLoading}
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -936,8 +930,8 @@ const AdminDashboard = () => {
                         className={`
                           flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center
                           ${request.status === 'APPROVED' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+                            ? 'btn-approve opacity-60' 
+                            : 'btn-approve'
                           }
                           ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
                         `}
@@ -965,8 +959,8 @@ const AdminDashboard = () => {
                         className={`
                           flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center
                           ${request.status === 'REJECTED' 
-                            ? 'bg-red-100 text-red-800' 
-                            : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                            ? 'btn-decline opacity-60' 
+                            : 'btn-decline'
                           }
                           ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
                         `}
@@ -1128,8 +1122,8 @@ const AdminDashboard = () => {
                           className={`
                             px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center
                             ${request.status === 'APPROVED' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-green-500 text-white font-bolder hover:bg-green-600 hover:text-white border border-green-200'
+                              ? 'btn-approve opacity-60' 
+                              : 'btn-approve'
                             }
                             ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
                           `}
@@ -1155,8 +1149,8 @@ const AdminDashboard = () => {
                           className={`
                             px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center
                             ${request.status === 'REJECTED' 
-                              ? 'bg-red-100 text-red-800' 
-                              : 'bg-red-500  text-white hover:bg-red-600 border border-red-200'
+                              ? 'btn-decline opacity-60' 
+                              : 'btn-decline'
                             }
                             ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
                           `}

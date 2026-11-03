@@ -80,10 +80,6 @@ const StockUpdateHistory = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-5 font-sans">
-      <div className="text-center mb-8 pb-5 border-b-2 border-gray-300">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Stock Update History</h1>
-        <p className="text-gray-600 text-lg">Track all stock movements and updates</p>
-      </div>
 
       <div className="space-y-6">
         {!stockHistory || stockHistory.length === 0 ? (

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Api from '../../auth/Api'
 import {
-  BuildingOffice2Icon,
   CheckCircleIcon,
   XCircleIcon,
   ArrowPathIcon,
@@ -142,10 +141,6 @@ const ActiveDeactivateCompany = () => {
 
       {/* Header */}
       <div className="bg-white p-5 rounded-lg shadow mb-4">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <BuildingOffice2Icon className="h-6 w-6 text-yellow-600" />
-          Company Status Management
-        </h1>
 
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">

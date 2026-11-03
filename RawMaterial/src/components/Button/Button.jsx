@@ -10,9 +10,9 @@ const Button = ({
 }) => {
   const baseStyles =
     variant === "default"
-      ? "px-4 py-2 rounded-xl font-semibold text-white bg-yellow-500 hover:scale-[1.03]"
+      ? "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-ink-950 bg-brand-400 hover:bg-brand-500 shadow-sm"
       : // icon button → no padding, no bg, no color
-        "p-1 text-gray-600 hover:text-gray-900 bg-transparent";
+        "p-1 rounded-md text-ink-500 hover:text-ink-950 hover:bg-ink-100 bg-transparent";
 
   return (
     <button

@@ -165,12 +165,6 @@ const RegisterEmployee = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-xl">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 px-6 py-8 text-dark">
-          <h2 className="text-2xl md:text-3xl font-bold text-center tracking-tight">
-            Register Employee
-          </h2>
-        </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">

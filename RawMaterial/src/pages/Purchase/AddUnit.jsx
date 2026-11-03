@@ -39,7 +39,6 @@ const AddUnit = () => {
 
   return (
     <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Add New Unit</h1>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

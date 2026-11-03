@@ -24,9 +24,6 @@ const AccountDetails = () => {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 mt-8">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">
-        Vendor Account Details
-      </h1>
 
       {/* Loading */}
       {loading && (

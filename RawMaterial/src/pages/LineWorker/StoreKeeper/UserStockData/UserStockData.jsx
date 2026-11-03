@@ -1,26 +1,106 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Api from '../../../../auth/Api';
+import { getInitials } from '../../../../components/SidebarMenu/menuConfig';
+import {
+  Search,
+  Users,
+  Package,
+  Send,
+  ClipboardList,
+  AlertCircle,
+  UserRound,
+  CheckCircle2,
+  XCircle,
+} from 'lucide-react';
+
+const EMPTY_STOCK = {
+  balanceSummary: [],
+  directItemsIssued: [],
+  itemsRequested: []
+};
+
+const TABS = [
+  { key: 'currentStock', label: 'Current stock', icon: Package, dataKey: 'balanceSummary' },
+  { key: 'directIssued', label: 'Direct issued', icon: Send, dataKey: 'directItemsIssued' },
+  { key: 'requests', label: 'Item requests', icon: ClipboardList, dataKey: 'itemsRequested' },
+];
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return 'N/A';
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+const getRequestStatusClass = (status) => {
+  switch (status) {
+    case 'APPROVED':
+      return 'badge-green';
+    case 'PENDING':
+      return 'badge-yellow';
+    default:
+      return 'badge-red';
+  }
+};
+
+const toText = (value) => (value == null ? '' : String(value)).toLowerCase();
+
+const itemsMatch = (items, term) =>
+  (items || []).some((item) => toText(item.rawMaterialName).includes(term));
+
+// Compact list of "item · qty unit" chips used by the issue and request tables
+const ItemChips = ({ items }) => (
+  <div className="flex flex-wrap gap-1.5">
+    {(items || []).map((item, idx) => (
+      <span
+        key={idx}
+        className="inline-flex items-center gap-1.5 rounded-md border border-ink-200 bg-ink-50 px-2 py-1 text-xs"
+      >
+        <span className="font-medium text-ink-900">{item.rawMaterialName}</span>
+        <span className="font-bold tabular-nums text-ink-950">
+          {item.quantity} {item.unit}
+        </span>
+      </span>
+    ))}
+  </div>
+);
+
+const EmptyState = ({ icon: Icon, title, text }) => (
+  <div className="py-16 text-center">
+    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-ink-100 text-ink-400">
+      <Icon className="h-6 w-6" />
+    </div>
+    <p className="font-semibold text-ink-800">{title}</p>
+    {text && <p className="text-sm text-ink-500">{text}</p>}
+  </div>
+);
 
 const UserStockData = () => {
   const [lineWorkers, setLineWorkers] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState('');
-  const [selectedWorkerName, setSelectedWorkerName] = useState('');
-  const [stockData, setStockData] = useState({
-    balanceSummary: [],
-    directItemsIssued: [],
-    itemsRequested: []
-  });
+  const [stockData, setStockData] = useState(EMPTY_STOCK);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [tableLoading, setTableLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('currentStock');
+  const [workerSearch, setWorkerSearch] = useState('');
+  const [tableSearch, setTableSearch] = useState('');
+
+  // Ignore responses for a worker that is no longer selected
+  const latestRequest = useRef(null);
 
   const fetchLineWorkers = async () => {
     try {
       setLoading(true);
       const response = await Api.get(`/store-keeper/getLineWorkerList`);
       if (response.data.success) {
-        setLineWorkers(response.data.data);
+        setLineWorkers(response.data.data || []);
       }
     } catch (err) {
       setError('Error fetching line workers');
@@ -30,438 +110,372 @@ const UserStockData = () => {
     }
   };
 
-  const fetchUserStock = async (empId, workerName) => {
+  const fetchUserStock = async (empId) => {
+    latestRequest.current = empId;
     if (!empId) {
-      setStockData({
-        balanceSummary: [],
-        directItemsIssued: [],
-        itemsRequested: []
-      });
-      setSelectedWorkerName('');
+      setStockData(EMPTY_STOCK);
       return;
     }
-    
+
     try {
       setTableLoading(true);
-      setSelectedWorkerName(workerName);
+      setError('');
       const response = await Api.get(`/store-keeper/getUserItemStock?empId=${empId}`);
-      
+      if (latestRequest.current !== empId) return;
+
       if (response.data.success) {
-        setStockData(response.data.data || {
-          balanceSummary: [],
-          directItemsIssued: [],
-          itemsRequested: []
-        });
-        setError('');
+        setStockData({ ...EMPTY_STOCK, ...(response.data.data || {}) });
       } else {
-        setStockData({
-          balanceSummary: [],
-          directItemsIssued: [],
-          itemsRequested: []
-        });
+        setStockData(EMPTY_STOCK);
         setError('Failed to fetch stock data');
       }
     } catch (err) {
+      if (latestRequest.current !== empId) return;
       setError('Error fetching stock data');
-      setStockData({
-        balanceSummary: [],
-        directItemsIssued: [],
-        itemsRequested: []
-      });
+      setStockData(EMPTY_STOCK);
       console.error('Error fetching stock data:', err);
     } finally {
-      setTableLoading(false);
+      if (latestRequest.current === empId) setTableLoading(false);
     }
   };
 
-  const handleWorkerChange = (e) => {
-    const workerId = e.target.value;
-    const selected = lineWorkers.find(worker => worker.id === workerId);
+  const handleWorkerSelect = (workerId) => {
+    if (workerId === selectedWorker) return;
     setSelectedWorker(workerId);
     setActiveTab('currentStock'); // Reset to default tab
-    fetchUserStock(workerId, selected ? `${selected.name} - ${selected.role.name}` : '');
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    setTableSearch('');
+    fetchUserStock(workerId);
   };
 
   useEffect(() => {
     fetchLineWorkers();
   }, []);
 
-  const renderCurrentStockTable = () => (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-      <div className="bg-gray-800 px-6 py-4 sm:px-8 sm:py-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h3 className="text-xl font-semibold text-white">
-            Current Stock Balance
-          </h3>
-          <span className="bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-medium">
-            Total items: {stockData.balanceSummary.length}
-          </span>
-        </div>
-      </div>
+  const selected = lineWorkers.find((worker) => worker.id === selectedWorker);
+
+  const workerTerm = workerSearch.trim().toLowerCase();
+  const visibleWorkers = workerTerm
+    ? lineWorkers.filter(
+        (w) => toText(w.name).includes(workerTerm) || toText(w.role?.name).includes(workerTerm)
+      )
+    : lineWorkers;
+
+  const term = tableSearch.trim().toLowerCase();
+  const currentStock = term
+    ? stockData.balanceSummary.filter(
+        (item) => toText(item.rawMaterialName).includes(term) || toText(item.unit).includes(term)
+      )
+    : stockData.balanceSummary;
+  const directIssued = term
+    ? stockData.directItemsIssued.filter(
+        (issue) =>
+          itemsMatch(issue.items, term) ||
+          toText(issue.issuedBy).includes(term) ||
+          toText(issue.remarks).includes(term)
+      )
+    : stockData.directItemsIssued;
+  const requests = term
+    ? stockData.itemsRequested.filter(
+        (request) =>
+          itemsMatch(request.items, term) ||
+          toText(request.status).includes(term) ||
+          toText(request.approvedBy).includes(term)
+      )
+    : stockData.itemsRequested;
+
+  const renderCurrentStockTable = () =>
+    currentStock.length === 0 ? (
+      <EmptyState
+        icon={Package}
+        title={term ? 'No matching items' : 'No stock in hand'}
+        text={term ? 'Try a different search.' : 'This worker has no current stock balance.'}
+      />
+    ) : (
       <div className="overflow-x-auto">
-        <table className="w-full min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="table">
+          <thead>
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Item Name
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Quantity
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Unit
-              </th>
+              <th className="w-12">#</th>
+              <th>Item</th>
+              <th className="!text-right">Quantity</th>
+              <th>Unit</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {stockData.balanceSummary.map((item, index) => (
-              <tr key={item.rawMaterialId || index} className="hover:bg-gray-50 transition-colors duration-150">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {item.rawMaterialName || 'N/A'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
+          <tbody>
+            {currentStock.map((item, index) => (
+              <tr key={item.rawMaterialId || index}>
+                <td className="text-xs tabular-nums text-ink-400">{index + 1}</td>
+                <td className="font-semibold text-ink-950">{item.rawMaterialName || 'N/A'}</td>
+                <td className="text-right text-base font-bold tabular-nums text-green-700">
                   {item.quantity || 0}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {item.unit || 'N/A'}
-                </td>
+                <td className="text-ink-700">{item.unit || 'N/A'}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
-  );
+    );
 
-  const renderDirectIssuedTable = () => (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-      <div className="bg-gray-800 px-6 py-4 sm:px-8 sm:py-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h3 className="text-xl font-semibold text-white">
-            Direct Items Issued
-          </h3>
-          <span className="bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-medium">
-            Total transactions: {stockData.directItemsIssued.length}
-          </span>
-        </div>
-      </div>
+  const renderDirectIssuedTable = () =>
+    directIssued.length === 0 ? (
+      <EmptyState
+        icon={Send}
+        title={term ? 'No matching issues' : 'No direct issues'}
+        text={term ? 'Try a different search.' : 'No items have been issued directly to this worker.'}
+      />
+    ) : (
       <div className="overflow-x-auto">
-        <table className="w-full min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="table">
+          <thead>
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Issued Date
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Items
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Issued By
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Remarks
-              </th>
+              <th className="w-44">Issued on</th>
+              <th>Items</th>
+              <th>Issued by</th>
+              <th>Remarks</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {stockData.directItemsIssued.map((issue, index) => (
-              <tr key={issue.id || index} className="hover:bg-gray-50 transition-colors duration-150">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {formatDate(issue.issuedDate)}
+          <tbody>
+            {directIssued.map((issue, index) => (
+              <tr key={issue.id || index}>
+                <td className="whitespace-nowrap font-medium text-ink-900">{formatDate(issue.issuedDate)}</td>
+                <td className="min-w-[260px]">
+                  <ItemChips items={issue.items} />
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  <ul className="list-disc pl-4">
-                    {issue.items.map((item, idx) => (
-                      <li key={idx}>
-                        {item.rawMaterialName}: {item.quantity} {item.unit}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {issue.issuedBy}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {issue.remarks || 'No remarks'}
+                <td className="whitespace-nowrap font-medium text-ink-900">{issue.issuedBy || 'N/A'}</td>
+                <td className="min-w-[160px] max-w-[280px] break-words text-ink-700">
+                  {issue.remarks || <span className="text-ink-400">—</span>}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
-  );
+    );
 
-  const renderRequestedItemsTable = () => (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-      <div className="bg-gray-800 px-6 py-4 sm:px-8 sm:py-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h3 className="text-xl font-semibold text-white">
-            Item Requests History
-          </h3>
-          <span className="bg-gray-700 text-white px-3 py-1 rounded-full text-sm font-medium">
-            Total requests: {stockData.itemsRequested.length}
-          </span>
-        </div>
-      </div>
+  const renderRequestedItemsTable = () =>
+    requests.length === 0 ? (
+      <EmptyState
+        icon={ClipboardList}
+        title={term ? 'No matching requests' : 'No item requests'}
+        text={term ? 'Try a different search.' : 'This worker has not requested any items.'}
+      />
+    ) : (
       <div className="overflow-x-auto">
-        <table className="w-full min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="table">
+          <thead>
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Requested Date
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Items
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Approved By
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Material Given
-              </th>
+              <th className="w-44">Requested on</th>
+              <th>Items</th>
+              <th>Status</th>
+              <th>Approved by</th>
+              <th>Material given</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {stockData.itemsRequested.map((request, index) => (
-              <tr key={request.id || index} className="hover:bg-gray-50 transition-colors duration-150">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {formatDate(request.requestedDate)}
+          <tbody>
+            {requests.map((request, index) => (
+              <tr key={request.id || index}>
+                <td className="whitespace-nowrap font-medium text-ink-900">{formatDate(request.requestedDate)}</td>
+                <td className="min-w-[260px]">
+                  <ItemChips items={request.items} />
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  <ul className="list-disc pl-4">
-                    {request.items.map((item, idx) => (
-                      <li key={idx}>
-                        {item.rawMaterialName}: {item.quantity} {item.unit}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    request.status === 'APPROVED' 
-                      ? 'bg-green-100 text-green-800' 
-                      : request.status === 'PENDING'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {request.status}
+                <td>
+                  <span className={`whitespace-nowrap ${getRequestStatusClass(request.status)}`}>
+                    {request.status || 'N/A'}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {request.approvedBy || 'N/A'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    request.materialGiven 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {request.materialGiven ? 'Yes' : 'No'}
-                  </span>
+                <td className="whitespace-nowrap font-medium text-ink-900">{request.approvedBy || 'N/A'}</td>
+                <td>
+                  {request.materialGiven ? (
+                    <span className="badge-green">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Yes
+                    </span>
+                  ) : (
+                    <span className="badge-gray">
+                      <XCircle className="h-3.5 w-3.5" /> No
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
-  );
+    );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-            User Stock Data
-          </h1>
-          {selectedWorkerName && (
-            <div className="mt-4 text-lg text-gray-600">
-              Currently viewing: <strong className="text-gray-800">{selectedWorkerName}</strong>
+    <div className="p-4 sm:p-6">
+      <div className="mx-auto grid max-w-[1600px] gap-5 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
+        {/* Worker list */}
+        <aside className="card overflow-hidden lg:sticky lg:top-4">
+          <div className="border-b border-ink-200 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-ink-950">Line workers</h2>
+              <span className="badge-gray tabular-nums">{lineWorkers.length}</span>
+            </div>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+              <input
+                type="text"
+                value={workerSearch}
+                onChange={(e) => setWorkerSearch(e.target.value)}
+                placeholder="Search name or role…"
+                className="input pl-9"
+              />
+            </div>
+          </div>
+
+          <div className="max-h-72 overflow-y-auto p-2 lg:max-h-[calc(100vh-14rem)]">
+            {loading ? (
+              <div className="space-y-2 p-1">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-12 animate-pulse rounded-lg bg-ink-100" />
+                ))}
+              </div>
+            ) : visibleWorkers.length === 0 ? (
+              <p className="px-3 py-6 text-center text-sm text-ink-500">
+                {lineWorkers.length === 0 ? 'No line workers found' : 'No matching workers'}
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {visibleWorkers.map((worker) => {
+                  const active = worker.id === selectedWorker;
+                  return (
+                    <li key={worker.id}>
+                      <button
+                        type="button"
+                        onClick={() => handleWorkerSelect(worker.id)}
+                        className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors ${
+                          active ? 'bg-ink-950 text-white' : 'hover:bg-brand-50'
+                        }`}
+                      >
+                        <span
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                            active ? 'bg-brand-400 text-ink-950' : 'bg-ink-200 text-ink-800'
+                          }`}
+                        >
+                          {getInitials(worker.name)}
+                        </span>
+                        <span className="min-w-0">
+                          <span className={`block truncate text-sm font-semibold ${active ? 'text-white' : 'text-ink-950'}`}>
+                            {worker.name}
+                          </span>
+                          <span className={`block truncate text-xs ${active ? 'text-brand-400' : 'text-ink-500'}`}>
+                            {worker.role?.name || '—'}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </aside>
+
+        {/* Details */}
+        <section className="min-w-0 space-y-5">
+          {error && (
+            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              <AlertCircle className="h-4 w-4 shrink-0" /> {error}
             </div>
           )}
-        </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="max-w-4xl mx-auto mb-6">
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
-              <span>⚠️</span>
-              {error}
+          {!selectedWorker ? (
+            <div className="card">
+              <EmptyState
+                icon={Users}
+                title="Select a line worker"
+                text="Pick a worker from the list to see their stock, direct issues and item requests."
+              />
             </div>
-          </div>
-        )}
+          ) : (
+            <>
+              {/* Worker header + summary tiles (also act as tabs) */}
+              <div className="card p-4 sm:p-5">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-ink-950 text-base font-bold text-brand-400">
+                    {selected ? getInitials(selected.name) : <UserRound className="h-5 w-5" />}
+                  </span>
+                  <div className="min-w-0">
+                    <h2 className="truncate text-lg font-bold text-ink-950">{selected?.name || 'N/A'}</h2>
+                    <p className="text-sm font-medium text-ink-600">{selected?.role?.name || '—'}</p>
+                  </div>
+                </div>
 
-        {/* Control Section */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Line Worker:
-                </label>
-                <select 
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                  value={selectedWorker} 
-                  onChange={handleWorkerChange}
-                  disabled={loading}
-                >
-                  <option value="">Select a worker</option>
-                  {lineWorkers.map(worker => (
-                    <option key={worker.id} value={worker.id}>
-                      {worker.name} - {worker.role.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Loading States */}
-        {(loading || tableLoading) && (
-          <div className="max-w-4xl mx-auto flex flex-col items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <span className="text-gray-600 text-lg">
-              {loading ? 'Loading workers...' : 'Loading stock data...'}
-            </span>
-          </div>
-        )}
-
-        {/* Tabs and Content */}
-        {selectedWorker && !tableLoading && (
-          <div className="max-w-6xl mx-auto">
-            {/* Tabs */}
-            <div className="mb-6">
-              <div className="border-b border-gray-200">
-                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                  <button
-                    onClick={() => setActiveTab('currentStock')}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === 'currentStock'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    Current Stock
-                    <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">
-                      {stockData.balanceSummary.length}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('directIssued')}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === 'directIssued'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    Direct Issued
-                    <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">
-                      {stockData.directItemsIssued.length}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('requests')}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                      activeTab === 'requests'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    Item Requests
-                    <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">
-                      {stockData.itemsRequested.length}
-                    </span>
-                  </button>
-                </nav>
-              </div>
-            </div>
-
-            {/* Tab Content */}
-            <div className="mt-6">
-              {activeTab === 'currentStock' && (
-                <>
-                  {stockData.balanceSummary.length > 0 ? (
-                    renderCurrentStockTable()
-                  ) : (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-                      <div className="flex items-center justify-center gap-3 text-yellow-800">
-                        <span className="text-xl">⚠️</span>
-                        <span className="text-lg font-medium">
-                          No current stock available for the selected worker.
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {TABS.map((tab) => {
+                    const Icon = tab.icon;
+                    const active = activeTab === tab.key;
+                    return (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab(tab.key);
+                          setTableSearch('');
+                        }}
+                        className={`flex items-center justify-between gap-3 rounded-xl border p-3 text-left transition ${
+                          active
+                            ? 'border-ink-950 bg-ink-950 text-white'
+                            : 'border-ink-300 bg-white hover:border-ink-400'
+                        }`}
+                      >
+                        <div>
+                          <p className={`text-xs font-semibold uppercase tracking-wider ${active ? 'text-brand-400' : 'text-ink-600'}`}>
+                            {tab.label}
+                          </p>
+                          <p className={`mt-0.5 text-2xl font-bold tabular-nums ${active ? 'text-white' : 'text-ink-950'}`}>
+                            {tableLoading ? '–' : stockData[tab.dataKey].length}
+                          </p>
+                        </div>
+                        <span
+                          className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                            active ? 'bg-brand-400 text-ink-950' : 'bg-ink-100 text-ink-700'
+                          }`}
+                        >
+                          <Icon className="h-5 w-5" />
                         </span>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {activeTab === 'directIssued' && (
-                <>
-                  {stockData.directItemsIssued.length > 0 ? (
-                    renderDirectIssuedTable()
-                  ) : (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-                      <div className="flex items-center justify-center gap-3 text-yellow-800">
-                        <span className="text-xl">⚠️</span>
-                        <span className="text-lg font-medium">
-                          No direct items issued records found.
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {activeTab === 'requests' && (
-                <>
-                  {stockData.itemsRequested.length > 0 ? (
-                    renderRequestedItemsTable()
-                  ) : (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-                      <div className="flex items-center justify-center gap-3 text-yellow-800">
-                        <span className="text-xl">⚠️</span>
-                        <span className="text-lg font-medium">
-                          No item request history found.
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Initial State */}
-        {!selectedWorker && !loading && (
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center">
-              <div className="flex items-center justify-center gap-3 text-blue-800">
-                <span className="text-xl">ℹ️</span>
-                <span className="text-lg font-medium">
-                  Please select a line worker to view their stock data.
-                </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+
+              {/* Tab content */}
+              <div className="card overflow-hidden">
+                <div className="flex flex-col gap-3 border-b border-ink-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <h3 className="text-base font-bold text-ink-950">
+                    {TABS.find((t) => t.key === activeTab)?.label}
+                  </h3>
+                  <div className="relative sm:w-72">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+                    <input
+                      type="text"
+                      value={tableSearch}
+                      onChange={(e) => setTableSearch(e.target.value)}
+                      placeholder={activeTab === 'currentStock' ? 'Search items…' : 'Search items, people, remarks…'}
+                      className="input pl-9"
+                    />
+                  </div>
+                </div>
+
+                {tableLoading ? (
+                  <div className="flex items-center justify-center gap-3 py-16 text-sm text-ink-500">
+                    <span className="h-6 w-6 animate-spin rounded-full border-[3px] border-ink-200 border-t-brand-400" />
+                    Loading stock data…
+                  </div>
+                ) : (
+                  <>
+                    {activeTab === 'currentStock' && renderCurrentStockTable()}
+                    {activeTab === 'directIssued' && renderDirectIssuedTable()}
+                    {activeTab === 'requests' && renderRequestedItemsTable()}
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </section>
       </div>
     </div>
   );

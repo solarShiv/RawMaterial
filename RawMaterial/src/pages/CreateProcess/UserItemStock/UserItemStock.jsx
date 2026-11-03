@@ -171,11 +171,6 @@ const UserItemStock = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8 justify-center text-center">
-          <h2 className="text-3xl font-bold text-gray-800 mb-8">
-            User Item Stock
-          </h2>
-        </div>
         <div className="mb-8">
           <h3 className="text-xl font-semibold text-gray-700 mb-4">
             Available Stock

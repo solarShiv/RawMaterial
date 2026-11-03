@@ -501,7 +501,7 @@ const PendingProcess = () => {
                     remarksData.status === "COMPLETED"
                       ? "bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700"
                       : remarksData.status === "REJECTED"
-                      ? "bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700"
+                      ? "btn-decline"
                       : remarksData.status === "FAILED"
                       ? "bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700"
                       : "bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-gray-800"
@@ -542,18 +542,6 @@ const PendingProcess = () => {
 
       {/* Main Content */}
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 max-w-7xl mx-auto animate-fadeIn">
-        {/* Header Section */}
-        <div className="mb-8 text-center">
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-800 mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Pending Process List
-            </h1>
-            <p className="text-gray-600 text-lg mb-4">
-              Manage your pending MOTOR, PUMP, and CONTROLLER service processes
-            </p>
-            <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
-          </div>
-        </div>
 
         {/* Filter Section */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-8 shadow-sm">
@@ -719,10 +707,10 @@ const PendingProcess = () => {
                         {shouldShowActionButton(item, "accept") && (
                           <button
                             aria-label={`Accept disassembly process for ${item.itemName}`}
-                            className={`flex-1 px-4 py-2.5 text-white rounded-xl text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-sm ${
+                            className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-sm ${
                               processingId === item.serviceProcessId && actionType === "accept"
-                                ? "bg-gradient-to-r from-green-600 to-green-700"
-                                : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                                ? "btn-approve bg-brand-600"
+                                : "btn-approve"
                             }`}
                             onClick={() => handleAccept(item.serviceProcessId)}
                             disabled={isButtonDisabled(item.serviceProcessId)}
@@ -761,10 +749,10 @@ const PendingProcess = () => {
                         {shouldShowActionButton(item, "accept") && (
                           <button
                             aria-label={`Accept process for ${item.itemName}`}
-                            className={`flex-1 px-4 py-2.5 text-white rounded-xl text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-sm ${
+                            className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-sm ${
                               processingId === item.serviceProcessId && actionType === "accept"
-                                ? "bg-gradient-to-r from-green-600 to-green-700"
-                                : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                                ? "btn-approve bg-brand-600"
+                                : "btn-approve"
                             }`}
                             onClick={() => handleAccept(item.serviceProcessId)}
                             disabled={isButtonDisabled(item.serviceProcessId)}

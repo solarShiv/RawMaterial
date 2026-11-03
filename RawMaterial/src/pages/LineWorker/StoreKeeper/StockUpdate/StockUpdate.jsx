@@ -215,15 +215,6 @@ const StockUpdate = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-            Stock Update
-          </h1>
-          <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
-            Manage your raw materials inventory
-          </p>
-        </div>
 
         {/* Messages */}
         <div className="max-w-4xl mx-auto mb-6 space-y-4">

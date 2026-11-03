@@ -62,12 +62,6 @@ const UpdateCompany = () => {
     <div className="min-h-screen bg-gray-100 p-4 md:p-6">
       <div className="bg-white rounded-xl shadow-lg p-6">
 
-        {/* HEADER */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold">Update Company</h2>
-          <p className="text-gray-600">Edit company information</p>
-        </div>
-
         {/* COMPANY SELECT */}
         <div className="mb-6 max-w-md">
           <label className="block text-sm font-medium mb-2">Select Company</label>

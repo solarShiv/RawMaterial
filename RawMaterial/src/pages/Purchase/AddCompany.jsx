@@ -330,10 +330,6 @@ const AddCompany = () => {
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Add New Company</h1>
-            <p className="mt-2 text-gray-600">Register a new supplier or vendor company in the system</p>
-          </div>
 
           {message && (
             <div className="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 flex items-start">

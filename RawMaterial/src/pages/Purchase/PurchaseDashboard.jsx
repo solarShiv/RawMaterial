@@ -279,10 +279,7 @@ const PurchaseDashboard = () => {
     <div className="min-h-screen bg-gray-50 p-3 md:p-5 w-full max-w-screen-2xl mx-auto">
       {/* Header */}
       <div className="mb-4 md:mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900">Purchase & Payments Dashboard</h1>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
           <button
             onClick={fetchAllData}
             className="flex items-center gap-1 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors text-sm"

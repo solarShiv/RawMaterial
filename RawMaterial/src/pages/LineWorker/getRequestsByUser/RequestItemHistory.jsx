@@ -91,9 +91,6 @@ const RequestItemHistory = () => {
     <div className="w-full min-h-screen p-4 md:p-6">
       {/* Title */}
       <div className="flex flex-col items-center mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-4">
-          Request Item History
-        </h1>
 
         {/* Search Bar */}
         <input

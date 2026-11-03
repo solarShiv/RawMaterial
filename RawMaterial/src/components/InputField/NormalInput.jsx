@@ -12,9 +12,9 @@ const NormalInput = ({
   className = "",
 }) => {
   return (
-    <div className="flex flex-col w-full mb-2">
+    <div className="flex flex-col w-full mb-3">
       {label && (
-        <label className="mb-1 text-sm font-medium text-gray-700">
+        <label className="mb-1.5 text-sm font-medium text-ink-700">
           {label}
         </label>
       )}
@@ -28,8 +28,10 @@ const NormalInput = ({
         onChange={(e) => setterFun(e.target.value)}
         placeholder={placeholder}
         className={`
-          border border-gray-300 rounded-md p-1
-          focus:outline-none focus:ring-1 focus:ring-blue-500
+          w-full rounded-lg border border-ink-300 bg-white px-3 py-2 text-sm text-ink-900
+          placeholder:text-ink-400 transition-colors
+          focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-400/40
+          disabled:bg-ink-100 disabled:text-ink-500 disabled:cursor-not-allowed
           ${className}
         `}
       />

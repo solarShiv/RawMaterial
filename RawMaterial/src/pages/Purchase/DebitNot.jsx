@@ -385,9 +385,6 @@ const DebitNot = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-6">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">
-        Debit Note
-      </h1>
 
       {/* Message Display */}
       {message.text && (

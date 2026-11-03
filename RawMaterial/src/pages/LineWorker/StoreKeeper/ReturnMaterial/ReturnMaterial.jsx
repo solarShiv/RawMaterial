@@ -165,9 +165,6 @@ const ReturnMaterial = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800">
-        Return Material to Store
-      </h2>
 
       <form onSubmit={handleSubmit}>
         {/* ── EMPLOYEE SELECTION ── */}

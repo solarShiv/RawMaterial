@@ -173,12 +173,6 @@ const ServiceProcessRequest = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-4 md:py-8 px-3 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center">
-            Service Process Request
-          </h1>
-        </div>
 
         {/* Error Alert */}
         {error && (

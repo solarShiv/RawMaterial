@@ -278,10 +278,6 @@ const StoreTracking = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header - Centered */}
-        <div className="text-center mb-8 pb-6 border-b border-gray-200">
-          <h1 className="text-3xl font-bold text-gray-900">Process Tracking</h1>
-        </div>
 
         {/* Filters Section */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">

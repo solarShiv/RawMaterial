@@ -1,5 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Api from "../../auth/Api";
+import {
+  Search,
+  X,
+  Store,
+  ChevronDown,
+  FileText,
+  FileImage,
+  File,
+  Eye,
+  Download,
+  Inbox,
+  AlertTriangle,
+  Loader2,
+  ClipboardList,
+  Files,
+  CheckCircle2,
+  CircleDashed,
+} from "lucide-react";
+
+const PO_FILTERS = [
+  { key: "all", label: "All" },
+  { key: "with", label: "With invoices" },
+  { key: "without", label: "Without invoices" },
+];
 
 const InvoicePO = () => {
   const [vendors, setVendors] = useState([]);
@@ -9,13 +33,15 @@ const InvoicePO = () => {
   const [selectedVendorName, setSelectedVendorName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const vendorBoxRef = useRef(null);
 
   // Invoice state
   const [invoices, setInvoices] = useState([]);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [invoiceError, setInvoiceError] = useState(null);
   const [expandedPOs, setExpandedPOs] = useState({});
-  const [previewImagePO, setPreviewImagePO] = useState(null); // Track which image to preview
+  const [poSearch, setPoSearch] = useState("");
+  const [poFilter, setPoFilter] = useState("all");
 
   // Fetch all vendors on component mount
   useEffect(() => {
@@ -25,15 +51,12 @@ const InvoicePO = () => {
         const response = await Api.get("/purchase/vendors");
 
         if (response.data.success) {
-          setVendors(response?.data?.data);
+          setVendors(response?.data?.data || []);
         } else {
           setError("Failed to fetch vendors: " + response?.data?.message);
         }
       } catch (err) {
-        setError(
-          "Error fetching vendors: " + err?.response?.data?.message ||
-            err?.message,
-        );
+        setError("Error fetching vendors: " + (err?.response?.data?.message || err?.message));
       } finally {
         setLoading(false);
       }
@@ -52,17 +75,15 @@ const InvoicePO = () => {
       try {
         setInvoiceLoading(true);
         setInvoiceError(null);
-        const response = await Api.get(
-          `/common/vendors/invoices?vendorId=${selectedVendor}`,
-        );
+        const response = await Api.get(`/common/vendors/invoices?vendorId=${selectedVendor}`);
 
         if (response.data.success) {
-          setInvoices(response.data.data);
+          setInvoices(response.data.data || []);
         } else {
           setInvoiceError("Failed to fetch invoices");
         }
       } catch (err) {
-        setInvoiceError("Error fetching invoices: " + err.message);
+        setInvoiceError("Error fetching invoices: " + (err?.response?.data?.message || err.message));
       } finally {
         setInvoiceLoading(false);
       }
@@ -71,9 +92,20 @@ const InvoicePO = () => {
     fetchInvoices();
   }, [selectedVendor]);
 
+  // Close the vendor dropdown on outside click
+  useEffect(() => {
+    const onClick = (e) => {
+      if (vendorBoxRef.current && !vendorBoxRef.current.contains(e.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
   // Filter vendors based on search term
   const filteredVendors = vendors.filter((vendor) =>
-    vendor.displayName.toLowerCase().includes(searchTerm.toLowerCase()),
+    vendor.displayName?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Handle vendor selection
@@ -82,7 +114,9 @@ const InvoicePO = () => {
     setSelectedVendorName(displayName);
     setSearchTerm(displayName);
     setIsDropdownOpen(false);
-    setExpandedPOs({}); // Reset expanded state
+    setExpandedPOs({});
+    setPoSearch("");
+    setPoFilter("all");
   };
 
   // Handle input change for search
@@ -115,11 +149,11 @@ const InvoicePO = () => {
   // Helper: determine file type from URL
   const getFileType = (url) => {
     if (!url) return "unknown";
-    const extension = url.split('.').pop().toLowerCase();
-    if (extension === 'pdf') return 'pdf';
-    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
-    if (imageExtensions.includes(extension)) return 'image';
-    return 'other';
+    const extension = url.split("?")[0].split(".").pop().toLowerCase();
+    if (extension === "pdf") return "pdf";
+    const imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"];
+    if (imageExtensions.includes(extension)) return "image";
+    return "other";
   };
 
   // Format the full URL for invoice file
@@ -130,30 +164,27 @@ const InvoicePO = () => {
         return "";
       }
 
-      // If invoiceUrl is already a full URL, return it
-      if (invoiceUrl.startsWith('http://') || invoiceUrl.startsWith('https://')) {
+      if (invoiceUrl.startsWith("http://") || invoiceUrl.startsWith("https://")) {
         return invoiceUrl;
       }
 
-      // Determine the base URL
       let baseURL = "";
-      
-      if (typeof Api === 'string') {
+      if (typeof Api === "string") {
         baseURL = Api;
       } else if (Api.defaults && Api.defaults.baseURL) {
         baseURL = Api.defaults.baseURL;
-      } else if (process.env.REACT_APP_API_URL) {
-        baseURL = process.env.REACT_APP_API_URL;
+      } else if (import.meta.env.VITE_API_URL) {
+        baseURL = import.meta.env.VITE_API_URL;
       } else {
         baseURL = window.location.origin;
       }
 
       // Normalize slashes
       let normalizedInvoiceUrl = invoiceUrl;
-      if (!normalizedInvoiceUrl.startsWith('/') && !baseURL.endsWith('/')) {
-        normalizedInvoiceUrl = '/' + normalizedInvoiceUrl;
+      if (!normalizedInvoiceUrl.startsWith("/") && !baseURL.endsWith("/")) {
+        normalizedInvoiceUrl = "/" + normalizedInvoiceUrl;
       }
-      if (baseURL.endsWith('/') && normalizedInvoiceUrl.startsWith('/')) {
+      if (baseURL.endsWith("/") && normalizedInvoiceUrl.startsWith("/")) {
         normalizedInvoiceUrl = normalizedInvoiceUrl.substring(1);
       }
 
@@ -165,285 +196,337 @@ const InvoicePO = () => {
   };
 
   // Handle file view (PDF or image)
-  const handleViewFile = (invoiceUrl, invoiceNumber, e) => {
+  const handleViewFile = (invoiceUrl, invoiceNumber) => {
     const url = getInvoiceUrl(invoiceUrl);
-    
     if (!url) {
-      e.preventDefault();
       alert(`Unable to load file for invoice ${invoiceNumber}. The file URL is not available.`);
-      return false;
+      return;
     }
-    
-    window.open(url, '_blank');
-    e.preventDefault();
-    return false;
+    window.open(url, "_blank");
   };
 
-  // Handle file download
-  const handleDownloadFile = (invoiceUrl, invoiceNumber, e) => {
+  // Handle file download (keeps the file's real extension)
+  const handleDownloadFile = (invoiceUrl, invoiceNumber) => {
     const url = getInvoiceUrl(invoiceUrl);
-    
     if (!url) {
-      e.preventDefault();
       alert(`Unable to download file for invoice ${invoiceNumber}. The file URL is not available.`);
-      return false;
+      return;
     }
-    
-    const link = document.createElement('a');
+    const ext = invoiceUrl.split("?")[0].split(".").pop() || "pdf";
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `invoice_${invoiceNumber}.pdf`; // you can detect extension for proper filename
+    link.download = `invoice_${invoiceNumber}.${ext}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    e.preventDefault();
-    return false;
   };
 
   // Get file name from URL
   const getFileName = (url) => {
     if (!url) return "Unknown file";
-    const parts = url.split('/');
+    const parts = url.split("/");
     return parts[parts.length - 1] || "invoice.pdf";
   };
 
-  // Toggle image preview for a specific PO (optional)
-  const toggleImagePreview = (poId) => {
-    setPreviewImagePO(prev => prev === poId ? null : poId);
+  // ---------- Derived ----------
+  const totalInvoices = invoices.reduce((total, po) => total + (po.invoices?.length || 0), 0);
+  const withInvoices = invoices.filter((po) => po.invoices?.length > 0).length;
+
+  const visiblePOs = invoices.filter((po) => {
+    const count = po.invoices?.length || 0;
+    if (poFilter === "with" && count === 0) return false;
+    if (poFilter === "without" && count > 0) return false;
+    if (poSearch && !po.poNumber?.toLowerCase().includes(poSearch.toLowerCase())) return false;
+    return true;
+  });
+
+  const allExpanded = visiblePOs.length > 0 && visiblePOs.every((po) => expandedPOs[po.poId]);
+  const toggleAll = () => {
+    const next = {};
+    visiblePOs.forEach((po) => (next[po.poId] = !allExpanded));
+    setExpandedPOs((prev) => ({ ...prev, ...next }));
+  };
+
+  const stats = [
+    { label: "Total POs", value: invoices.length, icon: ClipboardList, tone: "bg-ink-100 text-ink-700" },
+    { label: "Total Invoices", value: totalInvoices, icon: Files, tone: "bg-brand-100 text-brand-700" },
+    { label: "POs with Invoices", value: withInvoices, icon: CheckCircle2, tone: "bg-green-50 text-green-600" },
+    { label: "POs without Invoices", value: invoices.length - withInvoices, icon: CircleDashed, tone: "bg-red-50 text-red-500" },
+  ];
+
+  const FileIcon = ({ type }) => {
+    if (type === "pdf") return <FileText className="h-6 w-6" />;
+    if (type === "image") return <FileImage className="h-6 w-6" />;
+    return <File className="h-6 w-6" />;
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Invoice Purchase Order</h1>
+    <div className="page space-y-5">
+      {/* Vendor picker */}
+      <div className="card p-4 sm:p-5">
+        <label className="label" htmlFor="vendor-search">
+          Vendor
+        </label>
 
-      <div className="space-y-6">
-        {/* Vendor Selection Section - unchanged */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold mb-4">Select Vendor</h2>
+        {loading ? (
+          <div className="flex h-10 items-center gap-2 rounded-lg border border-ink-200 bg-ink-50 px-3 text-sm text-ink-500">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading vendors...
+          </div>
+        ) : error ? (
+          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+            <AlertTriangle className="h-4 w-4 shrink-0" /> {error}
+          </div>
+        ) : (
+          <div className="relative max-w-2xl" ref={vendorBoxRef}>
+            <Store className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+            <input
+              id="vendor-search"
+              type="text"
+              value={searchTerm}
+              onChange={handleInputChange}
+              onFocus={() => setIsDropdownOpen(true)}
+              placeholder={`Search ${vendors.length} vendors...`}
+              className={`input h-11 pl-9 pr-10 ${selectedVendor ? "font-semibold border-brand-400 ring-2 ring-brand-400/30" : ""}`}
+              autoComplete="off"
+            />
+            {searchTerm && (
+              <button
+                onClick={handleClear}
+                aria-label="Clear vendor"
+                className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-400 hover:bg-ink-100 hover:text-ink-900"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
 
-          {loading ? (
-            <div className="text-center py-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading vendors...</p>
-            </div>
-          ) : error ? (
-            <div className="text-center py-4 text-red-500">
-              <p>{error}</p>
-            </div>
-          ) : (
-            <div className="relative">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={handleInputChange}
-                  onFocus={() => setIsDropdownOpen(true)}
-                  placeholder="Search vendors..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-
-                {searchTerm && (
-                  <button
-                    onClick={handleClear}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    ✕
-                  </button>
+            {isDropdownOpen && (
+              <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-ink-200 bg-white shadow-pop animate-slideDown">
+                {filteredVendors.length > 0 ? (
+                  <ul className="max-h-72 overflow-y-auto py-1">
+                    {filteredVendors.map((vendor) => (
+                      <li key={vendor.id}>
+                        <button
+                          type="button"
+                          onClick={() => handleVendorSelect(vendor.id, vendor.displayName)}
+                          className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm hover:bg-brand-50 ${
+                            selectedVendor === vendor.id ? "bg-brand-50 font-semibold text-ink-950" : "text-ink-800"
+                          }`}
+                        >
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-ink-100 text-xs font-bold text-ink-600">
+                            {vendor.displayName?.charAt(0)?.toUpperCase() || "?"}
+                          </span>
+                          <span className="break-words">{vendor.displayName}</span>
+                          {selectedVendor === vendor.id && <CheckCircle2 className="ml-auto h-4 w-4 text-ink-900" />}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="px-4 py-6 text-center text-sm text-ink-500">
+                    No vendors found matching "{searchTerm}"
+                  </div>
                 )}
               </div>
+            )}
+          </div>
+        )}
+      </div>
 
-              {isDropdownOpen && filteredVendors.length > 0 && (
-                <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                  {filteredVendors.map((vendor) => (
-                    <div
-                      key={vendor.id}
-                      onClick={() =>
-                        handleVendorSelect(vendor.id, vendor.displayName)
-                      }
-                      className={`px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 ${
-                        selectedVendor === vendor.id
-                          ? "bg-blue-50 text-blue-600"
-                          : ""
-                      }`}
-                    >
-                      <div className="font-medium">{vendor.displayName}</div>
+      {!selectedVendor ? (
+        <div className="card py-16 text-center">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-brand-700">
+            <Store className="h-6 w-6" />
+          </div>
+          <p className="font-semibold text-ink-900">Select a vendor</p>
+          <p className="text-sm text-ink-500">Choose a vendor above to see their purchase orders and invoices.</p>
+        </div>
+      ) : (
+        <>
+          {/* Stats */}
+          {!invoiceLoading && !invoiceError && invoices.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+              {stats.map((s) => {
+                const Icon = s.icon;
+                return (
+                  <div key={s.label} className="card flex items-center justify-between gap-3 px-4 py-3">
+                    <div className="min-w-0">
+                      <div className="truncate text-xs font-medium text-ink-500">{s.label}</div>
+                      <div className="text-2xl font-bold tabular-nums text-ink-950">{s.value}</div>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${s.tone}`}>
+                      <Icon className="h-5 w-5" />
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
-              {isDropdownOpen && searchTerm && filteredVendors.length === 0 && (
-                <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                  <div className="px-4 py-3 text-gray-500 text-center">
-                    No vendors found matching "{searchTerm}"
+          {/* PO list */}
+          <section className="card overflow-hidden">
+            <div className="flex flex-col gap-3 border-b border-ink-200 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold text-ink-950">Purchase Orders & Invoices</h2>
+                <p className="truncate text-xs text-ink-500">{selectedVendorName}</p>
+              </div>
+
+              {invoices.length > 0 && (
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <div className="relative sm:w-56">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+                    <input
+                      value={poSearch}
+                      onChange={(e) => setPoSearch(e.target.value)}
+                      placeholder="Search PO number"
+                      className="input h-9 pl-9"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 overflow-x-auto">
+                    {PO_FILTERS.map((f) => (
+                      <button
+                        key={f.key}
+                        onClick={() => setPoFilter(f.key)}
+                        className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold ${
+                          poFilter === f.key ? "bg-ink-950 text-brand-400" : "bg-ink-100 text-ink-600 hover:bg-ink-200"
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                    <button onClick={toggleAll} className="btn-outline ml-1 h-8 whitespace-nowrap py-0 text-xs">
+                      {allExpanded ? "Collapse all" : "Expand all"}
+                    </button>
                   </div>
                 </div>
               )}
             </div>
-          )}
-
-          {selectedVendor && (
-            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium text-green-800 mb-2">
-                    Selected Vendor:
-                  </h3>
-                  <p className="text-green-700">{selectedVendorName}</p>
-                </div>
-                <button
-                  onClick={handleClear}
-                  className="text-sm bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200"
-                >
-                  Change Vendor
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Invoices Section */}
-        {selectedVendor && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold">
-                Purchase Orders & Invoices
-              </h2>
-              {invoices.length > 0 && (
-                <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded">
-                  {invoices.length} PO{invoices.length !== 1 ? "s" : ""} found
-                </span>
-              )}
-            </div>
 
             {invoiceLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-3 text-gray-600">Loading invoices...</p>
+              <div className="space-y-2 p-4">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="h-14 animate-pulse rounded-lg bg-ink-100" />
+                ))}
               </div>
             ) : invoiceError ? (
-              <div className="text-center py-8 text-red-500">
-                <p>{invoiceError}</p>
+              <div className="m-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+                <AlertTriangle className="h-4 w-4 shrink-0" /> {invoiceError}
               </div>
-            ) : invoices.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>No purchase orders found for this vendor</p>
+            ) : invoices.length === 0 || visiblePOs.length === 0 ? (
+              <div className="py-14 text-center">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-ink-100 text-ink-400">
+                  <Inbox className="h-6 w-6" />
+                </div>
+                <p className="font-semibold text-ink-800">
+                  {invoices.length === 0 ? "No purchase orders for this vendor" : "No purchase orders match your filter"}
+                </p>
+                {invoices.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setPoSearch("");
+                      setPoFilter("all");
+                    }}
+                    className="mt-2 text-sm font-semibold text-ink-900 underline underline-offset-2 hover:text-brand-600"
+                  >
+                    Clear filters
+                  </button>
+                )}
               </div>
             ) : (
-              <div className="space-y-4">
-                {invoices.map((po) => (
-                  <div
-                    key={po.poId}
-                    className="border border-gray-200 rounded-lg overflow-hidden"
-                  >
-                    {/* PO Header */}
-                    <div
-                      className="bg-gray-50 px-4 py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center cursor-pointer hover:bg-gray-100 gap-2"
-                      onClick={() => togglePOExpansion(po.poId)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">
-                          {po.poNumber}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          ({po.invoices.length} invoice
-                          {po.invoices.length !== 1 ? "s" : ""})
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between sm:justify-end space-x-3">
+              <ul className="divide-y divide-ink-100">
+                {visiblePOs.map((po) => {
+                  const count = po.invoices?.length || 0;
+                  const open = !!expandedPOs[po.poId];
+                  return (
+                    <li key={po.poId} className={open ? "bg-ink-50/60" : ""}>
+                      {/* PO row */}
+                      <button
+                        type="button"
+                        onClick={() => togglePOExpansion(po.poId)}
+                        aria-expanded={open}
+                        className="flex w-full items-center gap-3 px-4 py-3.5 text-left hover:bg-brand-50"
+                      >
                         <span
-                          className={`text-sm px-2 py-1 rounded ${
-                            po.invoices.length > 0
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                            count > 0 ? "bg-ink-950 text-brand-400" : "bg-ink-100 text-ink-400"
                           }`}
                         >
-                          {po.invoices.length > 0
-                            ? "Has Invoices"
-                            : "No Invoices"}
+                          <ClipboardList className="h-4 w-4" />
                         </span>
-                        <svg
-                          className={`w-5 h-5 transform transition-transform ${
-                            expandedPOs[po.poId] ? "rotate-180" : ""
-                          }`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-
-                    {/* PO Details - Collapsible */}
-                    {expandedPOs[po.poId] && (
-                      <div className="p-4 bg-white">
-                        {/* Vendor Info */}
-                        <div className="mb-4 pb-4 border-b">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-sm text-gray-500">Vendor</p>
-                              <p className="font-medium">{po.vendorName}</p>
-                            </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-ink-950 break-words">{po.poNumber}</div>
+                          <div className="text-xs text-ink-500">
+                            {count} invoice{count !== 1 ? "s" : ""}
                           </div>
                         </div>
+                        <span className={`${count > 0 ? "badge-green" : "badge-gray"} hidden sm:inline-flex`}>
+                          {count > 0 ? "Has invoices" : "No invoices"}
+                        </span>
+                        <ChevronDown className={`h-4 w-4 shrink-0 text-ink-400 transition-transform ${open ? "rotate-180" : ""}`} />
+                      </button>
 
-                        {/* Invoices List */}
-                        <div>
-                          <h4 className="font-medium mb-3">Invoices</h4>
-                          {po.invoices.length === 0 ? (
-                            <p className="text-gray-500 text-center py-4">
+                      {/* Invoices */}
+                      {open && (
+                        <div className="px-4 pb-4 sm:pl-16">
+                          <div className="mb-3 text-xs text-ink-500">
+                            Vendor: <span className="font-medium text-ink-800">{po.vendorName}</span>
+                          </div>
+
+                          {count === 0 ? (
+                            <div className="rounded-lg border border-dashed border-ink-300 bg-white px-4 py-6 text-center text-sm text-ink-500">
                               No invoices attached to this PO
-                            </p>
+                            </div>
                           ) : (
-                            <div className="space-y-3">
+                            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                               {po.invoices.map((invoice, index) => {
                                 const fileType = getFileType(invoice.invoiceUrl);
-                                const isImage = fileType === 'image';
+                                const isImage = fileType === "image";
                                 const fullUrl = getInvoiceUrl(invoice.invoiceUrl);
 
                                 return (
-                                  <div
-                                    key={index}
-                                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded gap-3"
-                                  >
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-medium truncate">
-                                        {invoice.invoiceNumber}
-                                      </p>
-                                      <p className="text-sm text-gray-500 truncate">
-                                        File: {getFileName(invoice.invoiceUrl)}
-                                      </p>
-                                      {isImage && fullUrl && (
-                                        <div className="mt-2">
-                                          <img
-                                            src={fullUrl}
-                                            alt={invoice.invoiceNumber}
-                                            className="max-h-20 rounded border border-gray-200 object-contain cursor-pointer"
-                                            onClick={() => window.open(fullUrl, '_blank')}
-                                          />
-                                        </div>
+                                  <div key={index} className="flex flex-col overflow-hidden rounded-xl border border-ink-200 bg-white">
+                                    {/* Preview */}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleViewFile(invoice.invoiceUrl, invoice.invoiceNumber)}
+                                      className="flex h-28 items-center justify-center bg-ink-50 hover:bg-ink-100"
+                                      title="Open file"
+                                    >
+                                      {isImage && fullUrl ? (
+                                        <img src={fullUrl} alt={invoice.invoiceNumber} className="h-full w-full object-contain p-2" />
+                                      ) : (
+                                        <span
+                                          className={`flex h-14 w-14 items-center justify-center rounded-xl ${
+                                            fileType === "pdf" ? "bg-red-50 text-red-500" : "bg-ink-100 text-ink-500"
+                                          }`}
+                                        >
+                                          <FileIcon type={fileType} />
+                                        </span>
                                       )}
-                                    </div>
-                                    <div className="flex flex-col xs:flex-row gap-2 sm:flex-shrink-0">
-                                      <button
-                                        onClick={(e) => handleViewFile(invoice.invoiceUrl, invoice.invoiceNumber, e)}
-                                        className={`px-4 py-2 text-white text-sm font-medium rounded hover:bg-opacity-90 ${
-                                          isImage ? 'bg-purple-600 hover:bg-purple-700' : 'bg-blue-600 hover:bg-blue-700'
-                                        }`}
-                                      >
-                                        {isImage ? 'View Image' : 'View PDF'}
-                                      </button>
-                                      <button
-                                        onClick={(e) => handleDownloadFile(invoice.invoiceUrl, invoice.invoiceNumber, e)}
-                                        className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700"
-                                      >
-                                        Download
-                                      </button>
+                                    </button>
+
+                                    <div className="flex flex-1 flex-col p-3">
+                                      <div className="flex items-start justify-between gap-2">
+                                        <p className="font-semibold text-ink-950 break-words">{invoice.invoiceNumber}</p>
+                                        <span className="badge-gray shrink-0 uppercase">{fileType === "other" ? "file" : fileType}</span>
+                                      </div>
+                                      <p className="mt-0.5 truncate text-xs text-ink-500" title={getFileName(invoice.invoiceUrl)}>
+                                        {getFileName(invoice.invoiceUrl)}
+                                      </p>
+
+                                      <div className="mt-3 grid grid-cols-2 gap-2">
+                                        <button
+                                          onClick={() => handleViewFile(invoice.invoiceUrl, invoice.invoiceNumber)}
+                                          className="btn-dark py-1.5 text-xs"
+                                        >
+                                          <Eye className="h-3.5 w-3.5" /> View
+                                        </button>
+                                        <button
+                                          onClick={() => handleDownloadFile(invoice.invoiceUrl, invoice.invoiceNumber)}
+                                          className="btn-outline py-1.5 text-xs"
+                                        >
+                                          <Download className="h-3.5 w-3.5" /> Download
+                                        </button>
+                                      </div>
                                     </div>
                                   </div>
                                 );
@@ -451,44 +534,15 @@ const InvoicePO = () => {
                             </div>
                           )}
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Invoice Statistics - unchanged */}
-            {invoices.length > 0 && (
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-blue-50 rounded">
-                    <p className="text-sm text-gray-600">Total POs</p>
-                    <p className="text-xl font-bold text-blue-600">
-                      {invoices.length}
-                    </p>
-                  </div>
-                  <div className="text-center p-3 bg-green-50 rounded">
-                    <p className="text-sm text-gray-600">Total Invoices</p>
-                    <p className="text-xl font-bold text-green-600">
-                      {invoices.reduce(
-                        (total, po) => total + po.invoices.length,
-                        0,
                       )}
-                    </p>
-                  </div>
-                  <div className="text-center p-3 bg-purple-50 rounded">
-                    <p className="text-sm text-gray-600">POs with Invoices</p>
-                    <p className="text-xl font-bold text-purple-600">
-                      {invoices.filter((po) => po.invoices.length > 0).length}
-                    </p>
-                  </div>
-                </div>
-              </div>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
-          </div>
-        )}
-      </div>
+          </section>
+        </>
+      )}
     </div>
   );
 };

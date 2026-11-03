@@ -41,11 +41,6 @@ const UserStock = () => {
   return (
     <div className="w-full min-h-screen p-4 md:p-8">
 
-      {/* Heading */}
-      <h1 className="text-3xl font-semibold text-center mb-6 text-gray-800">
-        User Stock
-      </h1>
-
       {/* Search Bar */}
       <div className="flex justify-center mb-6">
         <input

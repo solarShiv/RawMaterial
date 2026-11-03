@@ -3,14 +3,87 @@ import { useNavigate } from "react-router-dom";
 import Api from "../../../../auth/Api";
 import {
   Search,
-  Filter,
+  X,
   ChevronDown,
-  ChevronUp,
   ChevronLeft,
   ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
+  PackageCheck,
+  PackageOpen,
+  FileText,
+  ClipboardList,
+  RefreshCw,
 } from "lucide-react";
+
+const STATUS_TABS = [
+  { key: "all", label: "All" },
+  { key: "Draft", label: "Draft" },
+  { key: "PartiallyReceived", label: "Partially received" },
+];
+
+const getStatusLabel = (status) =>
+  ({
+    Draft: "Draft",
+    PartiallyReceived: "Partially received",
+    FullyReceived: "Fully received",
+  }[status] || status || "N/A");
+
+const getStatusBadgeClass = (status) => {
+  switch (status) {
+    case "PartiallyReceived":
+      return "badge-yellow";
+    case "FullyReceived":
+      return "badge-green";
+    default:
+      return "badge-gray";
+  }
+};
+
+const getApprovalBadgeClass = (status) => {
+  switch (status) {
+    case "Pending":
+      return "badge-yellow";
+    case "Approved":
+      return "badge-green";
+    case "Rejected":
+      return "badge-red";
+    default:
+      return "badge-gray";
+  }
+};
+
+const toText = (value) => (value == null ? "" : String(value)).toLowerCase();
+
+// Ordered / received / pending totals across every item in a PO
+const getPoTotals = (po) =>
+  (po.items || []).reduce(
+    (acc, item) => {
+      acc.ordered += Number(item.quantity) || 0;
+      acc.received += Number(item.receivedQty) || 0;
+      acc.pending += Number(item.pendingQty) || 0;
+      return acc;
+    },
+    { ordered: 0, received: 0, pending: 0 }
+  );
+
+const ProgressBar = ({ received, ordered }) => {
+  const percent = ordered > 0 ? Math.min(100, Math.round((received / ordered) * 100)) : 0;
+  return (
+    <div className="min-w-[120px]">
+      <div className="mb-1 flex items-center justify-between text-xs tabular-nums">
+        <span className="font-medium text-ink-800">
+          {received} / {ordered}
+        </span>
+        <span className="font-semibold text-ink-900">{percent}%</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-ink-200">
+        <div
+          className={`h-full rounded-full ${percent >= 100 ? "bg-green-500" : "bg-brand-400"}`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    </div>
+  );
+};
 
 const PoStockReceiving = () => {
   const [stockReceived, setStockReceived] = useState([]);
@@ -21,131 +94,95 @@ const PoStockReceiving = () => {
   // Search and Filter States
   const [searchTerm, setSearchTerm] = useState("");
   const [searchFilter, setSearchFilter] = useState("all");
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [approvalFilter, setApprovalFilter] = useState("all");
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [totalPages, setTotalPages] = useState(1);
 
-  // Navigation hook
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await Api.get(
-          "/store-keeper/getPendingPOsForReceiving"
-        );
-        if (response.data.success) {
-          setStockReceived(response.data.data);
-          // Calculate total pages
-          const totalPages = Math.ceil(
-            response.data.data.length / itemsPerPage
-          );
-          setTotalPages(totalPages);
-        } else {
-          setError(response.data.message || "Failed to fetch data");
-        }
-      } catch (err) {
-        console.error("Error fetching PO data:", err);
-        setError("Failed to fetch PO data. Please try again.");
-      } finally {
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await Api.get("/store-keeper/getPendingPOsForReceiving");
+      if (response.data.success) {
+        setStockReceived(response.data.data || []);
+      } else {
+        setError(response.data.message || "Failed to fetch data");
       }
-    };
+    } catch (err) {
+      console.error("Error fetching PO data:", err);
+      setError("Failed to fetch PO data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
   }, []);
 
   // Filter data based on search criteria
   const filteredData = useMemo(() => {
-    const filtered = stockReceived.filter((po) => {
-      // Apply status filter
-      if (statusFilter !== "all" && po.status !== statusFilter) {
-        return false;
-      }
+    const term = searchTerm.trim().toLowerCase();
 
-      // Apply approval filter
-      if (approvalFilter !== "all" && po.approvalStatus !== approvalFilter) {
-        return false;
-      }
-
-      // If no search term, return true
-      if (!searchTerm.trim()) return true;
-
-      const term = searchTerm.toLowerCase();
+    return stockReceived.filter((po) => {
+      if (statusFilter !== "all" && po.status !== statusFilter) return false;
+      if (approvalFilter !== "all" && po.approvalStatus !== approvalFilter) return false;
+      if (!term) return true;
 
       switch (searchFilter) {
         case "poNumber":
-          return po.poNumber.toLowerCase().includes(term);
+          return toText(po.poNumber).includes(term);
         case "company":
-          return po.companyName.toLowerCase().includes(term);
+          return toText(po.companyName).includes(term);
         case "vendor":
-          return po.vendorName.toLowerCase().includes(term);
-        case "status":
-          return po.status.toLowerCase().includes(term);
+          return toText(po.vendorName).includes(term);
+        case "item":
+          return (po.items || []).some(
+            (item) =>
+              toText(item.itemName).includes(term) ||
+              toText(item.modelNumber).includes(term) ||
+              toText(item.hsnCode).includes(term)
+          );
         case "all":
         default:
           return (
-            po.poNumber.toLowerCase().includes(term) ||
-            po.companyName.toLowerCase().includes(term) ||
-            po.vendorName.toLowerCase().includes(term) ||
-            po.status.toLowerCase().includes(term) ||
-            po.items.some(
+            toText(po.poNumber).includes(term) ||
+            toText(po.companyName).includes(term) ||
+            toText(po.vendorName).includes(term) ||
+            toText(po.status).includes(term) ||
+            (po.items || []).some(
               (item) =>
-                item.itemName.toLowerCase().includes(term) ||
-                item.modelNumber?.toLowerCase().includes(term) ||
-                item.hsnCode?.toLowerCase().includes(term)
+                toText(item.itemName).includes(term) ||
+                toText(item.modelNumber).includes(term) ||
+                toText(item.hsnCode).includes(term)
             )
           );
       }
     });
+  }, [stockReceived, searchTerm, searchFilter, statusFilter, approvalFilter]);
 
-    // Update total pages when filter changes
-    const totalPages = Math.ceil(filtered.length / itemsPerPage);
-    setTotalPages(totalPages);
-    setCurrentPage(1); // Reset to first page when filters change
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
 
-    return filtered;
-  }, [
-    stockReceived,
-    searchTerm,
-    searchFilter,
-    statusFilter,
-    approvalFilter,
-    itemsPerPage,
-  ]);
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+    setExpandedRows(new Set());
+  }, [searchTerm, searchFilter, statusFilter, approvalFilter, itemsPerPage]);
 
-  // Get current items for pagination
   const currentItems = useMemo(() => {
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    return filteredData.slice(indexOfFirstItem, indexOfLastItem);
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredData.slice(start, start + itemsPerPage);
   }, [filteredData, currentPage, itemsPerPage]);
 
-  // Pagination functions
   const goToPage = (pageNumber) => {
     if (pageNumber < 1 || pageNumber > totalPages) return;
     setCurrentPage(pageNumber);
     setExpandedRows(new Set()); // Close all expanded rows when changing page
-  };
-
-  const nextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-      setExpandedRows(new Set());
-    }
-  };
-
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-      setExpandedRows(new Set());
-    }
   };
 
   const toggleRowExpand = (id) => {
@@ -160,43 +197,15 @@ const PoStockReceiving = () => {
 
   const handleReceiveStock = (po) => {
     try {
-      navigate('../received-purchase-stock', {
-        state: { 
+      navigate("../received-purchase-stock", {
+        state: {
           poData: po,
-          poId: po.id 
-        }
+          poId: po.id,
+        },
       });
-      
-      console.log('Navigating with PO:', po.id, po.poNumber);
     } catch (err) {
-      console.error('Navigation error:', err);
-      setError('Failed to navigate to receive stock page');
-    }
-  };
-
-  const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case "Draft":
-        return "bg-gray-100 text-gray-800";
-      case "PartiallyReceived":
-        return "bg-yellow-100 text-yellow-800";
-      case "FullyReceived":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getApprovalStatusBadgeClass = (status) => {
-    switch (status) {
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "Approved":
-        return "bg-green-100 text-green-800";
-      case "Rejected":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      console.error("Navigation error:", err);
+      setError("Failed to navigate to receive stock page");
     }
   };
 
@@ -205,703 +214,448 @@ const PoStockReceiving = () => {
     setSearchFilter("all");
     setStatusFilter("all");
     setApprovalFilter("all");
-    setCurrentPage(1);
   };
 
-  const getStatusCounts = () => {
-    const counts = {
-      Draft: 0,
-      PartiallyReceived: 0,
-      FullyReceived: 0,
-    };
+  const hasFilters = searchTerm || statusFilter !== "all" || approvalFilter !== "all";
+
+  const stats = useMemo(() => {
+    const counts = { Draft: 0, PartiallyReceived: 0 };
     stockReceived.forEach((po) => {
-      if (counts[po.status] !== undefined) {
-        counts[po.status]++;
-      }
+      if (counts[po.status] !== undefined) counts[po.status]++;
     });
     return counts;
-  };
+  }, [stockReceived]);
 
-  const getApprovalCounts = () => {
-    const counts = {
-      Pending: 0,
-      Approved: 0,
-      Rejected: 0,
-    };
-    stockReceived.forEach((po) => {
-      if (counts[po.approvalStatus] !== undefined) {
-        counts[po.approvalStatus]++;
-      }
-    });
-    return counts;
-  };
-
-  const statusCounts = getStatusCounts();
-  const approvalCounts = getApprovalCounts();
+  const statusCount = (key) =>
+    key === "all" ? stockReceived.length : stats[key] ?? 0;
 
   // Calculate page numbers to display
   const getPageNumbers = () => {
-    const pageNumbers = [];
     const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    startPage = Math.max(1, endPage - maxPagesToShow + 1);
 
-    if (totalPages <= maxPagesToShow) {
-      // Show all pages
-      for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i);
-      }
-    } else {
-      // Show pages around current page
-      let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-      let endPage = startPage + maxPagesToShow - 1;
-
-      if (endPage > totalPages) {
-        endPage = totalPages;
-        startPage = Math.max(1, endPage - maxPagesToShow + 1);
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
-        pageNumbers.push(i);
-      }
-    }
-
+    const pageNumbers = [];
+    for (let i = startPage; i <= endPage; i++) pageNumbers.push(i);
     return pageNumbers;
   };
 
+  const statCards = [
+    {
+      label: "Pending POs",
+      value: stockReceived.length,
+      icon: <ClipboardList className="h-5 w-5" />,
+      tone: "bg-ink-950 text-brand-400",
+      filter: "all",
+    },
+    {
+      label: "Draft",
+      value: stats.Draft,
+      icon: <FileText className="h-5 w-5" />,
+      tone: "bg-ink-100 text-ink-700",
+      filter: "Draft",
+    },
+    {
+      label: "Partially received",
+      value: stats.PartiallyReceived,
+      icon: <PackageOpen className="h-5 w-5" />,
+      tone: "bg-brand-100 text-brand-700",
+      filter: "PartiallyReceived",
+    },
+  ];
+
+  const ItemsTable = ({ items }) => (
+    <div className="overflow-x-auto rounded-lg border border-ink-200 bg-white">
+      <table className="min-w-full text-sm">
+        <thead className="bg-ink-50 text-left text-xs font-semibold uppercase tracking-wider text-ink-500">
+          <tr>
+            <th className="px-4 py-2">Item</th>
+            <th className="px-4 py-2">HSN</th>
+            <th className="px-4 py-2">Model</th>
+            <th className="px-4 py-2">Unit</th>
+            <th className="px-4 py-2 text-right">Ordered</th>
+            <th className="px-4 py-2 text-right">Received</th>
+            <th className="px-4 py-2 text-right">Pending</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => (
+            <tr key={item.id} className="border-t border-ink-100">
+              <td className="px-4 py-2 font-medium text-ink-900">{item.itemName}</td>
+              <td className="px-4 py-2 text-ink-600">{item.hsnCode || "—"}</td>
+              <td className="px-4 py-2 text-ink-600">{item.modelNumber || "—"}</td>
+              <td className="px-4 py-2 text-ink-600">{item.unit || "—"}</td>
+              <td className="px-4 py-2 text-right font-semibold tabular-nums text-ink-900">{item.quantity}</td>
+              <td className="px-4 py-2 text-right font-semibold tabular-nums text-green-700">{item.receivedQty}</td>
+              <td className="px-4 py-2 text-right font-semibold tabular-nums text-orange-600">{item.pendingQty}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex h-64 items-center justify-center">
+        <span className="h-10 w-10 animate-spin rounded-full border-4 border-ink-200 border-t-brand-400" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-        <p>{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-        >
-          Reload Page
-        </button>
+      <div className="p-4 sm:p-6">
+        <div className="card mx-auto max-w-xl p-6 text-center">
+          <p className="font-semibold text-red-600">{error}</p>
+          <button onClick={fetchData} className="btn-outline mt-4">
+            <RefreshCw className="h-4 w-4" /> Try again
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            PO Stock Receiving Data
-          </h1>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total Pending POs</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stockReceived.length}
-                </p>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Filter className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Draft POs</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {statusCounts.Draft}
-                </p>
-              </div>
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <svg
-                  className="h-6 w-6 text-yellow-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Partially Received</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {statusCounts.PartiallyReceived}
-                </p>
-              </div>
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <svg
-                  className="h-6 w-6 text-orange-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Showing</p>
-                <div className="flex items-center space-x-2">
-                  <p className="text-2xl font-bold text-gray-900">
-                    {currentItems.length}
-                  </p>
-                  <span className="text-gray-400">/</span>
-                  <p className="text-lg font-medium text-gray-600">
-                    {filteredData.length}
-                  </p>
+    <div className="p-4 sm:p-6">
+      <div className="mx-auto max-w-[1600px] space-y-5">
+        {/* Stats */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {statCards.map((card) => {
+            const active = card.filter && statusFilter === card.filter;
+            const Tag = card.filter ? "button" : "div";
+            return (
+              <Tag
+                key={card.label}
+                {...(card.filter && { type: "button", onClick: () => setStatusFilter(card.filter) })}
+                className={`card flex items-center justify-between gap-3 p-4 text-left transition ${
+                  card.filter ? "hover:border-ink-300" : ""
+                } ${active ? "!border-brand-400 ring-2 ring-brand-400/40" : ""}`}
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold uppercase tracking-wider text-ink-600">{card.label}</p>
+                  <p className="mt-1 text-2xl font-bold tabular-nums text-ink-950">{card.value}</p>
                 </div>
-              </div>
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <svg
-                  className="h-6 w-6 text-purple-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
+                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${card.tone}`}>
+                  {card.icon}
+                </span>
+              </Tag>
+            );
+          })}
         </div>
 
-        {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search Bar */}
-            <div className="flex-1">
+        {/* Toolbar */}
+        <div className="card p-4">
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_180px_auto] lg:items-end">
+            <div>
+              <label className="label">Search</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
                 <input
                   type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  placeholder={`Search ${
-                    searchFilter === "all" ? "all fields" : searchFilter
-                  }...`}
+                  className="input pl-9"
+                  placeholder="PO number, vendor, company or item…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
             </div>
-
-            {/* Search Filter Dropdown */}
-            <div className="w-full md:w-48">
-              <select
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-              >
-                <option value="all">All Fields</option>
+            <div>
+              <label className="label">Search in</label>
+              <select className="input" value={searchFilter} onChange={(e) => setSearchFilter(e.target.value)}>
+                <option value="all">All fields</option>
                 <option value="poNumber">PO Number</option>
                 <option value="company">Company</option>
                 <option value="vendor">Vendor</option>
-                <option value="status">Status</option>
+                <option value="item">Item / Model / HSN</option>
               </select>
             </div>
-
-            {/* Items Per Page */}
-            <div className="w-full md:w-32">
-              <select
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-              >
-                <option value="10">10 per page</option>
-                <option value="25">25 per page</option>
-                <option value="50">50 per page</option>
-                <option value="100">100 per page</option>
-                <option value="250">250 per page</option>
+            <div>
+              <label className="label">Approval</label>
+              <select className="input" value={approvalFilter} onChange={(e) => setApprovalFilter(e.target.value)}>
+                <option value="all">All</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
               </select>
             </div>
-
-            {/* Advanced Filters Toggle */}
-            <button
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-              {showAdvancedFilters ? (
-                <ChevronUp className="h-4 w-4 ml-2" />
-              ) : (
-                <ChevronDown className="h-4 w-4 ml-2" />
-              )}
-            </button>
-
-            {/* Clear Filters */}
-            {(searchTerm ||
-              statusFilter !== "all" ||
-              approvalFilter !== "all") && (
-              <button
-                onClick={clearFilters}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Clear Filters
+            {hasFilters && (
+              <button type="button" onClick={clearFilters} className="btn-outline">
+                <X className="h-4 w-4" /> Clear
               </button>
             )}
           </div>
 
-          {/* Advanced Filters */}
-          {showAdvancedFilters && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Status Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    PO Status
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setStatusFilter("all")}
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        statusFilter === "all"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                      }`}
-                    >
-                      All ({stockReceived.length})
-                    </button>
-                    <button
-                      onClick={() => setStatusFilter("Draft")}
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        statusFilter === "Draft"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                      }`}
-                    >
-                      Draft ({statusCounts.Draft})
-                    </button>
-                    <button
-                      onClick={() => setStatusFilter("PartiallyReceived")}
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        statusFilter === "PartiallyReceived"
-                          ? "bg-orange-100 text-orange-800"
-                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                      }`}
-                    >
-                      Partial ({statusCounts.PartiallyReceived})
-                    </button>
-                  </div>
-                </div>
-
-                {/* Approval Status Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Approval Status
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setApprovalFilter("all")}
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        approvalFilter === "all"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                      }`}
-                    >
-                      All ({stockReceived.length})
-                    </button>
-                    <button
-                      onClick={() => setApprovalFilter("Pending")}
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        approvalFilter === "Pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                      }`}
-                    >
-                      Pending ({approvalCounts.Pending})
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Results Count */}
-          <div className="mt-4 flex justify-between items-center">
-            <p className="text-sm text-gray-600">
-              Showing <span className="font-medium">{currentItems.length}</span>{" "}
-              of <span className="font-medium">{filteredData.length}</span>{" "}
-              filtered POs (Total: {stockReceived.length} POs)
-              {(searchTerm ||
-                statusFilter !== "all" ||
-                approvalFilter !== "all") && (
-                <button
-                  onClick={clearFilters}
-                  className="ml-2 text-sm text-blue-600 hover:text-blue-800"
+          {/* Status tabs */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {STATUS_TABS.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setStatusFilter(tab.key)}
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  statusFilter === tab.key
+                    ? "bg-ink-950 text-brand-400"
+                    : "bg-ink-100 text-ink-700 hover:bg-ink-200"
+                }`}
+              >
+                {tab.label}
+                <span
+                  className={`rounded-full px-1.5 tabular-nums ${
+                    statusFilter === tab.key ? "bg-brand-400 text-ink-950" : "bg-white text-ink-600"
+                  }`}
                 >
-                  Clear filters
-                </button>
-              )}
-            </p>
-            <div className="text-sm text-gray-600">
-              Page <span className="font-medium">{currentPage}</span> of{" "}
-              <span className="font-medium">{totalPages}</span>
-            </div>
+                  {statusCount(tab.key)}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* POs Table */}
-        {filteredData.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">
-              No POs found matching your criteria
-            </p>
-            {searchTerm && (
-              <p className="text-gray-400 mt-2">
-                Try adjusting your search or filters
+        {/* PO list */}
+        <div className="card overflow-hidden">
+          <div className="flex flex-col gap-2 border-b border-ink-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-base font-bold text-ink-950">POs awaiting receipt</h2>
+              <p className="text-xs text-ink-500">
+                {filteredData.length === 0
+                  ? "No results"
+                  : `Showing ${(currentPage - 1) * itemsPerPage + 1}–${Math.min(
+                      currentPage * itemsPerPage,
+                      filteredData.length
+                    )} of ${filteredData.length}`}
               </p>
-            )}
+            </div>
+            <label className="flex items-center gap-2 text-xs text-ink-500">
+              Rows per page
+              <select
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="input h-8 w-20 py-0 text-xs"
+              >
+                {[10, 25, 50, 100, 250].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
-        ) : (
-          <>
-            <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+
+          {filteredData.length === 0 ? (
+            <div className="py-16 text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-ink-100 text-ink-400">
+                <PackageCheck className="h-6 w-6" />
+              </div>
+              <p className="font-semibold text-ink-800">
+                {stockReceived.length === 0 ? "Nothing pending to receive" : "No POs match your filters"}
+              </p>
+              <p className="text-sm text-ink-500">
+                {stockReceived.length === 0
+                  ? "All purchase orders have been fully received."
+                  : "Try changing your search or filters."}
+              </p>
+              {hasFilters && (
+                <button type="button" onClick={clearFilters} className="btn-outline mt-4">
+                  Clear filters
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Desktop table */}
+              <div className="hidden overflow-x-auto lg:block">
+                <table className="table">
+                  <thead>
                     <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        PO Details
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Company
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Vendor
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Status
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Items
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Actions
-                      </th>
+                      <th className="w-10" />
+                      <th>Purchase Order</th>
+                      <th>Vendor</th>
+                      <th>Company</th>
+                      <th>Status</th>
+                      <th>Received</th>
+                      <th className="!text-right">Pending</th>
+                      <th className="!text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {currentItems.map((po) => (
-                      <React.Fragment key={po.id}>
-                        <tr className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="font-medium text-gray-900">
-                              {po.poNumber}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              {po.companyName}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              {po.vendorName}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
-                                po.status
-                              )}`}
-                            >
-                              {po.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {po.items.length} item(s)
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button
-                              onClick={() => toggleRowExpand(po.id)}
-                              className="text-blue-600 hover:text-blue-900 mr-4"
-                            >
-                              {expandedRows.has(po.id)
-                                ? "Hide Items"
-                                : "View Items"}
-                            </button>
-                            <button 
-                              onClick={() => handleReceiveStock(po)}
-                              className="text-green-600 hover:text-green-900"
-                            >
-                              Receive Stock
-                            </button>
-                          </td>
-                        </tr>
-                        {expandedRows.has(po.id) && (
-                          <tr>
-                            <td colSpan="9" className="px-6 py-4 bg-gray-50">
-                              <div className="border border-gray-200 rounded-lg overflow-hidden">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                  <thead className="bg-gray-100">
-                                    <tr>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Item Name
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        HSN Code
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Model
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Unit
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Ordered
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Received
-                                      </th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Pending
-                                      </th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="bg-white divide-y divide-gray-200">
-                                    {po.items.map((item) => (
-                                      <tr
-                                        key={item.id}
-                                        className="hover:bg-gray-50"
-                                      >
-                                        <td className="px-4 py-2 text-sm text-gray-900">
-                                          {item.itemName}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-500">
-                                          {item.hsnCode}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-500">
-                                          {item.modelNumber || "N/A"}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-500">
-                                          {item.unit}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-900 font-medium">
-                                          {item.quantity}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-green-600 font-medium">
-                                          {item.receivedQty}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-orange-600 font-medium">
-                                          {item.pendingQty}
-                                        </td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
+                  <tbody>
+                    {currentItems.map((po) => {
+                      const totals = getPoTotals(po);
+                      const expanded = expandedRows.has(po.id);
+                      return (
+                        <React.Fragment key={po.id}>
+                          <tr className={expanded ? "!bg-brand-50" : ""}>
+                            <td>
+                              <button
+                                type="button"
+                                onClick={() => toggleRowExpand(po.id)}
+                                aria-label={expanded ? "Hide items" : "View items"}
+                                aria-expanded={expanded}
+                                className="flex h-7 w-7 items-center justify-center rounded-md text-ink-500 hover:bg-ink-100"
+                              >
+                                <ChevronDown
+                                  className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+                                />
+                              </button>
+                            </td>
+                            <td>
+                              <div className="whitespace-nowrap font-semibold text-ink-950">{po.poNumber}</div>
+                              <div className="text-xs text-ink-500">{po.items?.length ?? 0} item(s)</div>
+                            </td>
+                            <td className="min-w-[160px] max-w-[260px] break-words font-medium text-ink-900">
+                              {po.vendorName || "N/A"}
+                            </td>
+                            <td className="min-w-[160px] max-w-[260px] break-words font-medium text-ink-800">
+                              {po.companyName || "N/A"}
+                            </td>
+                            <td>
+                              <div className="flex flex-col items-start gap-1">
+                                <span className={`whitespace-nowrap ${getStatusBadgeClass(po.status)}`}>
+                                  {getStatusLabel(po.status)}
+                                </span>
+                                {po.approvalStatus && po.approvalStatus !== "Approved" && (
+                                  <span className={`whitespace-nowrap ${getApprovalBadgeClass(po.approvalStatus)}`}>
+                                    Approval: {po.approvalStatus}
+                                  </span>
+                                )}
                               </div>
                             </td>
+                            <td>
+                              <ProgressBar received={totals.received} ordered={totals.ordered} />
+                            </td>
+                            <td className="text-right font-semibold tabular-nums text-orange-600">
+                              {totals.pending}
+                            </td>
+                            <td className="text-right">
+                              <button
+                                type="button"
+                                onClick={() => handleReceiveStock(po)}
+                                className="btn-primary whitespace-nowrap px-3 py-1.5"
+                              >
+                                <PackageCheck className="h-4 w-4" /> Receive
+                              </button>
+                            </td>
                           </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
+                          {expanded && (
+                            <tr className="hover:!bg-transparent">
+                              <td colSpan={8} className="bg-ink-50 !py-4">
+                                <ItemsTable items={po.items || []} />
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
-            </div>
 
-            {/* Pagination Controls */}
-            <div className="bg-white rounded-lg shadow px-4 py-3 flex items-center justify-between border-t border-gray-200">
-              <div className="flex-1 flex justify-between sm:hidden">
-                <button
-                  onClick={prevPage}
-                  disabled={currentPage === 1}
-                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                    currentPage === 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={nextPage}
-                  disabled={currentPage === totalPages}
-                  className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-                    currentPage === totalPages
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-white text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  Next
-                </button>
-              </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Showing{" "}
-                    <span className="font-medium">
-                      {(currentPage - 1) * itemsPerPage + 1}
-                    </span>{" "}
-                    to{" "}
-                    <span className="font-medium">
-                      {Math.min(
-                        currentPage * itemsPerPage,
-                        filteredData.length
+              {/* Mobile / tablet cards */}
+              <div className="grid gap-3 p-3 md:grid-cols-2 lg:hidden">
+                {currentItems.map((po) => {
+                  const totals = getPoTotals(po);
+                  const expanded = expandedRows.has(po.id);
+                  return (
+                    <div key={po.id} className="rounded-xl border border-ink-200 bg-white p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="break-words font-bold text-ink-950">{po.poNumber}</div>
+                          <div className="text-xs text-ink-500">{po.items?.length ?? 0} item(s)</div>
+                        </div>
+                        <span className={`shrink-0 ${getStatusBadgeClass(po.status)}`}>
+                          {getStatusLabel(po.status)}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 text-sm">
+                        <div className="break-words font-medium text-ink-900">{po.vendorName || "N/A"}</div>
+                        <div className="break-words text-xs text-ink-500">{po.companyName || "N/A"}</div>
+                      </div>
+
+                      <div className="mt-3 rounded-lg bg-ink-50 px-3 py-2">
+                        <ProgressBar received={totals.received} ordered={totals.ordered} />
+                        <div className="mt-1.5 text-xs text-ink-500">
+                          Pending:{" "}
+                          <span className="font-semibold tabular-nums text-orange-600">{totals.pending}</span>
+                        </div>
+                      </div>
+
+                      {expanded && (
+                        <div className="mt-3 space-y-2">
+                          {(po.items || []).map((item) => (
+                            <div key={item.id} className="rounded-lg border border-ink-200 px-3 py-2 text-xs">
+                              <div className="font-semibold text-ink-900">{item.itemName}</div>
+                              <div className="text-ink-500">
+                                {[item.modelNumber, item.hsnCode && `HSN ${item.hsnCode}`, item.unit]
+                                  .filter(Boolean)
+                                  .join(" · ")}
+                              </div>
+                              <div className="mt-1 flex gap-3 tabular-nums">
+                                <span>Ordered <b className="text-ink-900">{item.quantity}</b></span>
+                                <span>Received <b className="text-green-700">{item.receivedQty}</b></span>
+                                <span>Pending <b className="text-orange-600">{item.pendingQty}</b></span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-medium">{filteredData.length}</span>{" "}
-                    results
-                  </p>
-                </div>
-                <div>
-                  <nav
-                    className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                    aria-label="Pagination"
+
+                      <div className="mt-3 flex gap-2">
+                        <button type="button" onClick={() => toggleRowExpand(po.id)} className="btn-outline flex-1">
+                          {expanded ? "Hide items" : "View items"}
+                        </button>
+                        <button type="button" onClick={() => handleReceiveStock(po)} className="btn-primary flex-1">
+                          <PackageCheck className="h-4 w-4" /> Receive
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Pagination */}
+              <div className="flex flex-col items-center justify-between gap-3 border-t border-ink-200 px-4 py-3 sm:flex-row">
+                <span className="text-xs text-ink-500">
+                  Page <span className="font-semibold text-ink-900">{currentPage}</span> of{" "}
+                  <span className="font-semibold text-ink-900">{totalPages}</span>
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    aria-label="Previous page"
+                    className="flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {/* First Page Button */}
+                    <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Prev</span>
+                  </button>
+                  {getPageNumbers().map((page) => (
                     <button
-                      onClick={() => goToPage(1)}
-                      disabled={currentPage === 1}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                        currentPage === 1
-                          ? "text-gray-300 cursor-not-allowed"
-                          : "text-gray-500 hover:bg-gray-50"
+                      key={page}
+                      onClick={() => goToPage(page)}
+                      aria-current={currentPage === page ? "page" : undefined}
+                      className={`h-8 min-w-8 rounded-md px-2.5 text-xs font-semibold ${
+                        currentPage === page
+                          ? "bg-ink-950 text-brand-400"
+                          : "border border-ink-200 text-ink-700 hover:bg-ink-100"
                       }`}
                     >
-                      <span className="sr-only">First</span>
-                      <ChevronsLeft className="h-5 w-5" />
+                      {page}
                     </button>
-
-                    {/* Previous Page Button */}
-                    <button
-                      onClick={prevPage}
-                      disabled={currentPage === 1}
-                      className={`relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                        currentPage === 1
-                          ? "text-gray-300 cursor-not-allowed"
-                          : "text-gray-500 hover:bg-gray-50"
-                      }`}
-                    >
-                      <span className="sr-only">Previous</span>
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-
-                    {/* Page Numbers */}
-                    {getPageNumbers().map((pageNum) => (
-                      <button
-                        key={pageNum}
-                        onClick={() => goToPage(pageNum)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          currentPage === pageNum
-                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    ))}
-
-                    {/* Next Page Button */}
-                    <button
-                      onClick={nextPage}
-                      disabled={currentPage === totalPages}
-                      className={`relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                        currentPage === totalPages
-                          ? "text-gray-300 cursor-not-allowed"
-                          : "text-gray-500 hover:bg-gray-50"
-                      }`}
-                    >
-                      <span className="sr-only">Next</span>
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-
-                    {/* Last Page Button */}
-                    <button
-                      onClick={() => goToPage(totalPages)}
-                      disabled={currentPage === totalPages}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                        currentPage === totalPages
-                          ? "text-gray-300 cursor-not-allowed"
-                          : "text-gray-500 hover:bg-gray-50"
-                      }`}
-                    >
-                      <span className="sr-only">Last</span>
-                      <ChevronsRight className="h-5 w-5" />
-                    </button>
-                  </nav>
+                  ))}
+                  <button
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next page"
+                    className="flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <span className="hidden sm:inline">Next</span> <ChevronRight className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
-            </div>
-
-            {/* Page Jump */}
-            <div className="mt-4 flex justify-center">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-700">Go to page:</span>
-                <input
-                  type="text"
-                  min="1"
-                  max={totalPages}
-                  value={currentPage}
-                  onChange={(e) => {
-                    const page = parseInt(e.target.value);
-                    if (page >= 1 && page <= totalPages) {
-                      goToPage(page);
-                    }
-                  }}
-                  className="w-20 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
-                <span className="text-sm text-gray-700">of {totalPages}</span>
-              </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -264,18 +264,6 @@ const UpdateVendor = () => {
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white shadow-xl rounded-lg p-6 md:p-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <BuildingOffice2Icon className="h-8 w-8 text-yellow-400" />
-                Update Vendor
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Select and update vendor information
-              </p>
-            </div>
-           
-          </div>
           <div className="mb-8">
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">

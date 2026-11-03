@@ -41,6 +41,8 @@ import SingleOut from "./pages/LineWorker/StoreKeeper/SingleOut/SingleOut";
 import ReturnMaterial from "./pages/LineWorker/StoreKeeper/ReturnMaterial/ReturnMaterial";
 import PoStockReceiving from "./pages/LineWorker/StoreKeeper/PoStockReceiving/PoStockReceiving";
 import ReceivedPurchaseStock from "./pages/LineWorker/StoreKeeper/PoStockReceiving/ReceivedPurchaseStock";
+import AddContainer from "./pages/LineWorker/StoreKeeper/AddContainer/AddContainer";
+import ItemWiseContainer from "./pages/LineWorker/StoreKeeper/ItemWiseContainer/ItemWiseContainer";
 import DirectItemIssueHistory from "./pages/LineWorker/StoreKeeper/SingleOut/DirectItemIssueHistory";
 import PaymentPending from "./pages/Payment/PaymentPending";
 import PaymentRequest from "./pages/Payment/PaymentRequest";
@@ -63,15 +65,20 @@ import ExcelPurchaseOrderUpload from "./pages/Purchase/ExcelPurchaseOrderUpload"
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
-  if (loading) return <div className="loading">Loading...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-ink-50">
+        <div className="h-10 w-10 rounded-full border-4 border-ink-200 border-t-brand-400 animate-spin" />
+      </div>;
 
   if (!user) return <Navigate to="/login" replace />;
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
     return (
-      <div className="access-denied">
-        <h2>Access Denied</h2>
-        <p>You don't have permission to access this page.</p>
+      <div className="page">
+        <div className="card card-body max-w-md mx-auto mt-16 text-center">
+          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-brand-100 flex items-center justify-center text-2xl">🔒</div>
+          <h2 className="text-lg font-bold text-ink-950">Access Denied</h2>
+          <p className="mt-1 text-sm text-ink-500">You don't have permission to access this page.</p>
+        </div>
       </div>
     );
   }
@@ -121,7 +128,9 @@ const getRedirectPath = (role) => {
 const AppRoutes = () => {
   const { user, loading } = useUser();
 
-  if (loading) return <div className="loading">Loading...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-ink-50">
+        <div className="h-10 w-10 rounded-full border-4 border-ink-200 border-t-brand-400 animate-spin" />
+      </div>;
 
   return (
     <Routes>
@@ -195,6 +204,24 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
               <PoStockReceiving />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="add-container"
+          element={
+            <ProtectedRoute allowedRoles={["Store"]}>
+              <AddContainer />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="item-wise-container"
+          element={
+            <ProtectedRoute allowedRoles={["Store"]}>
+              <ItemWiseContainer />
             </ProtectedRoute>
           }
         />

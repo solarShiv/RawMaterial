@@ -154,12 +154,6 @@ const Installation = () => {
 
   return (
     <div className="w-full p-4 sm:p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-          Installation Shortage Calculation
-        </h1>
-      </div>
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-8">

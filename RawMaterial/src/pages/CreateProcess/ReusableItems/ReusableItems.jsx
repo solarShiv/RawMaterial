@@ -221,10 +221,6 @@ const ReusableItems = () => {
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
         <div className="p-8">
-          <div className="text-center mb-8 pb-6 border-b border-gray-200">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Assign Assemble User</h2>
-            <p className="text-gray-600 text-lg">Select an assemble user and required raw materials with quantities</p>
-          </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">

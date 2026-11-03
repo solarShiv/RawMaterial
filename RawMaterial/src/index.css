@@ -1,3 +1,119 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    @apply bg-ink-100 text-ink-950 antialiased;
+  }
+  ::selection {
+    @apply bg-brand-300 text-ink-950;
+  }
+  *:focus-visible {
+    @apply outline-none ring-2 ring-brand-400 ring-offset-1;
+  }
+}
+
+/* Reusable design-system classes for pages */
+@layer components {
+  .page {
+    @apply p-4 sm:p-6 max-w-[1600px] mx-auto;
+  }
+  .card {
+    @apply bg-white rounded-xl border border-ink-300 shadow-card;
+  }
+  .card-header {
+    @apply flex items-center justify-between gap-3 px-5 py-4 border-b border-ink-300;
+  }
+  .card-title {
+    @apply text-base font-semibold text-ink-950;
+  }
+  .card-body {
+    @apply p-5;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold
+      transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-brand-400 text-ink-950 hover:bg-brand-500;
+  }
+  .btn-dark {
+    @apply btn bg-ink-950 text-white hover:bg-ink-800;
+  }
+  .btn-outline {
+    @apply btn border border-ink-400 bg-white text-ink-950 hover:bg-ink-100;
+  }
+  /* Approve / decline actions: colour only, so they combine with any button sizing */
+  .btn-approve {
+    @apply border-0 bg-brand-500 text-ink-950 hover:bg-brand-600;
+  }
+  .btn-decline {
+    @apply border-0 bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-danger {
+    @apply btn bg-red-500 text-white hover:bg-red-600;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-semibold text-ink-900;
+  }
+  .input {
+    @apply w-full rounded-lg border border-ink-400 bg-white px-3 py-2 text-sm text-ink-950
+      placeholder:text-ink-400 transition-colors
+      focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-400/40
+      disabled:bg-ink-100 disabled:text-ink-500 disabled:cursor-not-allowed;
+  }
+
+  .table-wrap {
+    @apply overflow-auto rounded-xl border border-ink-300 bg-white;
+  }
+  .table {
+    @apply min-w-full text-sm text-ink-950;
+  }
+  /* Direct-child selectors so tables nested inside a row keep their own styling */
+  .table > thead > tr > th {
+    @apply sticky top-0 z-10 bg-ink-950 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-white;
+  }
+  .table > tbody > tr > td {
+    @apply px-4 py-3 border-t border-ink-200;
+  }
+  .table > tbody > tr:hover {
+    @apply bg-brand-50;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+  .badge-yellow { @apply badge bg-brand-300 text-ink-950; }
+  .badge-green  { @apply badge bg-green-200 text-green-900; }
+  .badge-red    { @apply badge bg-red-200 text-red-900; }
+  .badge-gray   { @apply badge bg-ink-200 text-ink-900; }
+}
+
+/* Thin dark scrollbar for the sidebar */
+.sidebar-scroll::-webkit-scrollbar { width: 6px; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(11,11,10,0.2); border-radius: 9999px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Hide the up/down spinner arrows on number inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Keep autofilled inputs white instead of the browser's blue tint */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
+  -webkit-text-fill-color: #161614;
+  transition: background-color 9999s ease-in-out 0s;
+}

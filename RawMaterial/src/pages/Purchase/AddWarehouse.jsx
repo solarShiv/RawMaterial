@@ -39,7 +39,6 @@ const AddWarehouse = () => {
 
   return (
     <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Add New Warehouse</h1>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

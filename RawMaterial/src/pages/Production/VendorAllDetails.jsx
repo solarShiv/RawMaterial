@@ -65,11 +65,7 @@ const VendorAllDetails = () => {
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 bg-gray-50 min-h-screen">
       {/* Header with title and search */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Vendor Order Details</h1>
-          <p className="text-sm text-gray-500 mt-1">Overview of ordered and received quantities</p>
-        </div>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-end gap-4">
         <div className="w-full md:w-72">
           <div className="relative">
             <input

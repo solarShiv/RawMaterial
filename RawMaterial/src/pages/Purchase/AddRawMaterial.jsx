@@ -212,14 +212,6 @@ const AddRawMaterial = ({
   return (
     <div className="w-full bg-gradient-to-br from-slate-100 flex items-center justify-center px-4">
       <div className="w-full bg-white shadow-xs p-4">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-800">
-            {isEditMode ? "Edit Item" : "Add Item"}
-          </h2>
-          <p className="text-gray-500 mt-2">
-            {isEditMode ? "Update item details" : "Enter item details"}
-          </p>
-        </div>
 
         <form
           onSubmit={handleSubmit}
