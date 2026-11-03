@@ -100,16 +100,11 @@ const ItemWiseContainer = () => {
       setError("Please select at least one container");
       return;
     }
-    if (containerIds.some((id) => !(parseFloat(quantities[id]) > 0))) {
-      setError("Please enter a quantity greater than 0 for every container");
-      return;
-    }
-
     const payload = {
       itemId,
       containers: containerIds.map((id) => ({
         containerId: id,
-        quantity: parseFloat(quantities[id]),
+        quantity: parseFloat(quantities[id]) || 0,
       })),
     };
 
