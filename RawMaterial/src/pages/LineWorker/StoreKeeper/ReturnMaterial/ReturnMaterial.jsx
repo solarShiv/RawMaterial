@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import Api from "../../../../auth/Api";
 
 const ReturnMaterial = () => {
@@ -12,7 +12,6 @@ const ReturnMaterial = () => {
   const [loadingItems, setLoadingItems] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
-  const dropdownRef = useRef(null);
 
   /* ─── Fetch line worker list ─── */
   useEffect(() => {
@@ -164,16 +163,16 @@ const ReturnMaterial = () => {
   });
 
   return (
-    <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 bg-white rounded-lg shadow-lg">
+    <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 bg-white rounded-lg shadow-card">
 
       <form onSubmit={handleSubmit}>
         {/* ── EMPLOYEE SELECTION ── */}
         <div className="mb-6">
-          <label className="block mb-2 font-medium text-gray-700">
+          <label className="block mb-2 font-medium text-ink-700">
             Select Employee <span className="text-red-500">*</span>
           </label>
           {loadingWorkers ? (
-            <div className="text-gray-500 text-sm">Loading employees…</div>
+            <div className="text-ink-500 text-sm">Loading employees…</div>
           ) : (
             <select
               value={selectedWorker}
@@ -181,8 +180,8 @@ const ReturnMaterial = () => {
                 setSelectedWorker(e.target.value);
                 setErrors({});
               }}
-              className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
-                errors.selectedWorker ? "border-red-500" : "border-gray-300"
+              className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
+                errors.selectedWorker ? "border-red-500" : "border-ink-300"
               }`}
             >
               <option value="">— Select Employee —</option>
@@ -203,14 +202,14 @@ const ReturnMaterial = () => {
           <div className="mb-6">
             {loadingItems ? (
               <div className="text-center py-8">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                <p className="mt-2 text-gray-600">Loading outstanding items…</p>
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand-500"></div>
+                <p className="mt-2 text-ink-600">Loading outstanding items…</p>
               </div>
             ) : outstandingItems.length === 0 ? (
-              <div className="text-center py-8 border border-dashed border-gray-300 rounded-lg">
+              <div className="text-center py-8 border border-dashed border-ink-300 rounded-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-12 w-12 text-gray-400 mx-auto mb-3"
+                  className="h-12 w-12 text-ink-400 mx-auto mb-3"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -222,24 +221,24 @@ const ReturnMaterial = () => {
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <p className="text-gray-600 font-medium">
+                <p className="text-ink-600 font-medium">
                   No outstanding returnable materials for{" "}
                   {employeeName || "this employee"}
                 </p>
-                <p className="text-gray-400 text-sm mt-1">
+                <p className="text-ink-400 text-sm mt-1">
                   All returnable items have been returned or none were issued.
                 </p>
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-gray-700">
+                  <h3 className="text-lg font-semibold text-ink-700">
                     Outstanding Returnable Materials
                     {employeeName && (
-                      <span className="text-blue-600 ml-2">— {employeeName}</span>
+                      <span className="text-brand-700 ml-2">— {employeeName}</span>
                     )}
                   </h3>
-                  <span className="text-sm text-gray-500 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+                  <span className="text-sm text-ink-500 bg-brand-50 border border-brand-300 px-3 py-1 rounded-full">
                     {outstandingItems.length} item{outstandingItems.length !== 1 ? "s" : ""}
                   </span>
                 </div>
@@ -249,23 +248,23 @@ const ReturnMaterial = () => {
                 )}
 
                 {/* TABLE */}
-                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                <div className="overflow-x-auto rounded-lg border border-ink-200">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                      <tr className="bg-ink-50 border-b border-ink-200">
+                        <th className="px-4 py-3 text-left font-semibold text-ink-700">
                           Material
                         </th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700">
+                        <th className="px-4 py-3 text-center font-semibold text-ink-700">
                           Issued
                         </th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700">
+                        <th className="px-4 py-3 text-center font-semibold text-ink-700">
                           Returned
                         </th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700">
+                        <th className="px-4 py-3 text-center font-semibold text-ink-700">
                           Remaining
                         </th>
-                        <th className="px-4 py-3 text-center font-semibold text-gray-700">
+                        <th className="px-4 py-3 text-center font-semibold text-ink-700">
                           Return Qty
                         </th>
                       </tr>
@@ -279,22 +278,22 @@ const ReturnMaterial = () => {
                         return (
                           <tr
                             key={item.rawMaterialId}
-                            className={`border-b border-gray-100 ${
-                              idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                            } hover:bg-blue-50 transition`}
+                            className={`border-b border-ink-100 ${
+                              idx % 2 === 0 ? "bg-white" : "bg-ink-50"
+                            } hover:bg-brand-50 transition`}
                           >
                             {/* MATERIAL */}
                             <td className="px-4 py-3">
-                              <div className="font-medium text-gray-900">
+                              <div className="font-medium text-ink-900">
                                 {item.name}
                               </div>
-                              <div className="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full inline-block mt-1">
+                              <div className="text-xs text-brand-700 bg-brand-100 px-2 py-0.5 rounded-full inline-block mt-1">
                                 RETURNABLE
                               </div>
                             </td>
 
                             {/* ISSUED */}
-                            <td className="px-4 py-3 text-center text-gray-700">
+                            <td className="px-4 py-3 text-center text-ink-700">
                               {item.totalIssued} {item.unit}
                             </td>
 
@@ -332,14 +331,14 @@ const ReturnMaterial = () => {
                                         e.target.value
                                       )
                                     }
-                                    className={`w-24 border rounded-lg px-2 py-1.5 text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
+                                    className={`w-24 border rounded-lg px-2 py-1.5 text-center focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
                                       hasError
                                         ? "border-red-500 bg-red-50"
-                                        : "border-gray-300"
+                                        : "border-ink-300"
                                     }`}
                                     placeholder="0"
                                   />
-                                  <span className="text-xs text-gray-500">
+                                  <span className="text-xs text-ink-500">
                                     {item.unit}
                                   </span>
                                 </div>
@@ -369,14 +368,14 @@ const ReturnMaterial = () => {
         {/* ── REMARKS ── */}
         {selectedWorker && outstandingItems.length > 0 && (
           <div className="mb-6">
-            <label className="block mb-2 font-medium text-gray-700">
+            <label className="block mb-2 font-medium text-ink-700">
               Remarks
             </label>
             <textarea
               rows={3}
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition resize-none"
+              className="w-full border border-ink-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition resize-none"
               placeholder="Add any notes about this return transaction…"
             />
           </div>
@@ -388,7 +387,7 @@ const ReturnMaterial = () => {
             <button
               type="submit"
               disabled={submitting || !hasAnyReturnQty}
-              className="flex-1 bg-blue-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition shadow-md hover:shadow-lg"
+              className="flex-1 bg-ink-950 text-white rounded-lg px-4 py-3 font-medium hover:bg-ink-800 disabled:bg-ink-400 disabled:cursor-not-allowed transition shadow-card hover:shadow-lg"
             >
               {submitting ? (
                 <span className="flex items-center justify-center">
@@ -421,7 +420,7 @@ const ReturnMaterial = () => {
             <button
               type="button"
               onClick={handleReset}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+              className="px-6 py-3 border border-ink-300 text-ink-700 rounded-lg hover:bg-ink-50 transition"
             >
               Reset
             </button>

@@ -46,16 +46,6 @@ const StockUpdateHistory = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   const getMovementTypeClass = (type) => {
     return type === 'IN' 
       ? 'bg-green-100 text-green-800 border-green-200' 
@@ -65,7 +55,7 @@ const StockUpdateHistory = () => {
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto p-5 font-sans">
-        <div className="text-center py-10 text-gray-600 text-lg">Loading stock history...</div>
+        <div className="text-center py-10 text-ink-600 text-lg">Loading stock history...</div>
       </div>
     );
   }
@@ -83,23 +73,23 @@ const StockUpdateHistory = () => {
 
       <div className="space-y-6">
         {!stockHistory || stockHistory.length === 0 ? (
-          <div className="text-center py-10 text-gray-600 text-lg">No stock history available</div>
+          <div className="text-center py-10 text-ink-600 text-lg">No stock history available</div>
         ) : (
           stockHistory.map((historyItem) => (
             <div 
               key={historyItem.id} 
-              className="bg-white rounded-xl shadow-md overflow-hidden border-l-4  animate-fade-in-up"
+              className="bg-white rounded-xl shadow-card overflow-hidden border-l-4 animate-fade-in-up"
             >
               <div className="flex flex-col lg:flex-row">
                 {/* Left side - Stock movements */}
                 <div className="flex-1 p-5 border-r-0 lg:border-r-2 ">
                   <div className="mb-4">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-3">Stock Movements</h4>
+                    <h4 className="text-lg font-semibold text-ink-800 mb-3">Stock Movements</h4>
                     <div className="space-y-2">
                       {historyItem.stockMovement && historyItem.stockMovement.map((movement, index) => (
-                        <div key={index} className="p-3 bg-gray-50 rounded-lg border-l-4 ">
+                        <div key={index} className="p-3 bg-ink-50 rounded-lg border-l-4 ">
                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                            <span className="font-semibold text-gray-800 flex-1">
+                            <span className="font-semibold text-ink-800 flex-1">
                               {movement.rawMaterial?.name || 'Unknown Material'}
                             </span>
                             <div className="flex items-center gap-2 font-medium">
@@ -118,16 +108,16 @@ const StockUpdateHistory = () => {
                 </div>
 
                 {/* Right side - Bill photos */}
-                <div className="w-full lg:w-80 bg-gray-50 p-5">
+                <div className="w-full lg:w-80 bg-ink-50 p-5">
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-800 mb-3">Bill Photos</h4>
+                    <h4 className="text-lg font-semibold text-ink-800 mb-3">Bill Photos</h4>
                     <div className="flex flex-col space-y-4">
                       {historyItem.billPhotos && historyItem.billPhotos.map((photoUrl, index) => (
                         <div key={index} className="flex flex-col items-center gap-3">
                           <img 
                             src={photoUrl} 
                             alt={`Bill ${index + 1}`}
-                            className="w-full max-w-xs h-32 object-cover rounded-lg border-2 border-gray-300 transition-transform duration-200 hover:scale-105"
+                            className="w-full max-w-xs h-32 object-cover rounded-lg border-2 border-ink-300 transition-transform duration-200 hover:scale-105"
                             onError={(e) => {
                               e.target.src = '/placeholder-bill.jpg';
                             }}

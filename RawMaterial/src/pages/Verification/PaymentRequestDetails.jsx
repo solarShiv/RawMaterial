@@ -231,20 +231,20 @@
 //   // Loading state
 //   if (loading) {
 //     return (
-//       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
+//       <div className="min-h-[60vh] bg-gradient-to-br from-ink-50 to-ink-100 p-4 md:p-8">
 //         <div className="max-w-7xl mx-auto">
 //           <div className="animate-pulse">
-//             <div className="h-8 bg-gray-300 rounded w-1/4 mb-8"></div>
+//             <div className="h-8 bg-ink-300 rounded w-1/4 mb-8"></div>
 //             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
 //               {[...Array(4)].map((_, i) => (
 //                 <div key={i} className="bg-white rounded-xl shadow p-6">
-//                   <div className="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
-//                   <div className="h-8 bg-gray-300 rounded w-1/2"></div>
+//                   <div className="h-4 bg-ink-300 rounded w-3/4 mb-4"></div>
+//                   <div className="h-8 bg-ink-300 rounded w-1/2"></div>
 //                 </div>
 //               ))}
 //             </div>
 //             <div className="bg-white rounded-xl shadow p-6">
-//               <div className="h-96 bg-gray-300 rounded"></div>
+//               <div className="h-96 bg-ink-300 rounded"></div>
 //             </div>
 //           </div>
 //         </div>
@@ -253,13 +253,13 @@
 //   }
 
 //   return (
-//     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
+//     <div className="min-h-[60vh] bg-gradient-to-br from-ink-50 to-ink-100 p-4 md:p-8">
 //       <div className="max-w-7xl mx-auto">
 //         {/* Header */}
 //         <div className="mb-8">
 //           <div className="flex flex-col md:flex-row md:items-center justify-between">
 //             <div>
-//               <h1 className="text-3xl font-bold text-gray-900">
+//               <h1 className="text-3xl font-bold text-ink-900">
 //                 Payment Request Details
 //               </h1>
               
@@ -267,7 +267,7 @@
 //             <div className="mt-4 md:mt-0 flex space-x-3">
 //               <button
 //                 onClick={fetchPaymentRequests}
-//                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+//                 className="inline-flex items-center px-4 py-2 border border-ink-300 rounded-lg shadow-sm text-sm font-medium text-ink-700 bg-white hover:bg-ink-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-400/40 transition"
 //                 disabled={processingRequest}
 //               >
 //                 <svg
@@ -335,12 +335,12 @@
 //         )}
 
 //         {/* Filters and Search */}
-//         <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 p-6">
+//         <div className="bg-white rounded-xl shadow-card border border-ink-200 mb-6 p-6">
 //           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 //             <div className="flex-1">
 //               <div className="relative">
 //                 <svg
-//                   className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
+//                   className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-ink-400"
 //                   fill="none"
 //                   stroke="currentColor"
 //                   viewBox="0 0 24 24"
@@ -357,20 +357,20 @@
 //                   placeholder="Search by PO Number, Vendor, Company, or Requester..."
 //                   value={searchTerm}
 //                   onChange={(e) => setSearchTerm(e.target.value)}
-//                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
+//                   className="w-full pl-10 pr-4 py-3 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition text-sm"
 //                 />
 //               </div>
 //             </div>
 
 //             <div className="flex flex-col sm:flex-row gap-4">
 //               <div className="flex items-center space-x-2">
-//                 <span className="text-sm font-medium text-gray-700">
+//                 <span className="text-sm font-medium text-ink-700">
 //                   Filter by:
 //                 </span>
 //                 <select
 //                   value={filterType}
 //                   onChange={(e) => setFilterType(e.target.value)}
-//                   className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none min-w-[140px]"
+//                   className="border border-ink-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none min-w-[140px]"
 //                 >
 //                   <option value="all">All Types</option>
 //                   <option value="Advance_Payment">Advance Payment</option>
@@ -379,13 +379,13 @@
 //               </div>
 
 //               <div className="flex items-center space-x-2">
-//                 <span className="text-sm font-medium text-gray-700">
+//                 <span className="text-sm font-medium text-ink-700">
 //                   Sort by:
 //                 </span>
 //                 <select
 //                   value={sortConfig.key}
 //                   onChange={(e) => requestSort(e.target.value)}
-//                   className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none min-w-[140px]"
+//                   className="border border-ink-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none min-w-[140px]"
 //                 >
 //                   <option value="createdAt">Date</option>
 //                   <option value="poNumber">PO Number</option>
@@ -395,7 +395,7 @@
 //                 </select>
 //                 <button
 //                   onClick={() => requestSort(sortConfig.key)}
-//                   className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+//                   className="p-2 border border-ink-300 rounded-lg hover:bg-ink-50"
 //                 >
 //                   {sortConfig.direction === "asc" ? "↑" : "↓"}
 //                 </button>
@@ -406,10 +406,10 @@
 
 //         {/* Payment Requests Table */}
 //         {filteredRequests.length === 0 ? (
-//           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center">
-//             <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+//           <div className="bg-white rounded-xl shadow-card border border-ink-200 p-12 text-center">
+//             <div className="mx-auto w-24 h-24 bg-ink-100 rounded-full flex items-center justify-center mb-6">
 //               <svg
-//                 className="h-12 w-12 text-gray-400"
+//                 className="h-12 w-12 text-ink-400"
 //                 fill="none"
 //                 stroke="currentColor"
 //                 viewBox="0 0 24 24"
@@ -422,12 +422,12 @@
 //                 />
 //               </svg>
 //             </div>
-//             <h3 className="text-xl font-semibold text-gray-700 mb-2">
+//             <h3 className="text-xl font-semibold text-ink-700 mb-2">
 //               {searchTerm || filterType !== "all"
 //                 ? "No matching results"
 //                 : "No payment requests found"}
 //             </h3>
-//             <p className="text-gray-500 mb-6">
+//             <p className="text-ink-500 mb-6">
 //               {searchTerm || filterType !== "all"
 //                 ? "Try adjusting your search or filter criteria"
 //                 : "All payment requests have been processed or there are no pending requests"}
@@ -438,21 +438,21 @@
 //                   setSearchTerm("");
 //                   setFilterType("all");
 //                 }}
-//                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+//                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-ink-950 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-400/40"
 //               >
 //                 Clear filters
 //               </button>
 //             )}
 //           </div>
 //         ) : (
-//           <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+//           <div className="bg-white rounded-xl shadow-card border border-ink-200 overflow-hidden">
 //             {/* Table Container */}
 //             <div className="overflow-x-auto">
-//               <table className="min-w-full divide-y divide-gray-200">
-//                 <thead className="bg-gray-50">
+//               <table className="min-w-full divide-y divide-ink-200">
+//                 <thead className="bg-ink-50">
 //                   <tr>
 //                     <th
-//                       className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+//                       className="px-6 py-3 text-left text-xs font-medium text-ink-700 uppercase tracking-wider cursor-pointer hover:bg-ink-100"
 //                       onClick={() => requestSort("poNumber")}
 //                     >
 //                       <div className="flex items-center">
@@ -463,7 +463,7 @@
 //                       </div>
 //                     </th>
 //                     <th
-//                       className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+//                       className="px-6 py-3 text-left text-xs font-medium text-ink-700 uppercase tracking-wider cursor-pointer hover:bg-ink-100"
 //                       onClick={() => requestSort("vendorName")}
 //                     >
 //                       <div className="flex items-center">
@@ -474,7 +474,7 @@
 //                       </div>
 //                     </th>
 //                     <th
-//                       className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+//                       className="px-6 py-3 text-left text-xs font-medium text-ink-700 uppercase tracking-wider cursor-pointer hover:bg-ink-100"
 //                       onClick={() => requestSort("requestedAmount")}
 //                     >
 //                       <div className="flex items-center">
@@ -485,7 +485,7 @@
 //                       </div>
 //                     </th>
 //                     <th
-//                       className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+//                       className="px-6 py-3 text-left text-xs font-medium text-ink-700 uppercase tracking-wider cursor-pointer hover:bg-ink-100"
 //                       onClick={() => requestSort("createdAt")}
 //                     >
 //                       <div className="flex items-center">
@@ -495,24 +495,24 @@
 //                         </span>
 //                       </div>
 //                     </th>
-//                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+//                     <th className="px-6 py-3 text-left text-xs font-medium text-ink-700 uppercase tracking-wider">
 //                       Actions
 //                     </th>
 //                   </tr>
 //                 </thead>
-//                 <tbody className="bg-white divide-y divide-gray-200">
+//                 <tbody className="bg-white divide-y divide-ink-200">
 //                   {filteredRequests.map((request) => (
 //                     <tr
 //                       key={request.paymentRequestId}
-//                       className="hover:bg-gray-50 transition-colors group"
+//                       className="hover:bg-ink-50 transition-colors group"
 //                     >
 //                       {/* PO Details */}
 //                       <td className="px-6 py-4">
 //                         <div>
 //                           <div className="flex items-center">
-//                             <div className="p-2 bg-blue-50 rounded-lg">
+//                             <div className="p-2 bg-brand-50 rounded-lg">
 //                               <svg
-//                                 className="h-5 w-5 text-blue-600"
+//                                 className="h-5 w-5 text-brand-700"
 //                                 fill="none"
 //                                 stroke="currentColor"
 //                                 viewBox="0 0 24 24"
@@ -526,7 +526,7 @@
 //                               </svg>
 //                             </div>
 //                             <div className="ml-3">
-//                               <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+//                               <div className="font-semibold text-ink-900 group-hover:text-brand-700 transition-colors">
 //                                 {request.poNumber || "N/A"}
 //                               </div>
 //                             </div>
@@ -540,7 +540,7 @@
 //                           <div>
 //                             <div className="flex items-center text-sm">
 //                               <svg
-//                                 className="h-4 w-4 text-gray-400 mr-2"
+//                                 className="h-4 w-4 text-ink-400 mr-2"
 //                                 fill="none"
 //                                 stroke="currentColor"
 //                                 viewBox="0 0 24 24"
@@ -552,15 +552,15 @@
 //                                   d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
 //                                 />
 //                               </svg>
-//                               <span className="font-medium text-gray-900">
+//                               <span className="font-medium text-ink-900">
 //                                 {request.vendorName || "N/A"}
 //                               </span>
 //                             </div>
 //                           </div>
 //                           <div>
-//                             <div className="flex items-center text-sm text-gray-600">
+//                             <div className="flex items-center text-sm text-ink-600">
 //                               <svg
-//                                 className="h-4 w-4 text-gray-400 mr-2"
+//                                 className="h-4 w-4 text-ink-400 mr-2"
 //                                 fill="none"
 //                                 stroke="currentColor"
 //                                 viewBox="0 0 24 24"
@@ -598,13 +598,13 @@
 //                               />
 //                             </svg>
 //                             <div>
-//                               <span className="text-lg font-bold text-gray-900">
+//                               <span className="text-lg font-bold text-ink-900">
 //                                 {formatCurrency(
 //                                   request.requestedAmount,
 //                                   request.currency,
 //                                 )}
 //                               </span>
-//                               <div className="text-xs text-gray-500">
+//                               <div className="text-xs text-ink-500">
 //                                 {request.currency || "USD"}
 //                               </div>
 //                             </div>
@@ -614,10 +614,10 @@
 //                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
 //                               ${
 //                                 request.billpaymentType === "Advance_Payment"
-//                                   ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
+//                                   ? "bg-brand-50 text-brand-700 border border-brand-200"
 //                                   : request.billpaymentType === "Partial_Payment"
-//                                   ? "bg-blue-50 text-blue-700 border border-blue-200"
-//                                   : "bg-gray-50 text-gray-700 border border-gray-200"
+//                                   ? "bg-brand-50 text-ink-950 border border-brand-300"
+//                                   : "bg-ink-50 text-ink-700 border border-ink-200"
 //                               }`}
 //                             >
 //                               <svg
@@ -645,7 +645,7 @@
 //                           <div>
 //                             <div className="flex items-center text-sm">
 //                               <svg
-//                                 className="h-4 w-4 text-gray-400 mr-2"
+//                                 className="h-4 w-4 text-ink-400 mr-2"
 //                                 fill="none"
 //                                 stroke="currentColor"
 //                                 viewBox="0 0 24 24"
@@ -657,15 +657,15 @@
 //                                   d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
 //                                 />
 //                               </svg>
-//                               <span className="font-medium text-gray-700">
+//                               <span className="font-medium text-ink-700">
 //                                 {request.paymentRequestedBy || "N/A"}
 //                               </span>
 //                             </div>
 //                           </div>
 //                           <div>
-//                             <div className="flex items-center text-sm text-gray-500">
+//                             <div className="flex items-center text-sm text-ink-500">
 //                               <svg
-//                                 className="h-4 w-4 text-gray-400 mr-2"
+//                                 className="h-4 w-4 text-ink-400 mr-2"
 //                                 fill="none"
 //                                 stroke="currentColor"
 //                                 viewBox="0 0 24 24"
@@ -813,9 +813,9 @@
 //             </div>
 
 //             {/* Table Footer */}
-//             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+//             <div className="px-6 py-4 bg-ink-50 border-t border-ink-200">
 //               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-//                 <div className="text-sm text-gray-600 mb-2 md:mb-0">
+//                 <div className="text-sm text-ink-600 mb-2 md:mb-0">
 //                   Showing{" "}
 //                   <span className="font-medium">
 //                     {filteredRequests.length}
@@ -833,7 +833,7 @@
 //                 </div>
 //                 <div className="flex items-center space-x-4">
 //                   <div className="flex items-center space-x-2">
-//                     <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+//                     <button className="p-2 border border-ink-300 rounded-lg hover:bg-ink-50 disabled:opacity-50 disabled:cursor-not-allowed">
 //                       <svg
 //                         className="h-4 w-4"
 //                         fill="none"
@@ -848,8 +848,8 @@
 //                         />
 //                       </svg>
 //                     </button>
-//                     <span className="text-sm text-gray-600">1 of 1</span>
-//                     <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+//                     <span className="text-sm text-ink-600">1 of 1</span>
+//                     <button className="p-2 border border-ink-300 rounded-lg hover:bg-ink-50 disabled:opacity-50 disabled:cursor-not-allowed">
 //                       <svg
 //                         className="h-4 w-4"
 //                         fill="none"
@@ -939,7 +939,7 @@ const PaymentRequestDetails = () => {
         hour: "2-digit",
         minute: "2-digit",
       });
-    } catch (error) {
+    } catch {
       return "Invalid Date";
     }
   };
@@ -1020,20 +1020,20 @@ const PaymentRequestDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
+      <div className="min-h-[60vh] bg-gradient-to-br from-ink-50 to-ink-100 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-300 rounded w-1/4 mb-8"></div>
+            <div className="h-8 bg-ink-300 rounded w-1/4 mb-8"></div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-white rounded-xl shadow p-6">
-                  <div className="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
-                  <div className="h-8 bg-gray-300 rounded w-1/2"></div>
+                  <div className="h-4 bg-ink-300 rounded w-3/4 mb-4"></div>
+                  <div className="h-8 bg-ink-300 rounded w-1/2"></div>
                 </div>
               ))}
             </div>
             <div className="bg-white rounded-xl shadow p-6">
-              <div className="h-96 bg-gray-300 rounded"></div>
+              <div className="h-96 bg-ink-300 rounded"></div>
             </div>
           </div>
         </div>
@@ -1042,7 +1042,7 @@ const PaymentRequestDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
+    <div className="min-h-[60vh] bg-gradient-to-br from-ink-50 to-ink-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -1050,7 +1050,7 @@ const PaymentRequestDetails = () => {
             <div className="mt-4 md:mt-0 flex space-x-3">
               <button
                 onClick={fetchPaymentRequests}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                className="inline-flex items-center px-4 py-2 border border-ink-300 rounded-lg shadow-sm text-sm font-medium text-ink-700 bg-white hover:bg-ink-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-400/40 transition"
                 disabled={processingRequest}
               >
                 <svg
@@ -1118,10 +1118,10 @@ const PaymentRequestDetails = () => {
         )}
 
         {/* Search Bar */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 p-6">
+        <div className="bg-white rounded-xl shadow-card border border-ink-200 mb-6 p-6">
           <div className="relative">
             <svg
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-ink-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -1138,17 +1138,17 @@ const PaymentRequestDetails = () => {
               placeholder="Search by PO Number, Vendor, Company, or Requester..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
+              className="w-full pl-10 pr-4 py-3 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition text-sm"
             />
           </div>
         </div>
 
         {/* Payment Requests Table */}
         {filteredRequests.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center">
-            <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+          <div className="bg-white rounded-xl shadow-card border border-ink-200 p-12 text-center">
+            <div className="mx-auto w-24 h-24 bg-ink-100 rounded-full flex items-center justify-center mb-6">
               <svg
-                className="h-12 w-12 text-gray-400"
+                className="h-12 w-12 text-ink-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -1161,10 +1161,10 @@ const PaymentRequestDetails = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            <h3 className="text-xl font-semibold text-ink-700 mb-2">
               {searchTerm ? "No matching results" : "No payment requests found"}
             </h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-ink-500 mb-6">
               {searchTerm
                 ? "Try adjusting your search criteria"
                 : "All payment requests have been processed or there are no pending requests"}
@@ -1172,47 +1172,47 @@ const PaymentRequestDetails = () => {
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm("")}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-ink-950 hover:bg-ink-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-400/40"
               >
                 Clear search
               </button>
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-card border border-ink-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-ink-200">
+                <thead className="bg-ink-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-ink-700 uppercase tracking-wider">
                       PO Details
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-ink-700 uppercase tracking-wider">
                       Vendor & Company
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-ink-700 uppercase tracking-wider">
                       Amount & Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-ink-700 uppercase tracking-wider">
                       Request Info
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-ink-700 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-ink-200">
                   {filteredRequests.map((request) => (
                     <tr
                       key={request.paymentRequestId}
-                      className="hover:bg-gray-50 transition-colors group"
+                      className="hover:bg-ink-50 transition-colors group"
                     >
                       {/* PO Details */}
                       <td className="px-6 py-4">
                         <div className="flex items-center">
-                          <div className="p-2 bg-blue-50 rounded-lg">
+                          <div className="p-2 bg-brand-50 rounded-lg">
                             <svg
-                              className="h-5 w-5 text-blue-600"
+                              className="h-5 w-5 text-brand-700"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -1226,7 +1226,7 @@ const PaymentRequestDetails = () => {
                             </svg>
                           </div>
                           <div className="ml-3">
-                            <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                            <div className="font-semibold text-ink-900 group-hover:text-brand-700 transition-colors">
                               {request.poNumber || "N/A"}
                             </div>
                           </div>
@@ -1239,7 +1239,7 @@ const PaymentRequestDetails = () => {
                           <div>
                             <div className="flex items-center text-sm">
                               <svg
-                                className="h-4 w-4 text-gray-400 mr-2"
+                                className="h-4 w-4 text-ink-400 mr-2"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1251,15 +1251,15 @@ const PaymentRequestDetails = () => {
                                   d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                                 />
                               </svg>
-                              <span className="font-medium text-gray-900">
+                              <span className="font-medium text-ink-900">
                                 {request.vendorName || "N/A"}
                               </span>
                             </div>
                           </div>
                           <div>
-                            <div className="flex items-center text-sm text-gray-600">
+                            <div className="flex items-center text-sm text-ink-600">
                               <svg
-                                className="h-4 w-4 text-gray-400 mr-2"
+                                className="h-4 w-4 text-ink-400 mr-2"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1297,13 +1297,13 @@ const PaymentRequestDetails = () => {
                               />
                             </svg>
                             <div>
-                              <span className="text-lg font-bold text-gray-900">
+                              <span className="text-lg font-bold text-ink-900">
                                 {formatCurrency(
                                   request.requestedAmount,
                                   request.currency
                                 )}
                               </span>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-ink-500">
                                 {request.currency || "USD"}
                               </div>
                             </div>
@@ -1313,10 +1313,10 @@ const PaymentRequestDetails = () => {
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
                               ${
                                 request.billpaymentType === "Advance_Payment"
-                                  ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
+                                  ? "bg-brand-50 text-brand-700 border border-brand-200"
                                   : request.billpaymentType === "Partial_Payment"
-                                  ? "bg-blue-50 text-blue-700 border border-blue-200"
-                                  : "bg-gray-50 text-gray-700 border border-gray-200"
+                                  ? "bg-brand-50 text-ink-950 border border-brand-300"
+                                  : "bg-ink-50 text-ink-700 border border-ink-200"
                               }`}
                             >
                               <svg
@@ -1346,7 +1346,7 @@ const PaymentRequestDetails = () => {
                           <div>
                             <div className="flex items-center text-sm">
                               <svg
-                                className="h-4 w-4 text-gray-400 mr-2"
+                                className="h-4 w-4 text-ink-400 mr-2"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1358,15 +1358,15 @@ const PaymentRequestDetails = () => {
                                   d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                                 />
                               </svg>
-                              <span className="font-medium text-gray-700">
+                              <span className="font-medium text-ink-700">
                                 {request.paymentRequestedBy || "N/A"}
                               </span>
                             </div>
                           </div>
                           <div>
-                            <div className="flex items-center text-sm text-gray-500">
+                            <div className="flex items-center text-sm text-ink-500">
                               <svg
-                                className="h-4 w-4 text-gray-400 mr-2"
+                                className="h-4 w-4 text-ink-400 mr-2"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -1508,9 +1508,9 @@ const PaymentRequestDetails = () => {
             </div>
 
             {/* Table Footer */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="px-6 py-4 bg-ink-50 border-t border-ink-200">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                <div className="text-sm text-gray-600 mb-2 md:mb-0">
+                <div className="text-sm text-ink-600 mb-2 md:mb-0">
                   Showing{" "}
                   <span className="font-medium">{filteredRequests.length}</span> of{" "}
                   <span className="font-medium">{filteredRequests.length}</span>{" "}
@@ -1524,7 +1524,7 @@ const PaymentRequestDetails = () => {
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
-                    <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button className="p-2 border border-ink-300 rounded-lg hover:bg-ink-50 disabled:opacity-50 disabled:cursor-not-allowed">
                       <svg
                         className="h-4 w-4"
                         fill="none"
@@ -1539,8 +1539,8 @@ const PaymentRequestDetails = () => {
                         />
                       </svg>
                     </button>
-                    <span className="text-sm text-gray-600">1 of 1</span>
-                    <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span className="text-sm text-ink-600">1 of 1</span>
+                    <button className="p-2 border border-ink-300 rounded-lg hover:bg-ink-50 disabled:opacity-50 disabled:cursor-not-allowed">
                       <svg
                         className="h-4 w-4"
                         fill="none"
@@ -1566,17 +1566,17 @@ const PaymentRequestDetails = () => {
       {/* Remark Modal */}
       {showRemarkModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+          <div className="flex items-center justify-center min-h-[60vh] px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <div
-              className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+              className="fixed inset-0 transition-opacity bg-ink-500 bg-opacity-75"
               onClick={() => setShowRemarkModal(false)}
             ></div>
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-card transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-brand-100 sm:mx-0 sm:h-10 sm:w-10">
                     <svg
-                      className="h-6 w-6 text-blue-600"
+                      className="h-6 w-6 text-brand-700"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1590,18 +1590,18 @@ const PaymentRequestDetails = () => {
                     </svg>
                   </div>
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    <h3 className="text-lg leading-6 font-medium text-ink-900">
                       {modalAction === "approve" ? "Approve" : "Reject"} Payment Request
                     </h3>
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500 mb-3">
+                      <p className="text-sm text-ink-500 mb-3">
                         Please enter remarks for {modalPoNumber}:
                       </p>
                       <textarea
                         rows="4"
                         className={`w-full px-3 py-2 border ${
-                          remarkError ? "border-red-300" : "border-gray-300"
-                        } rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                          remarkError ? "border-red-300" : "border-ink-300"
+                        } rounded-lg shadow-sm focus:ring-brand-400/40 focus:border-brand-500 sm:text-sm`}
                         placeholder="Enter remarks..."
                         value={remarkText}
                         onChange={(e) => {
@@ -1616,12 +1616,12 @@ const PaymentRequestDetails = () => {
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <div className="bg-ink-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button
                   type="button"
                   onClick={handleRemarkSubmit}
                   disabled={processingRequest === modalRequestId}
-                  className={`w-full inline-flex justify-center rounded-md shadow-sm px-4 py-2 text-base font-medium ${
+                  className={`w-full inline-flex justify-center rounded-lg shadow-sm px-4 py-2 text-base font-medium ${
                     modalAction === "approve"
                       ? "btn-approve"
                       : "btn-decline"
@@ -1663,7 +1663,7 @@ const PaymentRequestDetails = () => {
                 <button
                   type="button"
                   onClick={() => setShowRemarkModal(false)}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="mt-3 w-full inline-flex justify-center rounded-lg border border-ink-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-ink-700 hover:bg-ink-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-400/40 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                 >
                   Cancel
                 </button>

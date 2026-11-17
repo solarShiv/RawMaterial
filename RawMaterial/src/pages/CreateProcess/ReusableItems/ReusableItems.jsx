@@ -205,10 +205,10 @@ const ReusableItems = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-[60vh] bg-ink-50 flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading assemble users...</p>
+          <div className="w-12 h-12 border-4 border-brand-300 border-t-brand-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-ink-600">Loading assemble users...</p>
         </div>
       </div>
     );
@@ -218,8 +218,8 @@ const ReusableItems = () => {
   const availableMaterials = getAvailableMaterials();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+    <div className="min-h-[60vh] bg-ink-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-card overflow-hidden">
         <div className="p-8">
 
           {error && (
@@ -231,14 +231,14 @@ const ReusableItems = () => {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Assemble User Selection */}
             <div>
-              <label htmlFor="assembleUser" className="block text-sm font-semibold text-gray-900 mb-2">
+              <label htmlFor="assembleUser" className="block text-sm font-semibold text-ink-900 mb-2">
                 Assemble User *
               </label>
               <select
                 id="assembleUser"
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 border-2 border-ink-200 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-colors disabled:bg-ink-50 disabled:cursor-not-allowed"
                 disabled={submitting}
                 required
               >
@@ -253,20 +253,20 @@ const ReusableItems = () => {
 
             {/* Raw Materials Multi-select */}
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">
+              <label className="block text-sm font-semibold text-ink-900 mb-2">
                 Reusable Raw Materials *
               </label>
               
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-3">
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-sm font-semibold text-ink-900">
                     Select Materials ({tempSelectedMaterials.length} selected)
                   </span>
                   {tempSelectedMaterials.length > 0 && (
                     <button
                       type="button"
                       onClick={addSelectedMaterials}
-                      className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:bg-gray-500 disabled:transform-none disabled:shadow-none disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-card hover:bg-green-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:bg-ink-500 disabled:transform-none disabled:shadow-none disabled:cursor-not-allowed"
                       disabled={submitting}
                     >
                       Add Selected Materials
@@ -279,7 +279,7 @@ const ReusableItems = () => {
                   size="6"
                   value={tempSelectedMaterials}
                   onChange={handleMaterialSelection}
-                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed min-h-[180px]"
+                  className="w-full px-3 py-2 border-2 border-ink-200 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-colors disabled:bg-ink-50 disabled:cursor-not-allowed min-h-[180px]"
                   disabled={materialsLoading || submitting || availableMaterials.length === 0}
                 >
                   {availableMaterials.length === 0 ? (
@@ -290,7 +290,7 @@ const ReusableItems = () => {
                         key={material.id} 
                         value={material.id}
                         disabled={material.outOfStock}
-                        className="px-3 py-2 border-b border-gray-100 cursor-pointer hover:bg-gray-50 checked:bg-gradient-to-br checked:from-blue-600 checked:to-blue-800 checked:text-white"
+                        className="px-3 py-2 border-b border-ink-100 cursor-pointer hover:bg-ink-50 checked:bg-gradient-to-br checked:from-ink-950 checked:to-ink-800 checked:text-white"
                       >
                         {material.name} - Stock: {material.stock} {material.unit}
                         {material.outOfStock && ' (Out of Stock)'}
@@ -299,49 +299,49 @@ const ReusableItems = () => {
                   )}
                 </select>
                 
-                <div className="text-sm text-gray-500 text-center px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="text-sm text-ink-500 text-center px-3 py-2 bg-ink-50 rounded-lg border border-ink-200">
                   Hold Ctrl/Cmd to select multiple materials • {availableMaterials.length} materials available
                 </div>
               </div>
 
               {materialsLoading && (
-                <div className="flex items-center justify-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 mt-4">
-                  <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
-                  <span className="text-gray-600">Loading materials...</span>
+                <div className="flex items-center justify-center gap-3 px-4 py-3 bg-ink-50 rounded-lg border border-ink-200 mt-4">
+                  <div className="w-5 h-5 border-2 border-ink-300 border-t-brand-500 rounded-full animate-spin"></div>
+                  <span className="text-ink-600">Loading materials...</span>
                 </div>
               )}
 
               {/* Selected Materials with Quantity Inputs */}
               {selectedMaterials.length > 0 && (
-                <div className="mt-6 border-2 border-gray-200 rounded-xl p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-                  <div className="text-lg font-bold text-gray-900 mb-5 pb-3 border-b border-gray-300">
+                <div className="mt-6 border-2 border-ink-200 rounded-xl p-6 bg-gradient-to-br from-ink-50 to-ink-100">
+                  <div className="text-lg font-bold text-ink-900 mb-5 pb-3 border-b border-ink-300">
                     Selected Materials ({selectedMaterials.length}):
                   </div>
                   <div className="space-y-4">
                     {selectedMaterials.map(material => (
-                      <div key={material.id} className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-blue-500 transition-all">
+                      <div key={material.id} className="bg-white border-2 border-ink-200 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-brand-500 transition-all">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <div className="text-lg font-semibold text-gray-900 mb-1">{material.name}</div>
-                            {/* <div className="text-sm text-gray-700">
+                            <div className="text-lg font-semibold text-ink-900 mb-1">{material.name}</div>
+                            {/* <div className="text-sm text-ink-700">
                               Available Stock: <strong className="text-green-600">{material.stock} {material.unit}</strong>
                             </div> */}
                           </div>
                           <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
-                              <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+                              <label className="text-sm font-semibold text-ink-700 whitespace-nowrap">
                                 Reusable Items Quantity:
                               </label>
                               <input
                                 type="text"
                                 value={material.quantity}
                                 onChange={(e) => updateMaterialQuantity(material.id, e.target.value)}
-                                className="w-24 px-3 py-2 border-2 border-gray-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"
+                                className="w-24 px-3 py-2 border-2 border-ink-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-colors disabled:bg-ink-50 disabled:cursor-not-allowed"
                                 min="1"
                                 max={material.stock}
                                 disabled={submitting || material.outOfStock}
                               />
-                              <span className="text-sm font-semibold text-gray-600 min-w-[50px]">
+                              <span className="text-sm font-semibold text-ink-600 min-w-[50px]">
                                 {material.unit}
                               </span>
                             </div>
@@ -365,14 +365,14 @@ const ReusableItems = () => {
 
             {/* Remarks Field */}
             <div>
-              <label htmlFor="remarks" className="block text-sm font-semibold text-gray-900 mb-2">
+              <label htmlFor="remarks" className="block text-sm font-semibold text-ink-900 mb-2">
                 Remarks
               </label>
               <textarea
                 id="remarks"
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed resize-y"
+                className="w-full px-4 py-3 border-2 border-ink-200 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-colors disabled:bg-ink-50 disabled:cursor-not-allowed resize-y"
                 placeholder="Enter any remarks or comments..."
                 rows="3"
                 disabled={submitting}
@@ -381,28 +381,28 @@ const ReusableItems = () => {
 
             {/* Summary Section */}
             {selectedMaterials.length > 0 && (
-              <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-l-4 border-blue-500 shadow-md">
-                <div className="text-gray-900 font-semibold">
+              <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 p-5 bg-gradient-to-br from-ink-950 to-ink-800 rounded-xl border-l-4 border-brand-500 shadow-card">
+                <div className="text-ink-900 font-semibold">
                   <strong>Total Materials:</strong> {totalItems} item(s)
                 </div>
-                <div className="text-gray-900 font-semibold">
+                <div className="text-ink-900 font-semibold">
                   <strong>Total Quantities:</strong> {totalQuantities} units
                 </div>
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-end pt-6 mt-8 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row gap-4 justify-end pt-6 mt-8 border-t border-ink-200">
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 hover:shadow-lg transform hover:-translate-y-1 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+                className="px-6 py-3 bg-ink-600 text-white font-semibold rounded-lg shadow-card hover:bg-ink-700 hover:shadow-lg transform hover:-translate-y-1 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
                 disabled={submitting}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-3 bg-gradient-to-br from-blue-600 to-blue-800 text-white font-semibold rounded-lg shadow-md hover:from-blue-700 hover:to-blue-900 hover:shadow-lg transform hover:-translate-y-1 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center min-w-[200px]"
+                className="px-6 py-3 bg-gradient-to-br from-ink-950 to-ink-800 text-white font-semibold rounded-lg shadow-card hover:from-ink-950 hover:to-ink-800 hover:shadow-lg transform hover:-translate-y-1 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center min-w-[200px]"
                 disabled={!selectedUser || selectedMaterials.length === 0 || submitting}
               >
                 {submitting ? (

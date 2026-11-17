@@ -22,6 +22,8 @@ import AddVendor from "./pages/Purchase/AddVendor";
 import UpdateVendor from "./pages/Purchase/UpdateVendor";
 import CreatePurchaseOrder from "./pages/Purchase/CreatePurchaseOrder";
 import ShowPurchaseOrder from "./pages/Purchase/ShowPurchaseOrder";
+import TransferPurchaseOrder from "./pages/Purchase/TransferPurchaseOrder";
+import VendorPaymentDetails from "./pages/Payment/VendorPaymentDetails";
 import ServiceProcessRequest from "./pages/CreateProcess/ServiceProcessRequest/ServiceProcessRequest";
 import PendingProcess from "./pages/CreateProcess/PendingProcess/PendingProcess";
 import UserItemStock from "./pages/CreateProcess/UserItemStock/UserItemStock";
@@ -415,6 +417,24 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Purchase", "Admin"]}>
               <ShowPurchaseOrder />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="vendor-payment-details"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <VendorPaymentDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="transfer-purchase-order/:poId"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase", "Admin"]}>
+              <TransferPurchaseOrder />
             </ProtectedRoute>
           }
         />

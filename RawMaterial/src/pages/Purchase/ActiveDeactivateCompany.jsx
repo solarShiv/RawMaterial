@@ -19,11 +19,10 @@ const ActiveDeactivateCompany = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [updatingCompany, setUpdatingCompany] = useState(null)
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [selectedCompany, setSelectedCompany] = useState(null)
   const [actionType, setActionType] = useState('')
-  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' })
+  const [sortConfig] = useState({ key: 'name', direction: 'asc' })
   const [error, setError] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
 
@@ -75,16 +74,8 @@ const ActiveDeactivateCompany = () => {
     setFilteredCompanies(data)
   }
 
-  const handleSort = key => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.direction === 'asc' ? 'desc' : 'asc'
-    }))
-  }
-
   const updateStatus = async () => {
     try {
-      setUpdatingCompany(selectedCompany.id)
       const newStatus = actionType === 'activate'
       await Api.put(`/common/update/${selectedCompany.id}/${newStatus}`)
 
@@ -99,7 +90,6 @@ const ActiveDeactivateCompany = () => {
       setError('Status update failed')
     } finally {
       setShowConfirmModal(false)
-      setUpdatingCompany(null)
     }
   }
 
@@ -119,13 +109,13 @@ const ActiveDeactivateCompany = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <ArrowPathIcon className="h-8 w-8 animate-spin text-blue-600" />
+        <ArrowPathIcon className="h-8 w-8 animate-spin text-brand-700" />
       </div>
     )
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 p-4">
+    <div className="w-full min-h-[60vh] bg-ink-50 p-4">
       {/* Success / Error */}
       {error && (
         <div className="mb-4 bg-red-100 border border-red-300 p-3 rounded">
@@ -145,7 +135,7 @@ const ActiveDeactivateCompany = () => {
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           <div className="relative">
-            <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-gray-400" />
+            <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-ink-400" />
             <input
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
@@ -169,7 +159,7 @@ const ActiveDeactivateCompany = () => {
       {/* Table */}
       <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="min-w-full">
-          <thead className="bg-gray-100">
+          <thead className="bg-ink-100">
             <tr>
               {['Company', 'GST', 'Location', 'Country', 'Status', 'Action'].map(h => (
                 <th key={h} className="px-6 py-3 text-left text-sm font-semibold">
@@ -181,7 +171,7 @@ const ActiveDeactivateCompany = () => {
 
           <tbody>
             {filteredCompanies.map(c => (
-              <tr key={c.id} className="border-t hover:bg-gray-50">
+              <tr key={c.id} className="border-t hover:bg-ink-50">
                 <td className="px-6 py-4 font-medium">{c.name}</td>
                 <td className="px-6 py-4 font-mono">{c.gstNumber}</td>
                 <td className="px-6 py-4">{c.state}</td>
@@ -226,7 +216,7 @@ const ActiveDeactivateCompany = () => {
               </button>
               <button
                 onClick={updateStatus}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="bg-ink-950 text-white px-4 py-2 rounded"
               >
                 Confirm
               </button>

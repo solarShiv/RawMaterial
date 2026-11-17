@@ -11,6 +11,7 @@ import {
   HiDotsHorizontal,
   HiOfficeBuilding,
   HiUserGroup,
+  HiSwitchHorizontal,
 } from "react-icons/hi";
 import {
   MdCancelPresentation,
@@ -597,7 +598,6 @@ const ShowPurchaseOrder = () => {
             itemTotal = itemAmount;
           }
 
-          const quantity = parseFloat(item.quantity) || 1;
           const itemGstRate =
             parseFloat(item.gstRate) || parseFloat(orderDetails.gstRate) || 0;
 
@@ -1069,7 +1069,8 @@ const ShowPurchaseOrder = () => {
       setFormData((prev) => {
         const updatedItems = prev.items.map((item) => {
           if (!newIsItemWiseGST) {
-            const { gstRate, ...rest } = item;
+            // Strip gstRate when switching away from itemwise GST
+            const { gstRate: _gstRate, ...rest } = item;
             return rest;
           }
           return item;
@@ -1266,80 +1267,10 @@ const ShowPurchaseOrder = () => {
     }
   };
 
-  const calculateTotals = (orderDetails) => {
-    if (!orderDetails) {
-      return {
-        itemsTotal: 0,
-        otherChargesTotal: 0,
-        subtotal: 0,
-        gstAmount: 0,
-        grandTotal: 0,
-      };
-    }
-
-    if (orderDetails.subTotal && orderDetails.grandTotal) {
-      const itemsTotal = (orderDetails.items || []).reduce(
-        (sum, item) => sum + Number(item.total || 0),
-        0,
-      );
-
-      const otherChargesTotal = (orderDetails.otherCharges || []).reduce(
-        (sum, charge) => sum + Number(charge.amount || 0),
-        0,
-      );
-
-      const subtotal = Number(orderDetails.subTotal);
-      const grandTotal = Number(orderDetails.grandTotal);
-      const gstAmount = grandTotal - subtotal;
-
-      return {
-        itemsTotal: Number(itemsTotal.toFixed(3)),
-        otherChargesTotal: Number(otherChargesTotal.toFixed(3)),
-        subtotal: Number(subtotal.toFixed(3)),
-        gstAmount: Number(gstAmount.toFixed(3)),
-        grandTotal: Number(grandTotal.toFixed(3)),
-      };
-    }
-
-    const itemsTotal = (orderDetails.items || []).reduce(
-      (sum, item) => sum + Number(item.total || 0),
-      0,
-    );
-
-    const otherChargesTotal = (orderDetails.otherCharges || []).reduce(
-      (sum, charge) => sum + Number(charge.amount || 0),
-      0,
-    );
-
-    const subtotal = itemsTotal + otherChargesTotal;
-
-    const gstRate = Number(orderDetails.gstRate || 0);
-    const gstAmount = (subtotal * gstRate) / 100;
-
-    const grandTotal = subtotal + gstAmount;
-
-    return {
-      itemsTotal: Number(itemsTotal.toFixed(3)),
-      otherChargesTotal: Number(otherChargesTotal.toFixed(3)),
-      subtotal: Number(subtotal.toFixed(3)),
-      gstAmount: Number(gstAmount.toFixed(3)),
-      grandTotal: Number(grandTotal.toFixed(3)),
-    };
-  };
-
   const handleCompanyChange = (companyId) => {
     setSelectedCompany(companyId);
     fetchPurchaseOrders(companyId);
     setCurrentPage(1);
-  };
-
-  const handleOrderChange = (orderId) => {
-    setSelectedOrder(orderId);
-    if (orderId) {
-      fetchOrderDetails(orderId);
-    } else {
-      setSelectedOrderDetails(null);
-    }
   };
 
   const formatDate = (dateString) => {
@@ -1482,10 +1413,6 @@ const ShowPurchaseOrder = () => {
     }
   }, [formData.currency]);
 
-  const totals = selectedOrderDetails
-    ? calculateTotals(selectedOrderDetails)
-    : {};
-
   const isForeignCurrency =
     selectedOrderDetails &&
     (selectedOrderDetails.currency === "USD" ||
@@ -1515,6 +1442,13 @@ const ShowPurchaseOrder = () => {
     [
       { key: "edit", show: po?.status === "Draft", label: "Edit Order", icon: <HiPencilAlt />, onClick: () => handleUpdatePo(po) },
       { key: "email", show: canSendEmail(po), label: "Email to Vendor", icon: <MdEmail />, onClick: () => handleSendEmail(po.id, po?.poNumber), disabled: emailLoading },
+      {
+        key: "transfer",
+        show: true,
+        label: "Transfer Po",
+        icon: <HiSwitchHorizontal />,
+        onClick: () => navigate(`/transfer-purchase-order/${po.id}`),
+      },
       { key: "reorder", show: true, label: "ReOrder", icon: <AiOutlineSync />, onClick: () => handleReOrder(po?.id) },
       {
         key: "upload",
@@ -1767,7 +1701,7 @@ const ShowPurchaseOrder = () => {
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                     aria-label="Previous page"
-                    className="flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-8 items-center gap-1 rounded-lg border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <HiChevronLeft /> <span className="hidden sm:inline">Prev</span>
                   </button>
@@ -1776,7 +1710,7 @@ const ShowPurchaseOrder = () => {
                       key={page}
                       onClick={() => handlePageChange(page)}
                       aria-current={currentPage === page ? "page" : undefined}
-                      className={`h-8 min-w-8 rounded-md px-2.5 text-xs font-semibold ${
+                      className={`h-8 min-w-8 rounded-lg px-2.5 text-xs font-semibold ${
                         currentPage === page ? "bg-ink-950 text-brand-400" : "border border-ink-200 text-ink-700 hover:bg-ink-100"
                       }`}
                     >
@@ -1787,7 +1721,7 @@ const ShowPurchaseOrder = () => {
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     aria-label="Next page"
-                    className="flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-8 items-center gap-1 rounded-lg border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <span className="hidden sm:inline">Next</span> <HiChevronRight />
                   </button>
@@ -2440,7 +2374,7 @@ const ShowPurchaseOrder = () => {
                               className="flex items-center justify-between p-3 bg-ink-50 rounded-lg"
                             >
                               <div className="flex items-center">
-                                <div className="w-6 h-6 bg-brand-100 text-ink-900 rounded-md flex items-center justify-center text-xs font-semibold mr-3">
+                                <div className="w-6 h-6 bg-brand-100 text-ink-900 rounded-lg flex items-center justify-center text-xs font-semibold mr-3">
                                   {index + 1}
                                 </div>
                                 <div className="font-medium text-ink-900">
@@ -2489,8 +2423,8 @@ const ShowPurchaseOrder = () => {
 
         {/* Update Form Modal */}
         {showUpdateForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+          <div className="fixed inset-0 bg-ink-950 bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-card w-full max-w-6xl max-h-[90vh] overflow-hidden">
               {/* Modal Header */}
               <div className="sticky top-0 bg-white border-b border-ink-200 px-6 py-4 z-10">
                 <div className="flex items-center justify-between">
@@ -2899,7 +2833,7 @@ const ShowPurchaseOrder = () => {
                                   placeholder="Click to select item"
                                 />
                                 {showItemsDropdown === index && (
-                                  <div className="absolute z-50 mt-1 w-full bg-white border border-ink-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                  <div className="absolute z-50 mt-1 w-full bg-white border border-ink-300 rounded-lg shadow-card max-h-60 overflow-y-auto">
                                     <div className="sticky top-0 bg-white border-b border-ink-200 px-4 py-2">
                                       <div className="flex items-center justify-between">
                                         <span className="text-sm font-medium text-ink-700">
@@ -2998,7 +2932,7 @@ const ShowPurchaseOrder = () => {
                                   autoComplete="off"
                                 />
                                 {showItemsDropdown === index && (
-                                  <div className="absolute z-50 mt-1 w-full bg-white border border-ink-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                  <div className="absolute z-50 mt-1 w-full bg-white border border-ink-300 rounded-lg shadow-card max-h-60 overflow-y-auto">
                                     <div className="sticky top-0 bg-white border-b border-ink-200 px-4 py-2">
                                       <div className="flex items-center justify-between">
                                         <span className="text-sm font-medium text-ink-700">
@@ -3433,8 +3367,8 @@ const ShowPurchaseOrder = () => {
 
         {/* Upload Document Modal */}
         {showUploadForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+          <div className="fixed inset-0 bg-ink-950 bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-card w-full max-w-md">
               {/* Modal Header */}
               <div className="px-6 py-4 border-b border-ink-200">
                 <div className="flex items-center justify-between">
@@ -3517,7 +3451,7 @@ const ShowPurchaseOrder = () => {
                         <div className="flex text-sm text-ink-600">
                           <label
                             htmlFor="file-upload"
-                            className="relative cursor-pointer bg-white rounded-md font-medium text-ink-900 hover:text-ink-900 focus-within:outline-none"
+                            className="relative cursor-pointer bg-white rounded-lg font-medium text-ink-900 hover:text-ink-900 focus-within:outline-none"
                           >
                             <span>Upload a file</span>
                             <input

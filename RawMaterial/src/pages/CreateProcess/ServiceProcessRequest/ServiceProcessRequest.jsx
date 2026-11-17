@@ -135,7 +135,7 @@ const ServiceProcessRequest = () => {
         quantity: parseInt(quantity),
       };
 
-      const response = await Api.post(
+      await Api.post(
         "/line-worker/createServiceProcess",
         requestData
       );
@@ -171,7 +171,7 @@ const ServiceProcessRequest = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 md:py-8 px-3 sm:px-6 lg:px-8">
+    <div className="min-h-[60vh] bg-ink-50 py-4 md:py-8 px-3 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
 
         {/* Error Alert */}
@@ -199,12 +199,12 @@ const ServiceProcessRequest = () => {
         )}
 
         {/* Form Card */}
-        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8 transition-all duration-300 hover:shadow-xl">
+        <div className="bg-white rounded-xl shadow-card p-4 sm:p-6 md:p-8 transition-all duration-300 hover:shadow-xl">
           {/* Selection Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
             {/* Product Selection */}
             <div className="dropdown-container">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-ink-700 mb-2">
                 Product <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -212,9 +212,9 @@ const ServiceProcessRequest = () => {
                   type="button"
                   className={`w-full p-3 sm:p-4 border rounded-lg text-left transition-all duration-200 ${
                     isProductDropdownOpen
-                      ? "border-blue-500 ring-2 ring-blue-100"
-                      : "border-gray-300 hover:border-gray-400"
-                  } ${loading.products ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                      ? "border-brand-500 ring-2 ring-brand-400/40"
+                      : "border-ink-300 hover:border-ink-400"
+                  } ${loading.products ? "bg-ink-100 cursor-not-allowed" : "bg-white"}`}
                   onClick={() =>
                     setIsProductDropdownOpen(!isProductDropdownOpen)
                   }
@@ -222,7 +222,7 @@ const ServiceProcessRequest = () => {
                 >
                   <div className="flex items-center justify-between">
                     <span
-                      className={`truncate ${selectedProduct ? "text-gray-900" : "text-gray-500"}`}
+                      className={`truncate ${selectedProduct ? "text-ink-900" : "text-ink-500"}`}
                     >
                       {selectedProduct
                         ? selectedProduct.name
@@ -231,7 +231,7 @@ const ServiceProcessRequest = () => {
                           : "Select a product"}
                     </span>
                     <svg
-                      className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
+                      className={`h-5 w-5 text-ink-400 transition-transform duration-200 ${
                         isProductDropdownOpen ? "rotate-180" : ""
                       }`}
                       fill="none"
@@ -249,14 +249,14 @@ const ServiceProcessRequest = () => {
                 </button>
 
                 {isProductDropdownOpen && products.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto animate-fadeIn">
+                  <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-card border border-ink-200 max-h-60 overflow-y-auto animate-fadeIn">
                     {products.map((product) => (
                       <div
                         key={product.id}
                         className={`px-4 py-3 cursor-pointer transition-colors duration-150 ${
                           selectedProduct?.id === product.id
-                            ? "bg-blue-50 text-blue-600"
-                            : "hover:bg-gray-50"
+                            ? "bg-brand-50 text-brand-700"
+                            : "hover:bg-ink-50"
                         }`}
                         onClick={() => {
                           setSelectedProduct(product);
@@ -276,7 +276,7 @@ const ServiceProcessRequest = () => {
 
             {/* Item Selection */}
             <div className="dropdown-container">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-ink-700 mb-2">
                 Item <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -284,9 +284,9 @@ const ServiceProcessRequest = () => {
                   type="button"
                   className={`w-full p-3 sm:p-4 border rounded-lg text-left transition-all duration-200 ${
                     isItemDropdownOpen
-                      ? "border-blue-500 ring-2 ring-blue-100"
-                      : "border-gray-300 hover:border-gray-400"
-                  } ${!selectedProduct || loading.items ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                      ? "border-brand-500 ring-2 ring-brand-400/40"
+                      : "border-ink-300 hover:border-ink-400"
+                  } ${!selectedProduct || loading.items ? "bg-ink-100 cursor-not-allowed" : "bg-white"}`}
                   onClick={() =>
                     !loading.items && setIsItemDropdownOpen(!isItemDropdownOpen)
                   }
@@ -294,7 +294,7 @@ const ServiceProcessRequest = () => {
                 >
                   <div className="flex items-center justify-between">
                     <span
-                      className={`truncate ${selectedItem ? "text-gray-900" : "text-gray-500"}`}
+                      className={`truncate ${selectedItem ? "text-ink-900" : "text-ink-500"}`}
                     >
                       {selectedItem
                         ? selectedItem.name
@@ -305,7 +305,7 @@ const ServiceProcessRequest = () => {
                             : "Select product first"}
                     </span>
                     <svg
-                      className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
+                      className={`h-5 w-5 text-ink-400 transition-transform duration-200 ${
                         isItemDropdownOpen ? "rotate-180" : ""
                       }`}
                       fill="none"
@@ -323,14 +323,14 @@ const ServiceProcessRequest = () => {
                 </button>
 
                 {isItemDropdownOpen && items.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto animate-fadeIn">
+                  <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-card border border-ink-200 max-h-60 overflow-y-auto animate-fadeIn">
                     {items.map((item) => (
                       <div
                         key={item.id}
                         className={`px-4 py-3 cursor-pointer transition-colors duration-150 ${
                           selectedItem?.id === item.id
-                            ? "bg-blue-50 text-blue-600"
-                            : "hover:bg-gray-50"
+                            ? "bg-brand-50 text-brand-700"
+                            : "hover:bg-ink-50"
                         }`}
                         onClick={() => {
                           setSelectedItem(item);
@@ -350,7 +350,7 @@ const ServiceProcessRequest = () => {
 
             {/* Defective Item Selection - REMOVED available stock display */}
             <div className="dropdown-container">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-ink-700 mb-2">
                 Sub Item <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -358,9 +358,9 @@ const ServiceProcessRequest = () => {
                   type="button"
                   className={`w-full p-3 sm:p-4 border rounded-lg text-left transition-all duration-200 ${
                     isDefectiveDropdownOpen
-                      ? "border-blue-500 ring-2 ring-blue-100"
-                      : "border-gray-300 hover:border-gray-400"
-                  } ${!selectedItem || loading.defectiveItems ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                      ? "border-brand-500 ring-2 ring-brand-400/40"
+                      : "border-ink-300 hover:border-ink-400"
+                  } ${!selectedItem || loading.defectiveItems ? "bg-ink-100 cursor-not-allowed" : "bg-white"}`}
                   onClick={() =>
                     !loading.defectiveItems &&
                     setIsDefectiveDropdownOpen(!isDefectiveDropdownOpen)
@@ -372,8 +372,8 @@ const ServiceProcessRequest = () => {
                       <span
                         className={
                           selectedDefectiveItem
-                            ? "text-gray-900"
-                            : "text-gray-500"
+                            ? "text-ink-900"
+                            : "text-ink-500"
                         }
                       >
                         {selectedDefectiveItem
@@ -387,7 +387,7 @@ const ServiceProcessRequest = () => {
                     </div>
                     <div className="flex items-center">
                       <svg
-                        className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
+                        className={`h-5 w-5 text-ink-400 transition-transform duration-200 ${
                           isDefectiveDropdownOpen ? "rotate-180" : ""
                         }`}
                         fill="none"
@@ -406,14 +406,14 @@ const ServiceProcessRequest = () => {
                 </button>
 
                 {isDefectiveDropdownOpen && defectiveItems.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto animate-fadeIn">
+                  <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-card border border-ink-200 max-h-60 overflow-y-auto animate-fadeIn">
                     {defectiveItems.map((def) => (
                       <div
                         key={def.id}
                         className={`px-4 py-3 cursor-pointer transition-colors duration-150 ${
                           selectedDefectiveItem?.id === def.id
-                            ? "bg-blue-50 text-blue-600"
-                            : "hover:bg-gray-50"
+                            ? "bg-brand-50 text-brand-700"
+                            : "hover:bg-ink-50"
                         }`}
                         onClick={() => {
                           setSelectedDefectiveItem(def);
@@ -435,10 +435,10 @@ const ServiceProcessRequest = () => {
           {selectedItem &&
             defectiveItems.length === 0 &&
             !loading.defectiveItems && (
-              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="mb-6 p-4 bg-brand-50 border border-brand-200 rounded-lg">
                 <div className="flex items-center">
                   <svg
-                    className="h-5 w-5 text-yellow-500 mr-2"
+                    className="h-5 w-5 text-brand-500 mr-2"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -448,7 +448,7 @@ const ServiceProcessRequest = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <p className="text-yellow-700 text-sm">
+                  <p className="text-brand-700 text-sm">
                     No defective items found for "
                     <span className="font-medium">{selectedItem.name}</span>"
                   </p>
@@ -457,8 +457,8 @@ const ServiceProcessRequest = () => {
             )}
 
           {selectedDefectiveItem && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              {/* <h3 className="text-lg font-semibold text-gray-800 mb-4">Request Details</h3> */}
+            <div className="mt-8 pt-6 border-t border-ink-200">
+              {/* <h3 className="text-lg font-semibold text-ink-800 mb-4">Request Details</h3> */}
               <div className="grid grid-cols-1 md:grid-cols-8 gap-4 md:gap-6">
                 <div className="md:col-span-2">
                   <InputField
@@ -474,7 +474,7 @@ const ServiceProcessRequest = () => {
 
                 <div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-ink-700">
                       Quantity <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
@@ -488,8 +488,8 @@ const ServiceProcessRequest = () => {
                           }
                         }}
                         min="1"
-                        className=" p-3 sm:p-4 border border-gray-300  
-                        rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        className=" p-3 sm:p-4 border border-ink-300 
+ rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-colors duration-200"
                         placeholder="Enter quantity"
                       />
                     </div>
@@ -532,8 +532,8 @@ const ServiceProcessRequest = () => {
                   disabled={loading.submit || !isFormValid()}
                   className={`w-full md:w-auto px-8 py-3 rounded-lg font-medium text-base transition-all duration-200 ${
                     loading.submit || !isFormValid()
-                      ? "bg-gray-400 cursor-not-allowed text-dark"
-                      : "bg-yellow-400 transform hover:-translate-y-0.5"
+                      ? "bg-ink-400 cursor-not-allowed text-dark"
+                      : "bg-brand-400 transform hover:-translate-y-0.5"
                   }`}
                 />
               </div>

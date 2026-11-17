@@ -203,17 +203,17 @@ const StockUpdate = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-[60vh] bg-ink-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading raw materials...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
+          <p className="text-ink-600 text-lg">Loading raw materials...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[60vh] bg-ink-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
 
         {/* Messages */}
@@ -247,50 +247,50 @@ const StockUpdate = () => {
 
         {/* Form */}
         <div className="max-w-4xl mx-auto">
-          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-card p-6 space-y-6">
             {/* Material Selection */}
             <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-ink-700">
                 Select Raw Materials *
               </label>
               <div className="multi-select-dropdown relative">
                 <div 
-                  className="flex items-center justify-between w-full px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm cursor-pointer hover:border-gray-400 transition-colors duration-200"
+                  className="flex items-center justify-between w-full px-4 py-3 bg-white border border-ink-300 rounded-lg shadow-sm cursor-pointer hover:border-ink-400 transition-colors duration-200"
                   onClick={toggleDropdown}
                 >
-                  <span className={`${selectedMaterials.length > 0 ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}>
+                  <span className={`${selectedMaterials.length > 0 ? 'text-ink-900 font-semibold' : 'text-ink-500'}`}>
                     {selectedMaterials.length > 0 ? (
                       <strong>{selectedMaterials.length} material(s) selected</strong>
                     ) : (
                       "Choose materials from the list..."
                     )}
                   </span>
-                  <span className="text-gray-500 transform transition-transform duration-200">
+                  <span className="text-ink-500 transform transition-transform duration-200">
                     {isDropdownOpen ? "▲" : "▼"}
                   </span>
                 </div>
 
                 {isDropdownOpen && (
-                  <div className="absolute z-50 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-96 overflow-hidden">
+                  <div className="absolute z-50 w-full mt-2 bg-white border border-ink-300 rounded-lg shadow-card max-h-96 overflow-hidden">
                     {/* Search */}
-                    <div className="p-3 border-b border-gray-200">
+                    <div className="p-3 border-b border-ink-200">
                       <div className="relative">
                         <input
                           type="text"
                           placeholder="Search materials by name..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full pl-10 pr-4 py-2 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500"
                         />
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-gray-400">🔍</span>
+                          <span className="text-ink-400">🔍</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Materials Count */}
-                    <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-                      <strong className="text-sm text-gray-600">
+                    <div className="px-4 py-2 bg-ink-50 border-b border-ink-200">
+                      <strong className="text-sm text-ink-600">
                         {filteredMaterials.length} materials found
                       </strong>
                     </div>
@@ -300,8 +300,8 @@ const StockUpdate = () => {
                       {filteredMaterials.length === 0 ? (
                         <div className="text-center py-8 px-4">
                           <div className="text-4xl mb-2">📦</div>
-                          <p className="text-gray-600 font-medium">No materials found</p>
-                          <p className="text-gray-500 text-sm mt-1">Try adjusting your search terms</p>
+                          <p className="text-ink-600 font-medium">No materials found</p>
+                          <p className="text-ink-500 text-sm mt-1">Try adjusting your search terms</p>
                         </div>
                       ) : (
                         <div className="p-2 space-y-1">
@@ -314,8 +314,8 @@ const StockUpdate = () => {
                                 key={material.id}
                                 className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                                   isSelected
-                                    ? "bg-blue-50 border border-blue-200"
-                                    : "hover:bg-gray-50"
+                                    ? "bg-brand-50 border border-brand-300"
+                                    : "hover:bg-ink-50"
                                 }`}
                                 onClick={() => handleMaterialSelect(material)}
                               >
@@ -323,19 +323,19 @@ const StockUpdate = () => {
                                   <div
                                     className={`w-5 h-5 border-2 rounded flex items-center justify-center transition-colors duration-200 ${
                                       isSelected
-                                        ? "bg-blue-600 border-blue-600 text-white"
-                                        : "border-gray-300"
+                                        ? "bg-ink-950 border-brand-500 text-white"
+                                        : "border-ink-300"
                                     }`}
                                   >
                                     {isSelected && "✓"}
                                   </div>
                                   <div className="flex-1">
                                     <div className="flex items-center justify-between">
-                                      <span className={`font-medium ${isSelected ? "text-blue-900" : "text-gray-900"}`}>
+                                      <span className={`font-medium ${isSelected ? "text-ink-950" : "text-ink-900"}`}>
                                         {material.name}
                                       </span>
                                     </div>
-                                    <div className="text-sm text-gray-600 mt-1">
+                                    <div className="text-sm text-ink-600 mt-1">
                                       Stock: {material.stock} {material.unit}
                                     </div>
                                   </div>
@@ -353,18 +353,18 @@ const StockUpdate = () => {
 
             {/* Selected Materials */}
             {selectedMaterials.length > 0 && (
-              <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+              <div className="bg-ink-50 rounded-xl p-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-ink-900">
                     Selected Materials
-                    <span className="ml-2 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded-full">
+                    <span className="ml-2 text-sm text-ink-600 bg-ink-200 px-2 py-1 rounded-full">
                       {selectedMaterials.length}
                     </span>
                   </h3>
                   <button
                     type="button"
                     onClick={clearAllSelections}
-                    className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors duration-200"
+                    className="text-brand-700 hover:text-ink-950 font-medium text-sm transition-colors duration-200"
                   >
                     Clear All
                   </button>
@@ -372,26 +372,26 @@ const StockUpdate = () => {
 
                 <div className="space-y-3">
                   {selectedMaterials.map((material) => (
-                    <div key={material.id} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                    <div key={material.id} className="bg-white rounded-lg p-4 shadow-sm border border-ink-200">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-3">
-                            <span className="font-semibold text-gray-900">{material.name}</span>
+                            <span className="font-semibold text-ink-900">{material.name}</span>
                             <button
                               type="button"
                               onClick={() => removeSelectedMaterial(material.id)}
-                              className="text-gray-400 hover:text-red-500 text-xl font-bold transition-colors duration-200"
+                              className="text-ink-400 hover:text-red-500 text-xl font-bold transition-colors duration-200"
                               title="Remove material"
                             >
                               ×
                             </button>
                           </div>
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm text-ink-600">
                               Current Stock: {material.stock} {material.unit}
                             </span>
                             <div className="flex items-center space-x-3">
-                              <label htmlFor={`quantity-${material.id}`} className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                              <label htmlFor={`quantity-${material.id}`} className="text-sm font-medium text-ink-700 whitespace-nowrap">
                                 Quantity to Add:
                               </label>
                               <input
@@ -403,10 +403,10 @@ const StockUpdate = () => {
                                 onChange={(e) =>
                                   handleQuantityChange(material.id, e.target.value)
                                 }
-                                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center"
+                                className="w-24 px-3 py-2 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 text-center"
                                 placeholder="Enter quantity"
                               />
-                              <span className="text-sm text-gray-600 whitespace-nowrap">{material.unit}</span>
+                              <span className="text-sm text-ink-600 whitespace-nowrap">{material.unit}</span>
                             </div>
                           </div>
                         </div>
@@ -419,11 +419,11 @@ const StockUpdate = () => {
 
             {/* Bill Photo Upload */}
             <div className="space-y-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-ink-700">
                 Bill Photo *
               </label>
               <div className="space-y-4">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors duration-200">
+                <div className="border-2 border-dashed border-ink-300 rounded-lg p-6 text-center hover:border-ink-400 transition-colors duration-200">
                   <input
                     id="billPhoto"
                     type="file"
@@ -434,8 +434,8 @@ const StockUpdate = () => {
                   <label htmlFor="billPhoto" className="cursor-pointer">
                     <div className="text-4xl mb-3">📷</div>
                     <div className="space-y-1">
-                      <p className="font-semibold text-gray-900">Click to upload bill photo</p>
-                      <p className="text-sm text-gray-500">JPEG, PNG, JPG, GIF • Max 5MB</p>
+                      <p className="font-semibold text-ink-900">Click to upload bill photo</p>
+                      <p className="text-sm text-ink-500">JPEG, PNG, JPG, GIF • Max 5MB</p>
                     </div>
                   </label>
                 </div>
@@ -467,10 +467,10 @@ const StockUpdate = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:justify-end pt-6 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row gap-3 sm:justify-end pt-6 border-t border-ink-200">
               <button
                 type="button"
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 border border-ink-300 rounded-lg text-ink-700 font-medium hover:bg-ink-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={clearAllSelections}
                 disabled={submitting}
               >
@@ -478,7 +478,7 @@ const StockUpdate = () => {
               </button>
               <button
                 type="submit"
-                className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                className="px-8 py-3 bg-ink-950 text-white font-medium rounded-lg hover:bg-ink-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 disabled={selectedMaterials.length === 0 || !billPhoto || submitting}
               >
                 {submitting ? (

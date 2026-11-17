@@ -251,32 +251,32 @@ const UpdateVendor = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-[60vh] bg-ink-50 flex items-center justify-center">
         <div className="text-center">
-          <ArrowPathIcon className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Loading vendors...</p>
+          <ArrowPathIcon className="h-12 w-12 text-brand-700 animate-spin mx-auto mb-4" />
+          <p className="text-ink-600 text-lg">Loading vendors...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[60vh] bg-ink-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white shadow-xl rounded-lg p-6 md:p-8">
+        <div className="bg-white shadow-card rounded-lg p-6 md:p-8">
           <div className="mb-8">
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-ink-700 mb-2">
                 Select Vendor <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+                  <MagnifyingGlassIcon className="h-5 w-5 text-ink-400" />
                 </div>
                 <select
                   value={selectedCompany}
                   onChange={handleCompanyChange}
-                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white cursor-pointer"
+                  className="w-full pl-10 pr-10 py-3 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 appearance-none bg-white cursor-pointer"
                 >
                   <option value="">-- Select Vendor --</option>
                   {companies.length > 0 &&
@@ -287,7 +287,7 @@ const UpdateVendor = () => {
                     ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                  <ChevronDownIcon className="h-5 w-5 text-ink-400" />
                 </div>
               </div>
             </div>
@@ -295,23 +295,23 @@ const UpdateVendor = () => {
 
           {detailsLoading && (
             <div className="text-center py-12">
-              <ArrowPathIcon className="h-10 w-10 text-blue-600 animate-spin mx-auto mb-4" />
-              <p className="text-gray-600">Loading vendor details...</p>
+              <ArrowPathIcon className="h-10 w-10 text-brand-700 animate-spin mx-auto mb-4" />
+              <p className="text-ink-600">Loading vendor details...</p>
             </div>
           )}
 
           {companyDetails && (
             <div className="space-y-8">
-              <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                  <BuildingOffice2Icon className="h-6 w-6 text-blue-600" />
+              <div className="flex items-center justify-between border-b border-ink-200 pb-4">
+                <h2 className="text-xl font-semibold text-ink-900 flex items-center gap-2">
+                  <BuildingOffice2Icon className="h-6 w-6 text-brand-700" />
                   Vendor Information
                 </h2>
                 <div className="flex items-center gap-3">
                   {!isEditable ? (
                     <button
                       onClick={() => setIsEditable(true)}
-                      className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-dark rounded-lg transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-brand-400 text-dark rounded-lg transition-colors"
                     >
                       <PencilSquareIcon className="h-5 w-5" />
                       Edit Details
@@ -321,7 +321,7 @@ const UpdateVendor = () => {
                       <button
                         onClick={handleCancel}
                         disabled={uploading}
-                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 px-4 py-2 border border-ink-300 text-ink-700 rounded-lg hover:bg-ink-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <XMarkIcon className="h-5 w-5" />
                         Cancel
@@ -331,8 +331,8 @@ const UpdateVendor = () => {
                         disabled={uploading}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                           uploading
-                            ? "bg-yellow-400 cursor-not-allowed"
-                            : "bg-yellow-400 hover:bg-yellow-400"
+                            ? "bg-brand-400 cursor-not-allowed"
+                            : "bg-brand-400 hover:bg-brand-400"
                         } text-dark disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
                         {uploading ? (
@@ -353,13 +353,13 @@ const UpdateVendor = () => {
               </div>
 
               {/* Basic Information */}
-              <div className="border-b border-gray-200 pb-8">
-                <h3 className="text-lg font-medium text-gray-900 mb-6">
+              <div className="border-b border-ink-200 pb-8">
+                <h3 className="text-lg font-medium text-ink-900 mb-6">
                   Basic Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       Company Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -368,16 +368,16 @@ const UpdateVendor = () => {
                       value={companyDetails?.name || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       Reference By <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -387,16 +387,16 @@ const UpdateVendor = () => {
                       placeholder="NA"
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       GST Number
                     </label>
                     <input
@@ -405,16 +405,16 @@ const UpdateVendor = () => {
                       value={companyDetails?.gstNumber || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2 flex items-center gap-2">
                       <CurrencyDollarIcon className="h-4 w-4" />
                       Currency
                     </label>
@@ -423,16 +423,16 @@ const UpdateVendor = () => {
                       value={companyDetails?.currency || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2 flex items-center gap-2">
                       <CurrencyDollarIcon className="h-4 w-4" />
                       Exchange Rate
                     </label>
@@ -443,16 +443,16 @@ const UpdateVendor = () => {
                       onChange={handleInputChange}
                       disabled={!isEditable}
                       placeholder="Enter exchange rate"
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2 flex items-center gap-2">
                       <GlobeAmericasIcon className="h-4 w-4" />
                       Country
                     </label>
@@ -461,25 +461,25 @@ const UpdateVendor = () => {
                       value={companyDetails?.country || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
                 </div>
               </div>
 
               {/* Address Details */}
-              <div className="border-b border-gray-200 pb-8">
-                <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center gap-2">
+              <div className="border-b border-ink-200 pb-8">
+                <h3 className="text-lg font-medium text-ink-900 mb-6 flex items-center gap-2">
                   <MapPinIcon className="h-5 w-5" />
                   Address Details
                 </h3>
 
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-ink-700 mb-2">
                     Complete Address
                   </label>
                   <textarea
@@ -488,17 +488,17 @@ const UpdateVendor = () => {
                     onChange={handleInputChange}
                     disabled={!isEditable}
                     rows="3"
-                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none ${
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors resize-none ${
                       !isEditable
-                        ? "bg-gray-50 text-gray-500"
-                        : "bg-white text-gray-900"
-                    } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                        ? "bg-ink-50 text-ink-500"
+                        : "bg-white text-ink-900"
+                    } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       City
                     </label>
                     <input
@@ -506,16 +506,16 @@ const UpdateVendor = () => {
                       value={companyDetails?.city || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       State
                     </label>
                     <input
@@ -523,16 +523,16 @@ const UpdateVendor = () => {
                       value={companyDetails?.state || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       Pincode / ZIP Code
                     </label>
                     <input
@@ -542,26 +542,26 @@ const UpdateVendor = () => {
                       }
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
                 </div>
               </div>
 
               {/* Contact Information */}
-              <div className="border-b border-gray-200 pb-8">
-                <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center gap-2">
+              <div className="border-b border-ink-200 pb-8">
+                <h3 className="text-lg font-medium text-ink-900 mb-6 flex items-center gap-2">
                   <PhoneIcon className="h-5 w-5" />
                   Contact Information
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2 flex items-center gap-2">
                       <UserCircleIcon className="h-4 w-4" />
                       Contact Person
                     </label>
@@ -570,16 +570,16 @@ const UpdateVendor = () => {
                       value={companyDetails?.contactPerson || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2 flex items-center gap-2">
                       <PhoneIcon className="h-4 w-4" />
                       Contact Number
                     </label>
@@ -588,16 +588,16 @@ const UpdateVendor = () => {
                       value={companyDetails?.contactNumber || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2 flex items-center gap-2">
                       <PhoneIcon className="h-4 w-4" />
                       Alternate Number
                     </label>
@@ -606,16 +606,16 @@ const UpdateVendor = () => {
                       value={companyDetails?.alternateNumber || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div className="md:col-span-3">
-                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2 flex items-center gap-2">
                       <EnvelopeIcon className="h-4 w-4" />
                       Email Address
                     </label>
@@ -625,19 +625,19 @@ const UpdateVendor = () => {
                       value={companyDetails?.email || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
                 </div>
               </div>
 
               {/* KYC Documents */}
-              <div className="border-b border-gray-200 pb-8">
-                <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center gap-2">
+              <div className="border-b border-ink-200 pb-8">
+                <h3 className="text-lg font-medium text-ink-900 mb-6 flex items-center gap-2">
                   <DocumentTextIcon className="h-5 w-5" />
                   KYC Documents
                 </h3>
@@ -645,7 +645,7 @@ const UpdateVendor = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Aadhaar Section */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       Aadhaar Number
                     </label>
                     <input
@@ -653,11 +653,11 @@ const UpdateVendor = () => {
                       value={companyDetails?.vendorAadhaar || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
 
                     {companyDetails?.aadhaarUrl ? (
@@ -666,21 +666,21 @@ const UpdateVendor = () => {
                           href={companyDetails.aadhaarUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                          className="inline-flex items-center gap-2 text-sm text-brand-700 hover:text-ink-950"
                         >
                           <EyeIcon className="h-4 w-4" />
                           View Aadhaar Document
                         </a>
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500 mt-2">
+                      <p className="text-sm text-ink-500 mt-2">
                         No Aadhaar document uploaded
                       </p>
                     )}
 
                     {isEditable && (
                       <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-ink-700 mb-2">
                           Upload Aadhaar Document
                         </label>
                         <div className="flex items-center gap-2">
@@ -694,14 +694,14 @@ const UpdateVendor = () => {
                           />
                           <label
                             htmlFor="aadhaar-upload"
-                            className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
+                            className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-brand-50 text-ink-950 rounded-lg border border-brand-300 hover:bg-brand-100 transition-colors"
                           >
                             <DocumentArrowUpIcon className="h-5 w-5" />
                             Choose File
                           </label>
                           {aadhaarFileName && (
                             <div className="flex items-center gap-2">
-                              <span className="text-sm text-gray-700 truncate max-w-xs">
+                              <span className="text-sm text-ink-700 truncate max-w-xs">
                                 {aadhaarFileName}
                               </span>
                               <button
@@ -714,7 +714,7 @@ const UpdateVendor = () => {
                             </div>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-ink-500 mt-1">
                           PDF, JPG, PNG up to 5MB
                         </p>
                       </div>
@@ -723,7 +723,7 @@ const UpdateVendor = () => {
 
                   {/* PAN Card Section */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       PAN Card Number
                     </label>
                     <input
@@ -731,11 +731,11 @@ const UpdateVendor = () => {
                       value={companyDetails?.vendorPanCard || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
 
                     {companyDetails?.pancardUrl ? (
@@ -744,21 +744,21 @@ const UpdateVendor = () => {
                           href={companyDetails.pancardUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                          className="inline-flex items-center gap-2 text-sm text-brand-700 hover:text-ink-950"
                         >
                           <EyeIcon className="h-4 w-4" />
                           View PAN Card Document
                         </a>
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500 mt-2">
+                      <p className="text-sm text-ink-500 mt-2">
                         No PAN Card document uploaded
                       </p>
                     )}
 
                     {isEditable && (
                       <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-ink-700 mb-2">
                           Upload PAN Card Document
                         </label>
                         <div className="flex items-center gap-2">
@@ -772,14 +772,14 @@ const UpdateVendor = () => {
                           />
                           <label
                             htmlFor="pancard-upload"
-                            className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors"
+                            className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-brand-50 text-ink-950 rounded-lg border border-brand-300 hover:bg-brand-100 transition-colors"
                           >
                             <DocumentArrowUpIcon className="h-5 w-5" />
                             Choose File
                           </label>
                           {pancardFileName && (
                             <div className="flex items-center gap-2">
-                              <span className="text-sm text-gray-700 truncate max-w-xs">
+                              <span className="text-sm text-ink-700 truncate max-w-xs">
                                 {pancardFileName}
                               </span>
                               <button
@@ -792,7 +792,7 @@ const UpdateVendor = () => {
                             </div>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-ink-500 mt-1">
                           PDF, JPG, PNG up to 5MB
                         </p>
                       </div>
@@ -802,15 +802,15 @@ const UpdateVendor = () => {
               </div>
 
               {/* Bank Account Information */}
-              <div className="border-b border-gray-200 pb-8">
-                <h3 className="text-lg font-medium text-gray-900 mb-6 flex items-center gap-2">
+              <div className="border-b border-ink-200 pb-8">
+                <h3 className="text-lg font-medium text-ink-900 mb-6 flex items-center gap-2">
                   <BanknotesIcon className="h-5 w-5" />
                   Bank Account Information
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       Bank Name
                     </label>
                     <input
@@ -818,16 +818,16 @@ const UpdateVendor = () => {
                       value={companyDetails?.bankName || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       Account Holder Name
                     </label>
                     <input
@@ -835,16 +835,16 @@ const UpdateVendor = () => {
                       value={companyDetails?.accountHolder || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       Account Number
                     </label>
                     <input
@@ -852,16 +852,16 @@ const UpdateVendor = () => {
                       value={companyDetails?.accountNumber || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
                       IFSC Code
                     </label>
                     <input
@@ -869,22 +869,22 @@ const UpdateVendor = () => {
                       value={companyDetails?.ifscCode || ""}
                       onChange={handleInputChange}
                       disabled={!isEditable}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
                         !isEditable
-                          ? "bg-gray-50 text-gray-500"
-                          : "bg-white text-gray-900"
-                      } ${isEditable ? "border-blue-300" : "border-gray-300"}`}
+                          ? "bg-ink-50 text-ink-500"
+                          : "bg-white text-ink-900"
+                      } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
                   </div>
                 </div>
               </div>
 
               {/* Status Bar */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="mt-6 p-4 bg-ink-50 rounded-lg border border-ink-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`h-3 w-3 rounded-full ${isEditable ? "bg-yellow-500 animate-pulse" : "bg-gray-400"}`}
+                      className={`h-3 w-3 rounded-full ${isEditable ? "bg-brand-500 animate-pulse" : "bg-ink-400"}`}
                     ></div>
                     <span className="text-sm font-medium">
                       {isEditable
@@ -892,7 +892,7 @@ const UpdateVendor = () => {
                         : "View Mode - Click Edit to make changes"}
                     </span>
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-ink-500">
                     Last updated: {new Date().toLocaleDateString()}
                   </div>
                 </div>
@@ -903,11 +903,11 @@ const UpdateVendor = () => {
           {/* No Vendor Selected Message */}
           {!companyDetails && !detailsLoading && (
             <div className="text-center py-12">
-              <BuildingOffice2Icon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <BuildingOffice2Icon className="h-16 w-16 text-ink-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-ink-900 mb-2">
                 No Vendor Selected
               </h3>
-              <p className="text-gray-600">
+              <p className="text-ink-600">
                 Please select a vendor from the dropdown above to view and edit
                 details.
               </p>

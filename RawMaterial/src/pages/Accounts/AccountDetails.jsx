@@ -12,7 +12,7 @@ const AccountDetails = () => {
         setLoading(true);
         const response = await Api.get("/accounts-dept/vendors");
         setAccountDetails(response?.data?.data || []);
-      } catch (err) {
+      } catch {
         setError("Failed to fetch vendors");
       } finally {
         setLoading(false);
@@ -27,7 +27,7 @@ const AccountDetails = () => {
 
       {/* Loading */}
       {loading && (
-        <div className="text-center text-blue-600 text-sm">
+        <div className="text-center text-brand-700 text-sm">
           Loading vendor data...
         </div>
       )}
@@ -38,27 +38,27 @@ const AccountDetails = () => {
       {/* ================= MOBILE VIEW ================= */}
       <div className="grid gap-4 sm:hidden">
         {accountDetails.map((vendor, index) => (
-          <div key={index} className="bg-white rounded-xl shadow-md p-4 border">
+          <div key={index} className="bg-white rounded-xl shadow-card p-4 border">
             <div className="mb-2">
-              <p className="text-sm text-gray-500">Vendor Name</p>
+              <p className="text-sm text-ink-500">Vendor Name</p>
               <p className="font-medium">{vendor.name}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-gray-500">GST Number</p>
+                <p className="text-ink-500">GST Number</p>
                 <p>{vendor.gstNumber || "-"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Contact</p>
+                <p className="text-ink-500">Contact</p>
                 <p>{vendor.contactNumber || "-"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Person</p>
+                <p className="text-ink-500">Person</p>
                 <p>{vendor.accountHolder || "-"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Bank Name</p>
+                <p className="text-ink-500">Bank Name</p>
                 <p>{vendor.bankName || "-"}</p>
               </div>
             </div>
@@ -67,7 +67,7 @@ const AccountDetails = () => {
       </div>
       <div className="hidden sm:block overflow-x-auto rounded-xl border bg-white shadow-sm">
         <table className="min-w-full">
-          <thead className="bg-gray-100">
+          <thead className="bg-ink-100">
             <tr>
               {[
                 "Vendor",
@@ -80,7 +80,7 @@ const AccountDetails = () => {
               ].map((head) => (
                 <th
                   key={head}
-                  className="px-4 py-3 text-left text-sm font-semibold text-gray-600"
+                  className="px-4 py-3 text-left text-sm font-semibold text-ink-600"
                 >
                   {head}
                 </th>
@@ -90,7 +90,7 @@ const AccountDetails = () => {
 
           <tbody className="divide-y">
             {accountDetails.map((vendor, index) => (
-              <tr key={index} className="hover:bg-gray-50 transition">
+              <tr key={index} className="hover:bg-ink-50 transition">
                 <td className="px-4 py-3 text-sm font-medium">{vendor.name}</td>
                 <td className="px-4 py-3 text-sm">{vendor.gstNumber || "-"}</td>
                 <td className="px-4 py-3 text-sm">

@@ -1,5 +1,6 @@
 import React from "react";
 
+// Shared labelled input built on the design-system .label / .input classes.
 const InputField = ({
   label,
   value,
@@ -9,17 +10,22 @@ const InputField = ({
   name,
   required = false,
   disabled = false,
+  error,
+  hint,
   className = "",
+  wrapperClassName = "",
+  ...rest
 }) => {
   return (
-    <div className="flex flex-col w-full mb-3">
+    <div className={`flex w-full flex-col ${wrapperClassName || "mb-3"}`}>
       {label && (
-        <label className="mb-1.5 text-sm font-medium text-ink-700">
+        <label htmlFor={name} className={`label ${required ? "label-required" : ""}`}>
           {label}
         </label>
       )}
 
       <input
+        id={name}
         type={type}
         name={name}
         value={value}
@@ -27,14 +33,16 @@ const InputField = ({
         disabled={disabled}
         onChange={onChange}
         placeholder={placeholder}
-        className={`
-          w-full rounded-lg border border-ink-300 bg-white px-3 py-2 text-sm text-ink-900
-          placeholder:text-ink-400 transition-colors
-          focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-400/40
-          disabled:bg-ink-100 disabled:text-ink-500 disabled:cursor-not-allowed
-          ${className}
-        `}
+        aria-invalid={error ? true : undefined}
+        className={`input ${error ? "input-error" : ""} ${className}`.trim()}
+        {...rest}
       />
+
+      {error ? (
+        <p className="error-text">{error}</p>
+      ) : hint ? (
+        <p className="help-text">{hint}</p>
+      ) : null}
     </div>
   );
 };

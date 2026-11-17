@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import Api from "../../auth/Api";
-import { removeStartingZero } from "../../utils/number/removeStartingZero";
 
 const PrePo = () => {
   const [vendorsList, setVendorsList] = useState([]);
@@ -19,7 +18,6 @@ const PrePo = () => {
     },
   ]);
 
-  const [loading, setLoading] = useState(false);
   const [skipCalculation, setSkipCalculation] = useState({});
   const [loadingItems, setLoadingItems] = useState({});
   const [unitTypes, setUnitTypes] = useState([]);
@@ -70,26 +68,20 @@ const PrePo = () => {
   }, [itemDetails, unitTypes]);
 
   const fetchVendors = async () => {
-    setLoading(true);
     try {
       const response = await Api.get("/purchase/vendors");
       setVendorsList(response?.data?.data || []);
     } catch (error) {
       alert("Error: " + (error?.response?.data?.message || error?.message));
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchItemList = async () => {
-    setLoading(true);
     try {
       const response = await Api.get("/purchase/items");
       setItemList(response?.data?.items || []);
     } catch (error) {
       alert("Error: " + (error?.response?.data?.message || error?.message));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -332,7 +324,6 @@ const PrePo = () => {
           }
           if (field === "quantity") {
             const newAmount = Number(value) * Number(updatedItem.rate);
-            const newValue = Number(removeStartingZero(value));
             return {
               ...updatedItem,
               quantity: value,
@@ -512,25 +503,25 @@ const PrePo = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
+    <div className="min-h-[60vh] bg-gradient-to-br from-ink-50 to-ink-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
 
         {/* Basic Information */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200">
+        <div className="bg-white rounded-xl shadow-sm border border-ink-200 p-6 mb-6">
+          <h2 className="text-xl font-semibold text-ink-800 mb-6 pb-3 border-b border-ink-200">
             Basic Information
           </h2>
 
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-700 mb-2">
                   Select Vendor *
                 </label>
                 <select
                   value={selectedVendor}
                   onChange={(e) => setSelectedVendor(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                  className="w-full px-4 py-2.5 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-colors duration-200"
                 >
                   <option value="">-- Select Vendor --</option>
                   {vendorsList.map((v) => (
@@ -545,12 +536,12 @@ const PrePo = () => {
         </div>
 
         {/* Item Details */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-3 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">Item Details</h2>
+        <div className="bg-white rounded-xl shadow-sm border border-ink-200 p-6 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-3 border-b border-ink-200">
+            <h2 className="text-xl font-semibold text-ink-800">Item Details</h2>
             <button
               type="button"
-              className="px-4 py-2.5 bg-yellow-400 text-dark rounded-lg transition-colors duration-200 font-medium flex items-center"
+              className="px-4 py-2.5 bg-brand-400 text-dark rounded-lg transition-colors duration-200 font-medium flex items-center"
               onClick={addItemDetail}
             >
               <svg
@@ -574,10 +565,10 @@ const PrePo = () => {
             {itemDetails.map((item, index) => (
               <div
                 key={item.id}
-                className="border border-gray-200 rounded-xl overflow-hidden"
+                className="border border-ink-200 rounded-xl overflow-hidden"
               >
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                  <h3 className="text-lg font-semibold text-gray-800">
+                <div className="bg-ink-50 px-6 py-4 border-b border-ink-200 flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-ink-800">
                     Item {index + 1}
                   </h3>
                   {itemDetails.length > 1 && (
@@ -598,12 +589,12 @@ const PrePo = () => {
                       className="relative"
                       ref={(el) => (dropdownRefs.current[item.id] = el)}
                     >
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink-700 mb-2">
                         Select Item *
                         {loadingItems[item.id] && (
-                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-brand-100 text-ink-950">
                             <svg
-                              className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500"
+                              className="animate-spin -ml-1 mr-1 h-3 w-3 text-brand-700"
                               xmlns="http://www.w3.org/2000/svg"
                               fill="none"
                               viewBox="0 0 24 24"
@@ -631,7 +622,7 @@ const PrePo = () => {
                         type="button"
                         onClick={() => toggleItemDropdown(item.id)}
                         disabled={loadingItems[item.id]}
-                        className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 flex justify-between items-center ${
+                        className={`w-full px-4 py-2.5 border border-ink-300 rounded-lg text-left focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-colors duration-200 flex justify-between items-center ${
                           loadingItems[item.id] ? "opacity-50" : ""
                         }`}
                       >
@@ -648,7 +639,7 @@ const PrePo = () => {
                             : "-- Choose Item --"}
                         </span>
                         <svg
-                          className={`w-5 h-5 text-gray-400 transform transition-transform ${
+                          className={`w-5 h-5 text-ink-400 transform transition-transform ${
                             openItemDropdown === item.id ? "rotate-180" : ""
                           }`}
                           fill="none"
@@ -665,11 +656,11 @@ const PrePo = () => {
                       </button>
 
                       {openItemDropdown === item.id && (
-                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-96 overflow-hidden">
-                          <div className="sticky top-0 bg-white p-2 border-b border-gray-200">
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-ink-300 rounded-lg shadow-card max-h-96 overflow-hidden">
+                          <div className="sticky top-0 bg-white p-2 border-b border-ink-200">
                             <div className="relative">
                               <svg
-                                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-ink-400"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -688,7 +679,7 @@ const PrePo = () => {
                                   handleSearchChange(item.id, e.target.value)
                                 }
                                 placeholder="Search items by name, HSN, or model..."
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full pl-10 pr-4 py-2 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500"
                                 autoFocus
                               />
                               {searchQuery[item.id] && (
@@ -697,7 +688,7 @@ const PrePo = () => {
                                   onClick={() =>
                                     handleSearchChange(item.id, "")
                                   }
-                                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ink-400 hover:text-ink-600"
                                 >
                                   <svg
                                     className="w-5 h-5"
@@ -715,7 +706,7 @@ const PrePo = () => {
                                 </button>
                               )}
                             </div>
-                            <div className="mt-1 text-xs text-gray-500">
+                            <div className="mt-1 text-xs text-ink-500">
                               Type to search items. Showing{" "}
                               {getFilteredItems(item.id).length} of{" "}
                               {itemList.length} items.
@@ -734,23 +725,23 @@ const PrePo = () => {
                                       itemOption.id,
                                     )
                                   }
-                                  className={`w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-100 focus:outline-none border-b border-gray-100 last:border-b-0 ${
+                                  className={`w-full px-4 py-3 text-left hover:bg-ink-50 focus:bg-ink-100 focus:outline-none border-b border-ink-100 last:border-b-0 ${
                                     item.selectedItem === itemOption.id
-                                      ? "bg-blue-50"
+                                      ? "bg-brand-50"
                                       : ""
                                   }`}
                                 >
-                                  <div className="font-medium text-gray-900">
+                                  <div className="font-medium text-ink-900">
                                     {itemOption.name}
                                   </div>
                                   <div className="flex flex-wrap gap-2 mt-1">
                                     {itemOption.hsnCode && (
-                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-ink-100 text-ink-800">
                                         HSN: {itemOption.hsnCode}
                                       </span>
                                     )}
                                     {itemOption.modelNumber && (
-                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-ink-100 text-ink-800">
                                         Model: {itemOption.modelNumber}
                                       </span>
                                     )}
@@ -761,7 +752,7 @@ const PrePo = () => {
                                     )}
                                   </div>
                                   {itemOption.itemDetail && (
-                                    <div className="mt-1 text-xs text-gray-500 truncate">
+                                    <div className="mt-1 text-xs text-ink-500 truncate">
                                       {itemOption.itemDetail}
                                     </div>
                                   )}
@@ -770,7 +761,7 @@ const PrePo = () => {
                             ) : (
                               <div className="px-4 py-8 text-center">
                                 <svg
-                                  className="w-12 h-12 text-gray-300 mx-auto mb-3"
+                                  className="w-12 h-12 text-ink-300 mx-auto mb-3"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -782,10 +773,10 @@ const PrePo = () => {
                                     d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                   />
                                 </svg>
-                                <p className="text-gray-500">
+                                <p className="text-ink-500">
                                   No items found for "{searchQuery[item.id]}"
                                 </p>
-                                <p className="text-sm text-gray-400 mt-1">
+                                <p className="text-sm text-ink-400 mt-1">
                                   Try different search terms
                                 </p>
                               </div>
@@ -797,12 +788,12 @@ const PrePo = () => {
 
                     {/* Unit */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink-700 mb-2">
                         Select Unit *
                         {loadingItems[item.id] && (
-                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-brand-100 text-ink-950">
                             <svg
-                              className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500"
+                              className="animate-spin -ml-1 mr-1 h-3 w-3 text-brand-700"
                               xmlns="http://www.w3.org/2000/svg"
                               fill="none"
                               viewBox="0 0 24 24"
@@ -838,8 +829,8 @@ const PrePo = () => {
                         className={`w-full px-4 py-2.5 border ${
                           item.selectedItem && !item.selectedUnit
                             ? "border-orange-300"
-                            : "border-gray-300"
-                        } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
+                            : "border-ink-300"
+                        } rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-colors duration-200 ${
                           loadingItems[item.id] ? "opacity-50" : ""
                         }`}
                       >
@@ -886,7 +877,7 @@ const PrePo = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink-700 mb-2">
                         Quantity
                       </label>
                       <input
@@ -898,17 +889,17 @@ const PrePo = () => {
                             updateItemDetail(item.id, "quantity", value);
                           }
                         }}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        className="w-full px-4 py-2.5 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-colors duration-200"
                         placeholder="0"
                         inputMode="numeric"
                         pattern="[0-9]*"
                       />
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-ink-500">
                         Enter quantity in {item.selectedUnit || "unit"}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-ink-700 mb-2">
                         Rate
                       </label>
                       <input
@@ -920,13 +911,13 @@ const PrePo = () => {
                             updateItemDetail(item.id, "rate", value);
                           }
                         }}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        className="w-full px-4 py-2.5 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-colors duration-200"
                         placeholder="0"
                         inputMode="numeric"
                         pattern="[0-9]*"
                         disabled={!item.quantity.toString().length >= 1}
                       />
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-ink-500">
                         Enter rate per unit
                       </p>
                     </div>
@@ -938,11 +929,11 @@ const PrePo = () => {
         </div>
 
         {/* Submit button */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-ink-200 p-6">
           <div className="flex flex-col sm:flex-row justify-center sm:justify-end space-y-4 sm:space-y-0 sm:space-x-4">
             <button
               type="button"
-              className="px-6 py-3 bg-yellow-400 text-dark rounded-lg hover:bg-yellow-400 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-brand-400 text-dark rounded-lg hover:bg-brand-400 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSubmit}
               disabled={!selectedVendor}
             >

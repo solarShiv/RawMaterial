@@ -1,32 +1,56 @@
- import React from "react";
+import React from "react";
+
+// Shared button. `title` is the label (kept for backward compatibility);
+// `children` also works. Variants map to the design-system .btn-* classes.
+const VARIANTS = {
+  default: "btn-primary",
+  primary: "btn-primary",
+  dark: "btn-dark",
+  outline: "btn-outline",
+  ghost: "btn-ghost",
+  danger: "btn-danger",
+  success: "btn-success",
+  // icon-only button: no padding / bg
+  icon: "icon-btn",
+};
+
+const SIZES = {
+  sm: "btn-sm",
+  md: "",
+  lg: "btn-lg",
+};
 
 const Button = ({
   title = "",
+  children,
   onClick,
   type = "button",
   disabled = false,
+  loading = false,
   className = "",
-  variant = "default", // NEW
+  variant = "default",
+  size = "md",
+  icon: Icon,
+  ...rest
 }) => {
-  const baseStyles =
-    variant === "default"
-      ? "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-ink-950 bg-brand-400 hover:bg-brand-500 shadow-sm"
-      : // icon button → no padding, no bg, no color
-        "p-1 rounded-md text-ink-500 hover:text-ink-950 hover:bg-ink-100 bg-transparent";
+  const base = VARIANTS[variant] ?? VARIANTS.icon;
+  const sizeClass = variant === "icon" ? "" : SIZES[size] ?? "";
 
   return (
     <button
       type={type}
       onClick={onClick}
-      disabled={disabled}
-      className={`
-        ${baseStyles}
-        transition-all duration-200
-        disabled:opacity-50 disabled:cursor-not-allowed
-        ${className}
-      `}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={`${base} ${sizeClass} ${className}`.trim()}
+      {...rest}
     >
-      {title}
+      {loading ? (
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+      ) : (
+        Icon && <Icon className="h-4 w-4 shrink-0" />
+      )}
+      {children ?? title}
     </button>
   );
 };

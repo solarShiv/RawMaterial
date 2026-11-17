@@ -859,7 +859,7 @@ const PoOrderDetails = () => {
                   onClick={() => goToPage(go)}
                   disabled={disabled}
                   aria-label={label}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-ink-200 text-ink-600 hover:bg-ink-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 text-ink-600 hover:bg-ink-100 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Icon className="h-4 w-4" />
                 </button>
@@ -869,7 +869,7 @@ const PoOrderDetails = () => {
                   key={pageNum}
                   onClick={() => goToPage(pageNum)}
                   aria-current={currentPage === pageNum ? "page" : undefined}
-                  className={`h-8 min-w-8 rounded-md px-2.5 text-sm font-semibold ${
+                  className={`h-8 min-w-8 rounded-lg px-2.5 text-sm font-semibold ${
                     currentPage === pageNum
                       ? "bg-ink-950 text-brand-400"
                       : "border border-ink-200 text-ink-700 hover:bg-ink-100"
@@ -887,7 +887,7 @@ const PoOrderDetails = () => {
                   onClick={() => goToPage(go)}
                   disabled={disabled}
                   aria-label={label}
-                  className="flex h-8 w-8 items-center justify-center rounded-md border border-ink-200 text-ink-600 hover:bg-ink-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 text-ink-600 hover:bg-ink-100 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Icon className="h-4 w-4" />
                 </button>
@@ -929,7 +929,7 @@ const PoOrderDetails = () => {
               <button
                 onClick={closeModal}
                 disabled={submitting}
-                className="flex h-8 w-8 items-center justify-center rounded-md text-ink-400 hover:bg-ink-100 hover:text-ink-900"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-400 hover:bg-ink-100 hover:text-ink-900"
                 aria-label="Close"
               >
                 <X className="h-5 w-5" />

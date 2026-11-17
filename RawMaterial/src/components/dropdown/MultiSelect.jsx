@@ -22,16 +22,14 @@ const MultiSelect = ({
     setSelectedValues([]);
   };
 
-  const getSelectedNames = () => {
-    return selectedValues.map(value => {
-      const item = lists.find(list => list.id === value);
-      return item ? item.name : '';
-    }).filter(Boolean);
-  };
+  // Keep value + name together so the pill "×" removes the right item even when
+  // `lists` is filtered (e.g. by a search box) and some selections have no name.
+  const selectedItems = selectedValues
+    .map((value) => ({ value, name: lists?.find((list) => list.id === value)?.name }))
+    .filter((item) => item.name);
 
-  const selectedNames = getSelectedNames();
-  const displayText = selectedNames.length > 0 
-    ? `${selectedNames.length} selected` 
+  const displayText = selectedValues.length > 0
+    ? `${selectedValues.length} selected`
     : (lists?.length <= 0 ? loadingText : placeholder);
 
   return (
@@ -41,7 +39,7 @@ const MultiSelect = ({
         className="w-full px-3 py-2 border border-ink-300 rounded-lg text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-400/40 focus:outline-none cursor-pointer bg-white flex justify-between items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className={`${selectedNames.length === 0 ? 'text-gray-400' : 'text-gray-900'}`}>
+        <span className={`${selectedValues.length === 0 ? 'text-gray-400' : 'text-gray-900'}`}>
           {displayText}
         </span>
         <div className="flex items-center space-x-2">
@@ -75,14 +73,18 @@ const MultiSelect = ({
               {lists.map((list) => (
                 <div
                   key={list.id}
-                  className={`px-3 py-2 cursor-pointer flex items-center hover:bg-brand-50 ${
-                    selectedValues.includes(list.id) ? 'bg-blue-50 text-blue-600' : ''
-                  }`}
-                  onClick={() => toggleOption(list.id)}
+                  className={`px-3 py-2 flex items-center ${
+                    list.disabled
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'cursor-pointer hover:bg-brand-50'
+                  } ${selectedValues.includes(list.id) ? 'bg-blue-50 text-blue-600' : ''}`}
+                  onClick={() => !list.disabled && toggleOption(list.id)}
+                  aria-disabled={list.disabled || undefined}
                 >
                   <input
                     type="checkbox"
                     checked={selectedValues.includes(list.id)}
+                    disabled={list.disabled}
                     onChange={() => {}}
                     className="h-4 w-4 accent-brand-500 border-ink-300 rounded focus:ring-brand-400"
                   />
@@ -99,16 +101,17 @@ const MultiSelect = ({
       )}
 
       {/* Selected items pills (optional display below dropdown) */}
-      {selectedNames.length > 0 && (
+      {selectedItems.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-2">
-          {selectedNames.map((name, index) => (
-            <span 
-              key={index}
+          {selectedItems.map(({ value, name }) => (
+            <span
+              key={value}
               className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-brand-100 text-ink-900"
             >
               {name}
               <button
-                onClick={() => toggleOption(selectedValues[index])}
+                type="button"
+                onClick={() => toggleOption(value)}
                 className="ml-1 text-ink-500 hover:text-ink-950"
               >
                 ×

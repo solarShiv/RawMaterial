@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { usePODraft } from "../../hooks/usePODraft";
 import AddRawMaterial from "../Purchase/AddRawMaterial";
 import ExcelPurchaseOrderUpload from "./ExcelPurchaseOrderUpload";
+import SearchableSelect from "../../components/dropdown/SearchableSelect";
 import {
   ChevronDown,
   FileSpreadsheet,
@@ -61,6 +62,9 @@ const Spinner = () => (
 
 const CreatePurchaseOrder = () => {
   const location = useLocation();
+  // Prevents creating the same PO twice on double / repeated clicks
+  const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState("");
   const [vendorsList, setVendorsList] = useState([]);
@@ -1338,6 +1342,10 @@ const CreatePurchaseOrder = () => {
       return;
     }
 
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setSubmitting(true);
+
     try {
       const purchaseOrderData = {
         companyId: selectedCompany,
@@ -1417,6 +1425,9 @@ const CreatePurchaseOrder = () => {
         "Error creating purchase order: " +
           (error?.response?.data?.message || error?.message),
       );
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   };
 
@@ -1559,25 +1570,25 @@ const CreatePurchaseOrder = () => {
 
               <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
                 <Field label="Company" required>
-                  <select value={selectedCompany} onChange={(e) => setSelectedCompany(e.target.value)} className="input">
-                    <option value="">Select company</option>
-                    {companies.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.companyName}
-                      </option>
-                    ))}
-                  </select>
+                  <SearchableSelect
+                    options={companies.map((c) => ({ id: c.id, name: c.companyName }))}
+                    value={selectedCompany}
+                    onChange={(id) => setSelectedCompany(String(id))}
+                    loading={loading && companies.length === 0}
+                    placeholder="Select company"
+                    searchPlaceholder="Search company…"
+                  />
                 </Field>
 
                 <Field label="Vendor" required>
-                  <select value={selectedVendor} onChange={(e) => setSelectedVendor(e.target.value)} className="input">
-                    <option value="">Select vendor</option>
-                    {vendorsList.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.displayName}
-                      </option>
-                    ))}
-                  </select>
+                  <SearchableSelect
+                    options={vendorsList.map((v) => ({ id: v.id, name: v.displayName }))}
+                    value={selectedVendor}
+                    onChange={(id) => setSelectedVendor(String(id))}
+                    loading={loading && vendorsList.length === 0}
+                    placeholder="Select vendor"
+                    searchPlaceholder="Search vendor…"
+                  />
                 </Field>
 
                 <Field label="GST Type" required>
@@ -1715,7 +1726,7 @@ const CreatePurchaseOrder = () => {
                       {/* Item header */}
                       <div className="flex items-center justify-between gap-3 rounded-t-xl border-b border-ink-200 bg-ink-50 px-4 py-2.5">
                         <div className="flex min-w-0 items-center gap-2">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-brand-400 text-xs font-bold text-ink-950">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-brand-400 text-xs font-bold text-ink-950">
                             {index + 1}
                           </span>
                           <span className="truncate text-sm font-semibold text-ink-900">
@@ -1731,7 +1742,7 @@ const CreatePurchaseOrder = () => {
                           <button
                             type="button"
                             onClick={() => removeItemDetail(item.id)}
-                            className="flex h-8 items-center gap-1 rounded-md px-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                            className="flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-semibold text-red-600 hover:bg-red-50"
                             title="Remove item"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -2046,10 +2057,17 @@ const CreatePurchaseOrder = () => {
                   ? `Select company, vendor and GST type${currency !== "INR" ? ", and enter an exchange rate" : ""} to continue.`
                   : "Review the details above, then create the purchase order."}
               </p>
-              <button type="button" onClick={handleSubmit} disabled={submitDisabled} className="btn-primary h-11 shrink-0 px-6">
-                <Send className="h-4 w-4" />
-                {submitLabel}
-              </button>
+              {submitting ? (
+                <div className="flex h-11 shrink-0 items-center gap-2 px-6 text-sm font-medium text-ink-700">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating purchase order...
+                </div>
+              ) : (
+                <button type="button" onClick={handleSubmit} disabled={submitDisabled} className="btn-primary h-11 shrink-0 px-6">
+                  <Send className="h-4 w-4" />
+                  {submitLabel}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -2090,7 +2108,7 @@ const CreatePurchaseOrder = () => {
               <button
                 type="button"
                 onClick={() => setShowAddItemModal(false)}
-                className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-md text-ink-500 hover:bg-ink-100 hover:text-ink-900"
+                className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-ink-500 hover:bg-ink-100 hover:text-ink-900"
                 aria-label="Close"
               >
                 <X className="h-5 w-5" />

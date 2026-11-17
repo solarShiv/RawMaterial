@@ -69,7 +69,7 @@ const AddVendor = () => {
   // File states
   const [aadhaarFile, setAadhaarFile] = useState(null);
   const [panCardFile, setPanCardFile] = useState(null);
-  const [uploadingFiles, setUploadingFiles] = useState({
+  const [uploadingFiles] = useState({
     aadhaar: false,
     pancard: false
   });
@@ -349,7 +349,7 @@ const AddVendor = () => {
   };
 
   // File validation
-  const validateFile = (file, type) => {
+  const validateFile = (file) => {
     const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     const validPdfType = 'application/pdf';
     const maxSize = 5 * 1024 * 1024; // 5MB
@@ -499,7 +499,7 @@ const AddVendor = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const error = validateFile(file, type);
+    const error = validateFile(file);
     if (error) {
       setFileErrors(prev => ({ ...prev, [type]: error }));
       return;
@@ -560,9 +560,9 @@ const AddVendor = () => {
     if (file.type === 'application/pdf') {
       return <DocumentIcon className="h-5 w-5 text-red-500" />;
     } else if (file.type.startsWith('image/')) {
-      return <PhotoIcon className="h-5 w-5 text-blue-500" />;
+      return <PhotoIcon className="h-5 w-5 text-brand-700" />;
     }
-    return <DocumentIcon className="h-5 w-5 text-gray-500" />;
+    return <DocumentIcon className="h-5 w-5 text-ink-500" />;
   };
 
   // Format file size
@@ -814,7 +814,7 @@ const AddVendor = () => {
   const zipCodeFieldInfo = getZipCodeFieldInfo();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 px-3 sm:py-6 sm:px-4 md:px-6">
+    <div className="min-h-[60vh] bg-ink-50 py-4 px-3 sm:py-6 sm:px-4 md:px-6">
       <div className="max-w-5xl mx-auto">
         {/* Success Message */}
         {message && (
@@ -851,17 +851,17 @@ const AddVendor = () => {
         )}
 
         {/* Form Card */}
-        <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="bg-white border border-ink-200 rounded-lg">
           {/* Form Header */}
-          <div className="border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4">
+          <div className="border-b border-ink-200 px-4 py-3 sm:px-6 sm:py-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center space-x-2">
-                <DocumentTextIcon className="h-5 w-5 text-gray-700" />
-                <h2 className="text-base sm:text-lg font-medium text-gray-900">
+                <DocumentTextIcon className="h-5 w-5 text-ink-700" />
+                <h2 className="text-base sm:text-lg font-medium text-ink-900">
                   Vendor Registration Form
                 </h2>
               </div>
-              <div className="text-gray-500 text-xs sm:text-sm">
+              <div className="text-ink-500 text-xs sm:text-sm">
                 <InformationCircleIcon className="h-3 w-3 sm:h-4 sm:w-4 inline mr-1" />
                 All fields marked with * are required
               </div>
@@ -874,14 +874,14 @@ const AddVendor = () => {
               {/* Basic Information Section */}
               <div>
                 <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center mr-2">
-                    <BuildingOffice2Icon className="h-4 w-4 text-blue-600" />
+                  <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center mr-2">
+                    <BuildingOffice2Icon className="h-4 w-4 text-brand-700" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900">
+                    <h3 className="text-sm font-medium text-ink-900">
                       Basic Information
                     </h3>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-ink-500 text-xs">
                       Primary details about the vendor
                     </p>
                   </div>
@@ -892,10 +892,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="name"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <BuildingOffice2Icon className="h-3 w-3 mr-1 text-gray-400" />
+                        <BuildingOffice2Icon className="h-3 w-3 mr-1 text-ink-400" />
                         Vendor Name{" "}
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -908,14 +908,14 @@ const AddVendor = () => {
                         value={companyData.name}
                         onChange={handleChange}
                         required
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.name
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="Enter vendor legal name"
                       />
-                      <BuildingOffice2Icon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <BuildingOffice2Icon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.name && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -928,10 +928,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="referenceBy"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <BuildingOffice2Icon className="h-3 w-3 mr-1 text-gray-400" />
+                        <BuildingOffice2Icon className="h-3 w-3 mr-1 text-ink-400" />
                         Reference By{" "}
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -944,14 +944,14 @@ const AddVendor = () => {
                         value={companyData.referenceBy}
                         onChange={handleChange}
                         required
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.referenceBy
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="Enter reference By"
                       />
-                      <BuildingOffice2Icon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <BuildingOffice2Icon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.referenceBy && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -965,10 +965,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="gstNumber"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <DocumentTextIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <DocumentTextIcon className="h-3 w-3 mr-1 text-ink-400" />
                         GST Number <span className="text-red-500 ml-0.5"></span>
                       </span>
                     </label>
@@ -979,15 +979,15 @@ const AddVendor = () => {
                         name="gstNumber"
                         value={companyData.gstNumber}
                         onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.gstNumber
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="15-character GST number"
                         maxLength="15"
                       />
-                      <DocumentTextIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <DocumentTextIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.gstNumber && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -999,23 +999,23 @@ const AddVendor = () => {
 
                   {/* Country Dropdown */}
                   <div className="sm:col-span-1 relative" ref={dropdownRef}>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-ink-700 mb-1">
                       <span className="flex items-center">
-                        <GlobeAltIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <GlobeAltIcon className="h-3 w-3 mr-1 text-ink-400" />
                         Country <span className="text-red-500 ml-0.5">*</span>
                         {loadingCountries && (
-                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-blue-500" />
+                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-brand-700" />
                         )}
                       </span>
                     </label>
                     <div className="relative">
                       <div
-                        className={`w-full px-3 py-2 border rounded-md bg-white cursor-pointer flex justify-between items-center transition-colors text-sm ${
+                        className={`w-full px-3 py-2 border rounded-lg bg-white cursor-pointer flex justify-between items-center transition-colors text-sm ${
                           showCountryDropdown
-                            ? "border-blue-500 ring-1 ring-blue-200"
+                            ? "border-brand-500 ring-1 ring-brand-400/40"
                             : fieldErrors.country
                               ? "border-red-300 bg-red-50"
-                              : "border-gray-300 hover:border-gray-400"
+                              : "border-ink-300 hover:border-ink-400"
                         } ${
                           loadingCountries
                             ? "opacity-50 cursor-not-allowed"
@@ -1031,13 +1031,13 @@ const AddVendor = () => {
                         aria-disabled={loadingCountries}
                       >
                         <span className="truncate flex items-center">
-                          <GlobeAltIcon className="h-4 w-4 text-gray-400 mr-1.5" />
+                          <GlobeAltIcon className="h-4 w-4 text-ink-400 mr-1.5" />
                           {companyData.country ||
                             (loadingCountries
                               ? "Loading countries..."
                               : "Select a country")}
                         </span>
-                        <span className="text-gray-400 ml-1 text-xs">
+                        <span className="text-ink-400 ml-1 text-xs">
                           {loadingCountries ? (
                             <ArrowPathIcon className="h-3 w-3 animate-spin" />
                           ) : showCountryDropdown ? (
@@ -1055,8 +1055,8 @@ const AddVendor = () => {
                       )}
 
                       {showCountryDropdown && !loadingCountries && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm overflow-hidden">
-                          <div className="p-2 border-b border-gray-200 bg-gray-50">
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-ink-300 rounded-lg shadow-sm overflow-hidden">
+                          <div className="p-2 border-b border-ink-200 bg-ink-50">
                             <div className="relative">
                               <input
                                 ref={searchInputRef}
@@ -1066,9 +1066,9 @@ const AddVendor = () => {
                                 onChange={(e) =>
                                   setCountrySearch(e.target.value)
                                 }
-                                className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+                                className="w-full pl-8 pr-3 py-1.5 border border-ink-300 rounded focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none text-sm"
                               />
-                              <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                              <MagnifyingGlassIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                             </div>
                           </div>
                           <div className="max-h-48 overflow-y-auto">
@@ -1078,8 +1078,8 @@ const AddVendor = () => {
                                   key={country}
                                   className={`px-3 py-2 cursor-pointer transition-colors flex items-center text-sm ${
                                     companyData.country === country
-                                      ? "bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500"
-                                      : "text-gray-700 hover:bg-gray-50"
+                                      ? "bg-brand-50 text-ink-950 font-medium border-l-2 border-brand-500"
+                                      : "text-ink-700 hover:bg-ink-50"
                                   }`}
                                   onClick={() => handleCountrySelect(country)}
                                   role="option"
@@ -1088,7 +1088,7 @@ const AddVendor = () => {
                                   }
                                 >
                                   {companyData.country === country && (
-                                    <CheckCircleIcon className="h-4 w-4 text-blue-500 mr-2" />
+                                    <CheckCircleIcon className="h-4 w-4 text-brand-700 mr-2" />
                                   )}
                                   <span
                                     className={
@@ -1102,7 +1102,7 @@ const AddVendor = () => {
                                 </div>
                               ))
                             ) : (
-                              <div className="px-3 py-2 text-gray-500 text-center text-sm">
+                              <div className="px-3 py-2 text-ink-500 text-center text-sm">
                                 No countries found
                               </div>
                             )}
@@ -1114,23 +1114,23 @@ const AddVendor = () => {
 
                   {/* Currency Dropdown */}
                   <div className="md:col-span-1 relative" ref={currencyDropdownRef}>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-ink-700 mb-1">
                       <span className="flex items-center">
-                        <CurrencyDollarIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <CurrencyDollarIcon className="h-3 w-3 mr-1 text-ink-400" />
                         Currency <span className="text-red-500 ml-0.5">*</span>
                         {loadingCurrency && (
-                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-blue-500" />
+                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-brand-700" />
                         )}
                       </span>
                     </label>
                     <div className="relative">
                       <div
-                        className={`w-full px-3 py-2 border rounded-md bg-white cursor-pointer flex justify-between items-center transition-colors text-sm ${
+                        className={`w-full px-3 py-2 border rounded-lg bg-white cursor-pointer flex justify-between items-center transition-colors text-sm ${
                           showCurrencyDropdown
-                            ? "border-blue-500 ring-1 ring-blue-200"
+                            ? "border-brand-500 ring-1 ring-brand-400/40"
                             : fieldErrors.currency
                               ? "border-red-300 bg-red-50"
-                              : "border-gray-300 hover:border-gray-400"
+                              : "border-ink-300 hover:border-ink-400"
                         } ${
                           loadingCurrency
                             ? "opacity-50 cursor-not-allowed"
@@ -1146,13 +1146,13 @@ const AddVendor = () => {
                         aria-disabled={loadingCurrency}
                       >
                         <span className="truncate flex items-center">
-                          <CurrencyDollarIcon className="h-4 w-4 text-gray-400 mr-1.5" />
+                          <CurrencyDollarIcon className="h-4 w-4 text-ink-400 mr-1.5" />
                           {companyData.currency ||
                             (loadingCurrency
                               ? "Loading currency..."
                               : "Select currency")}
                         </span>
-                        <span className="text-gray-400 ml-1 text-xs">
+                        <span className="text-ink-400 ml-1 text-xs">
                           {loadingCurrency ? (
                             <ArrowPathIcon className="h-3 w-3 animate-spin" />
                           ) : showCurrencyDropdown ? (
@@ -1170,8 +1170,8 @@ const AddVendor = () => {
                       )}
 
                       {showCurrencyDropdown && !loadingCurrency && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm overflow-hidden">
-                          <div className="p-2 border-b border-gray-200 bg-gray-50">
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-ink-300 rounded-lg shadow-sm overflow-hidden">
+                          <div className="p-2 border-b border-ink-200 bg-ink-50">
                             <div className="relative">
                               <input
                                 ref={currencySearchInputRef}
@@ -1181,9 +1181,9 @@ const AddVendor = () => {
                                 onChange={(e) =>
                                   setCurrencySearch(e.target.value)
                                 }
-                                className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+                                className="w-full pl-8 pr-3 py-1.5 border border-ink-300 rounded focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none text-sm"
                               />
-                              <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                              <MagnifyingGlassIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                             </div>
                           </div>
                           <div className="max-h-48 overflow-y-auto">
@@ -1193,8 +1193,8 @@ const AddVendor = () => {
                                   key={currency}
                                   className={`px-3 py-2 cursor-pointer transition-colors flex items-center text-sm ${
                                     companyData.currency === currency
-                                      ? "bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500"
-                                      : "text-gray-700 hover:bg-gray-50"
+                                      ? "bg-brand-50 text-ink-950 font-medium border-l-2 border-brand-500"
+                                      : "text-ink-700 hover:bg-ink-50"
                                   }`}
                                   onClick={() => handleCurrencySelect(currency)}
                                   role="option"
@@ -1203,7 +1203,7 @@ const AddVendor = () => {
                                   }
                                 >
                                   {companyData.currency === currency && (
-                                    <CheckCircleIcon className="h-4 w-4 text-blue-500 mr-2" />
+                                    <CheckCircleIcon className="h-4 w-4 text-brand-700 mr-2" />
                                   )}
                                   <span
                                     className={
@@ -1217,7 +1217,7 @@ const AddVendor = () => {
                                 </div>
                               ))
                             ) : (
-                              <div className="px-3 py-2 text-gray-500 text-center text-sm">
+                              <div className="px-3 py-2 text-ink-500 text-center text-sm">
                                 No currencies found
                               </div>
                             )}
@@ -1226,12 +1226,12 @@ const AddVendor = () => {
                       )}
                     </div>
                     {companyData.country && !loadingCurrency && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-ink-500 mt-1">
                         Default currency for {companyData.country}. Click to select different currency.
                       </p>
                     )}
                     {loadingCurrency && (
-                      <p className="text-xs text-blue-500 mt-1">
+                      <p className="text-xs text-brand-700 mt-1">
                         Fetching currency...
                       </p>
                     )}
@@ -1242,14 +1242,14 @@ const AddVendor = () => {
               {/* Address Details Section */}
               <div>
                 <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center mr-2">
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
                     <MapPinIcon className="h-4 w-4 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900">
+                    <h3 className="text-sm font-medium text-ink-900">
                       Address Details
                     </h3>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-ink-500 text-xs">
                       Business location information
                     </p>
                   </div>
@@ -1259,10 +1259,10 @@ const AddVendor = () => {
                 <div className="mb-4">
                   <label
                     htmlFor="address"
-                    className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                    className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                   >
                     <span className="flex items-center">
-                      <MapPinIcon className="h-3 w-3 mr-1 text-gray-400" />
+                      <MapPinIcon className="h-3 w-3 mr-1 text-ink-400" />
                       Complete Address{" "}
                       <span className="text-red-500 ml-0.5">*</span>
                     </span>
@@ -1275,14 +1275,14 @@ const AddVendor = () => {
                       onChange={handleChange}
                       rows="3"
                       required
-                      className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none text-sm ${
+                      className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors resize-none text-sm ${
                         fieldErrors.address
                           ? "border-red-300 bg-red-50"
-                          : "border-gray-300 hover:border-gray-400"
+                          : "border-ink-300 hover:border-ink-400"
                       }`}
                       placeholder="Enter complete street address with landmark"
                     />
-                    <MapPinIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-2.5" />
+                    <MapPinIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-2.5" />
                   </div>
                   {fieldErrors.address && (
                     <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -1298,7 +1298,7 @@ const AddVendor = () => {
                   <div className="sm:col-span-1">
                     <label
                       htmlFor="city"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       City <span className="text-red-500">*</span>
                       {autoFilledFields.city && (
@@ -1314,10 +1314,10 @@ const AddVendor = () => {
                       value={companyData.city}
                       onChange={handleChange}
                       required
-                      className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                         fieldErrors.city
                           ? "border-red-300 bg-red-50"
-                          : "border-gray-300 hover:border-gray-400"
+                          : "border-ink-300 hover:border-ink-400"
                       } ${autoFilledFields.city ? 'bg-green-50' : ''}`}
                       placeholder="Enter city"
                     />
@@ -1333,7 +1333,7 @@ const AddVendor = () => {
                   <div className="sm:col-span-1">
                     <label
                       htmlFor="state"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       State <span className="text-red-500">*</span>
                       {autoFilledFields.state && (
@@ -1349,10 +1349,10 @@ const AddVendor = () => {
                       value={companyData.state}
                       onChange={handleChange}
                       required
-                      className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                         fieldErrors.state
                           ? "border-red-300 bg-red-50"
-                          : "border-gray-300 hover:border-gray-400"
+                          : "border-ink-300 hover:border-ink-400"
                       } ${autoFilledFields.state ? 'bg-green-50' : ''}`}
                       placeholder="Enter state"
                     />
@@ -1368,19 +1368,19 @@ const AddVendor = () => {
                   <div className="sm:col-span-1">
                     <label
                       htmlFor="zipCode"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center justify-between">
                         {zipCodeFieldInfo.label} <span className="text-red-500"></span>
                         {detectingState && companyData.country.toLowerCase() === "india" && (
-                          <span className="text-xs text-blue-600 flex items-center">
+                          <span className="text-xs text-brand-700 flex items-center">
                             <ArrowPathIcon className="h-3 w-3 mr-0.5 animate-spin" />
                             Detecting...
                           </span>
                         )}
                       </span>
                       {companyData.country.toLowerCase() === "india" && (
-                        <span className="text-xs text-gray-500 block mt-0.5">
+                        <span className="text-xs text-ink-500 block mt-0.5">
                           Enter 6-digit Indian pincode for auto-fill
                         </span>
                       )}
@@ -1392,10 +1392,10 @@ const AddVendor = () => {
                       value={companyData.zipCode}
                       onChange={handleChange}
                       onBlur={handleZipCodeBlur}
-                      className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                         fieldErrors.zipCode
                           ? "border-red-300 bg-red-50"
-                          : "border-gray-300 hover:border-gray-400"
+                          : "border-ink-300 hover:border-ink-400"
                       }`}
                       placeholder={zipCodeFieldInfo.placeholder}
                       maxLength={zipCodeFieldInfo.maxLength}
@@ -1414,14 +1414,14 @@ const AddVendor = () => {
               {/* Contact Information Section */}
               <div>
                 <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-purple-100 rounded-md flex items-center justify-center mr-2">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-2">
                     <PhoneIcon className="h-4 w-4 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900">
+                    <h3 className="text-sm font-medium text-ink-900">
                       Contact Information
                     </h3>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-ink-500 text-xs">
                       Primary contact details
                     </p>
                   </div>
@@ -1432,10 +1432,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="contactPerson"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <UserIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <UserIcon className="h-3 w-3 mr-1 text-ink-400" />
                         Contact Person Name{" "}
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -1448,14 +1448,14 @@ const AddVendor = () => {
                         value={companyData.contactPerson}
                         onChange={handleChange}
                         required
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.contactPerson
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="John Smith"
                       />
-                      <UserIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <UserIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.contactPerson && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -1469,10 +1469,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="contactNumber"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <PhoneIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <PhoneIcon className="h-3 w-3 mr-1 text-ink-400" />
                         Contact Number{" "}
                         <span className="text-red-500 ml-0.5">*</span>
                       </span>
@@ -1485,15 +1485,15 @@ const AddVendor = () => {
                         value={companyData.contactNumber}
                         onChange={handleChange}
                         required
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.contactNumber
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="Enter contact number"
                         maxLength="15"
                       />
-                      <PhoneIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <PhoneIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.contactNumber && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -1513,10 +1513,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="alternateNumber"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <PhoneIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <PhoneIcon className="h-3 w-3 mr-1 text-ink-400" />
                         Alternate Number
                       </span>
                     </label>
@@ -1527,15 +1527,15 @@ const AddVendor = () => {
                         name="alternateNumber"
                         value={companyData.alternateNumber}
                         onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.alternateNumber
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="Enter alternate number"
                         maxLength="15"
                       />
-                      <PhoneIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <PhoneIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.alternateNumber && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -1549,10 +1549,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="email"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <EnvelopeIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <EnvelopeIcon className="h-3 w-3 mr-1 text-ink-400" />
                         Email Address
                       </span>
                     </label>
@@ -1563,14 +1563,14 @@ const AddVendor = () => {
                         name="email"
                         value={companyData.email}
                         onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.email
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="vendor@example.com"
                       />
-                      <EnvelopeIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <EnvelopeIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.email && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -1593,14 +1593,14 @@ const AddVendor = () => {
               {/* Bank Account Information Section */}
               <div>
                 <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-orange-100 rounded-md flex items-center justify-center mr-2">
+                  <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-2">
                     <CurrencyDollarIcon className="h-4 w-4 text-orange-600" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900">
+                    <h3 className="text-sm font-medium text-ink-900">
                       Bank Account Information
                     </h3>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-ink-500 text-xs">
                       Bank details and ID documents
                     </p>
                   </div>
@@ -1611,10 +1611,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="vendorAadhaar"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <UserIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <UserIcon className="h-3 w-3 mr-1 text-ink-400" />
                         Vendor Aadhaar
                       </span>
                     </label>
@@ -1625,15 +1625,15 @@ const AddVendor = () => {
                         name="vendorAadhaar"
                         value={companyData.vendorAadhaar || ""}
                         onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.vendorAadhaar
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="Enter 12-digit Aadhaar"
                         maxLength="12"
                       />
-                      <UserIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <UserIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.vendorAadhaar && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -1651,15 +1651,15 @@ const AddVendor = () => {
 
                   {/* Aadhaar Document Upload */}
                   <div className="md:col-span-2 lg:col-span-1">
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-ink-700 mb-1">
                       <span className="flex items-center">
-                        <PaperClipIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <PaperClipIcon className="h-3 w-3 mr-1 text-ink-400" />
                         Aadhaar Document{" "}
                         {companyData.vendorAadhaar && (
                           <span className="text-red-500 ml-0.5">*</span>
                         )}
                         {uploadingFiles.aadhaar && (
-                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-blue-500" />
+                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-brand-700" />
                         )}
                       </span>
                     </label>
@@ -1674,14 +1674,14 @@ const AddVendor = () => {
                       />
                       <label
                         htmlFor="aadhaarFile"
-                        className={`w-full px-3 py-2 border rounded-md cursor-pointer flex items-center justify-center transition-colors text-sm ${
+                        className={`w-full px-3 py-2 border rounded-lg cursor-pointer flex items-center justify-center transition-colors text-sm ${
                           fieldErrors.aadhaarFile || fileErrors.aadhaar
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400 bg-white"
+                            : "border-ink-300 hover:border-ink-400 bg-white"
                         } ${uploadingFiles.aadhaar ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
-                        <PaperClipIcon className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-gray-600">
+                        <PaperClipIcon className="h-4 w-4 text-ink-400 mr-2" />
+                        <span className="text-ink-600">
                           {uploadingFiles.aadhaar
                             ? "Uploading..."
                             : aadhaarFile
@@ -1699,14 +1699,14 @@ const AddVendor = () => {
 
                     {/* Selected Aadhaar File Preview */}
                     {aadhaarFile && (
-                      <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded-md flex items-center justify-between">
+                      <div className="mt-2 p-2 bg-ink-50 border border-ink-200 rounded-lg flex items-center justify-between">
                         <div className="flex items-center">
                           {getFileIcon(aadhaarFile)}
                           <div className="ml-2">
-                            <p className="text-xs font-medium text-gray-700 truncate max-w-[180px]">
+                            <p className="text-xs font-medium text-ink-700 truncate max-w-[180px]">
                               {aadhaarFile.name}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-ink-500">
                               {formatFileSize(aadhaarFile.size)}
                             </p>
                           </div>
@@ -1727,10 +1727,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="vendorPanCard"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <DocumentTextIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <DocumentTextIcon className="h-3 w-3 mr-1 text-ink-400" />
                         Vendor PanCard
                       </span>
                     </label>
@@ -1741,15 +1741,15 @@ const AddVendor = () => {
                         name="vendorPanCard"
                         value={companyData.vendorPanCard || ""}
                         onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.vendorPanCard
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="Enter PAN number (e.g., ABCDE1234F)"
                         maxLength="10"
                       />
-                      <DocumentTextIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <DocumentTextIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.vendorPanCard && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -1767,15 +1767,15 @@ const AddVendor = () => {
 
                   {/* PAN Card Document Upload */}
                   <div className="md:col-span-2 lg:col-span-1">
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-ink-700 mb-1">
                       <span className="flex items-center">
-                        <PaperClipIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <PaperClipIcon className="h-3 w-3 mr-1 text-ink-400" />
                         PAN Card Document{" "}
                         {companyData.vendorPanCard && (
                           <span className="text-red-500 ml-0.5">*</span>
                         )}
                         {uploadingFiles.pancard && (
-                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-blue-500" />
+                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-brand-700" />
                         )}
                       </span>
                     </label>
@@ -1790,14 +1790,14 @@ const AddVendor = () => {
                       />
                       <label
                         htmlFor="panCardFile"
-                        className={`w-full px-3 py-2 border rounded-md cursor-pointer flex items-center justify-center transition-colors text-sm ${
+                        className={`w-full px-3 py-2 border rounded-lg cursor-pointer flex items-center justify-center transition-colors text-sm ${
                           fieldErrors.panCardFile || fileErrors.pancard
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400 bg-white"
+                            : "border-ink-300 hover:border-ink-400 bg-white"
                         } ${uploadingFiles.pancard ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
-                        <PaperClipIcon className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-gray-600">
+                        <PaperClipIcon className="h-4 w-4 text-ink-400 mr-2" />
+                        <span className="text-ink-600">
                           {uploadingFiles.pancard
                             ? "Uploading..."
                             : panCardFile
@@ -1815,14 +1815,14 @@ const AddVendor = () => {
 
                     {/* Selected PAN Card File Preview */}
                     {panCardFile && (
-                      <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded-md flex items-center justify-between">
+                      <div className="mt-2 p-2 bg-ink-50 border border-ink-200 rounded-lg flex items-center justify-between">
                         <div className="flex items-center">
                           {getFileIcon(panCardFile)}
                           <div className="ml-2">
-                            <p className="text-xs font-medium text-gray-700 truncate max-w-[180px]">
+                            <p className="text-xs font-medium text-ink-700 truncate max-w-[180px]">
                               {panCardFile.name}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-ink-500">
                               {formatFileSize(panCardFile.size)}
                             </p>
                           </div>
@@ -1843,10 +1843,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="bankName"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <BuildingOffice2Icon className="h-3 w-3 mr-1 text-gray-400" />
+                        <BuildingOffice2Icon className="h-3 w-3 mr-1 text-ink-400" />
                         Bank Name
                       </span>
                     </label>
@@ -1857,14 +1857,14 @@ const AddVendor = () => {
                         name="bankName"
                         value={companyData.bankName || ""}
                         onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.bankName
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="Enter bank name"
                       />
-                      <BuildingOffice2Icon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <BuildingOffice2Icon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.bankName && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -1878,10 +1878,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="accountHolder"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <UserIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <UserIcon className="h-3 w-3 mr-1 text-ink-400" />
                         Account Holder Name
                       </span>
                     </label>
@@ -1892,14 +1892,14 @@ const AddVendor = () => {
                         name="accountHolder"
                         value={companyData.accountHolder || ""}
                         onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.accountHolder
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="Enter account holder name"
                       />
-                      <UserIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <UserIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.accountHolder && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -1913,10 +1913,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="accountNumber"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <DocumentTextIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <DocumentTextIcon className="h-3 w-3 mr-1 text-ink-400" />
                         Account Number
                       </span>
                     </label>
@@ -1927,15 +1927,15 @@ const AddVendor = () => {
                         name="accountNumber"
                         value={companyData.accountNumber || ""}
                         onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.accountNumber
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="Enter account number"
                         maxLength="18"
                       />
-                      <DocumentTextIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <DocumentTextIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.accountNumber && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -1955,10 +1955,10 @@ const AddVendor = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="ifscCode"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
                     >
                       <span className="flex items-center">
-                        <DocumentTextIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        <DocumentTextIcon className="h-3 w-3 mr-1 text-ink-400" />
                         IFSC Code
                       </span>
                     </label>
@@ -1969,15 +1969,15 @@ const AddVendor = () => {
                         name="ifscCode"
                         value={companyData.ifscCode || ""}
                         onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
                           fieldErrors.ifscCode
                             ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                            : "border-ink-300 hover:border-ink-400"
                         }`}
                         placeholder="Enter IFSC code (e.g., SBIN0001234)"
                         maxLength="11"
                       />
-                      <DocumentTextIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                      <DocumentTextIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {fieldErrors.ifscCode && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -1996,9 +1996,9 @@ const AddVendor = () => {
               </div>
 
               {/* Form Actions */}
-              <div className="pt-4 border-t border-gray-200">
+              <div className="pt-4 border-t border-ink-200">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0">
-                  <div className="text-xs text-gray-500 flex items-center w-full md:w-auto">
+                  <div className="text-xs text-ink-500 flex items-center w-full md:w-auto">
                     <InformationCircleIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                     <span>
                       {isFormValid() ? (
@@ -2013,13 +2013,13 @@ const AddVendor = () => {
                     </span>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full bg-yellow-400 text-dark  sm:w-auto">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full bg-brand-400 text-dark sm:w-auto">
                     <Button
                       type="submit"
                       title={loading ? "Adding Vendor..." : "Add Vendor"}
                       disabled={loading || !isFormValid() || loadingCountries || loadingCurrency}
                       variant="primary"
-                      className="px-4 py-2 rounded-md font-medium flex items-center justify-center text-sm"
+                      className="px-4 py-2 rounded-lg font-medium flex items-center justify-center text-sm"
                       onClick={null}
                     >
                       {loading && (

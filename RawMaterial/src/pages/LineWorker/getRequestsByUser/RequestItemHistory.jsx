@@ -56,7 +56,7 @@ const RequestItemHistory = () => {
       );
 
     return (
-      <span className="px-3 py-1 text-xs rounded-full bg-yellow-400 text-gray-900">
+      <span className="px-3 py-1 text-xs rounded-full bg-brand-400 text-ink-900">
         Pending
       </span>
     );
@@ -88,7 +88,7 @@ const RequestItemHistory = () => {
     );
 
   return (
-    <div className="w-full min-h-screen p-4 md:p-6">
+    <div className="w-full min-h-[60vh] p-4 md:p-6">
       {/* Title */}
       <div className="flex flex-col items-center mb-6 md:mb-8">
 
@@ -96,7 +96,7 @@ const RequestItemHistory = () => {
         <input
           type="text"
           placeholder="Search by material or date..."
-          className="w-full md:w-1/2 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full md:w-1/2 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-400/40"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -127,7 +127,7 @@ const RequestItemHistory = () => {
 
               {/* Date + Material Given */}
               <div className="flex justify-between items-center text-sm mt-4">
-                <span className="text-gray-600">
+                <span className="text-ink-600">
                   Requested At: <b>{formatDate(item.requestedAt)}</b>
                 </span>
 
@@ -135,7 +135,7 @@ const RequestItemHistory = () => {
                   className={`px-3 py-1 rounded-full text-xs ${
                     item.materialGiven
                       ? "bg-green-100 text-green-700"
-                      : "bg-gray-200 text-gray-700"
+                      : "bg-ink-200 text-ink-700"
                   }`}
                 >
                   {item.materialGiven ? "Material Given" : "Not Given"}
@@ -147,7 +147,7 @@ const RequestItemHistory = () => {
             </div>
           ))
         ) : (
-          <h1 className="text-center text-gray-500 mt-10 text-lg">
+          <h1 className="text-center text-ink-500 mt-10 text-lg">
             No matching records found
           </h1>
         )}

@@ -104,7 +104,10 @@ export const nestedMenus = [
     label: "Payment",
     icon: MdAccountBalanceWallet,
     roles: ["Purchase"],
-    items: [{ path: "payment-pending", label: "Payment Pending" }],
+    items: [
+      { path: "payment-pending", label: "Payment Pending" },
+      { path: "vendor-payment-details", label: "Vendor Payment Details", roles: ["Purchase"] },
+    ],
   },
   {
     key: "createStock",

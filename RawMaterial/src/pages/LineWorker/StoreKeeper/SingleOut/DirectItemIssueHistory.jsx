@@ -79,7 +79,7 @@ const ItemChips = ({ items, expanded, onToggle }) => {
       {visible.map((item, idx) => (
         <span
           key={idx}
-          className="inline-flex items-center gap-1.5 rounded-md border border-ink-200 bg-ink-50 px-2 py-1 text-xs"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-ink-50 px-2 py-1 text-xs"
         >
           <span className="font-medium text-ink-900">{item.rawMaterialName}</span>
           <span className="font-bold tabular-nums text-green-700">
@@ -91,7 +91,7 @@ const ItemChips = ({ items, expanded, onToggle }) => {
         <button
           type="button"
           onClick={onToggle}
-          className="rounded-md px-2 py-1 text-xs font-semibold text-ink-700 underline-offset-2 hover:bg-brand-100 hover:underline"
+          className="rounded-lg px-2 py-1 text-xs font-semibold text-ink-700 underline-offset-2 hover:bg-brand-100 hover:underline"
         >
           {hidden > 0 ? `+${hidden} more` : 'Show less'}
         </button>
@@ -380,7 +380,7 @@ const DirectItemIssueHistory = () => {
                 onClick={fetchDirectIssueHistory}
                 disabled={loading}
                 aria-label="Refresh"
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-ink-300 text-ink-700 hover:bg-ink-100 disabled:opacity-50"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink-300 text-ink-700 hover:bg-ink-100 disabled:opacity-50"
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
@@ -511,7 +511,7 @@ const DirectItemIssueHistory = () => {
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     aria-label="Previous page"
-                    className="flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-8 items-center gap-1 rounded-lg border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Prev</span>
                   </button>
@@ -520,7 +520,7 @@ const DirectItemIssueHistory = () => {
                       key={page}
                       onClick={() => setCurrentPage(page)}
                       aria-current={currentPage === page ? 'page' : undefined}
-                      className={`h-8 min-w-8 rounded-md px-2.5 text-xs font-semibold ${
+                      className={`h-8 min-w-8 rounded-lg px-2.5 text-xs font-semibold ${
                         currentPage === page
                           ? 'bg-ink-950 text-brand-400'
                           : 'border border-ink-200 text-ink-700 hover:bg-ink-100'
@@ -533,7 +533,7 @@ const DirectItemIssueHistory = () => {
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
                     aria-label="Next page"
-                    className="flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-8 items-center gap-1 rounded-lg border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <span className="hidden sm:inline">Next</span> <ChevronRight className="h-4 w-4" />
                   </button>

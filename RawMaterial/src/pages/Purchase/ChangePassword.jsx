@@ -155,7 +155,7 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-card">
 
       {message.text && (
         <div
@@ -223,8 +223,8 @@ const ChangePassword = () => {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-2 rounded text-black ${
-            loading ? "bg-gray-400" : "bg-yellow-300 hover:bg-yellow-400"
+          className={`w-full py-2 rounded text-ink-950 ${
+            loading ? "bg-ink-400" : "bg-brand-300 hover:bg-brand-400"
           }`}
         >
           {loading ? "Changing..." : "Change Password"}

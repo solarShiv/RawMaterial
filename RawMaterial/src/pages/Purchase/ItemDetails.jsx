@@ -25,7 +25,7 @@ const ItemDetails = () => {
         setLoading(true);
         const res = await Api.get("/purchase/items");
         setItems(res?.data?.items || []);
-      } catch (err) {
+      } catch {
         setError("Failed to fetch items");
       } finally {
         setLoading(false);
@@ -71,7 +71,7 @@ const ItemDetails = () => {
         ...res?.data?.data,
         source: res?.data?.source
       });
-    } catch (err) {
+    } catch {
       setError("Failed to fetch item details");
       setItemDetails(null);
     } finally {
@@ -191,25 +191,25 @@ const ItemDetails = () => {
       {/* Search and Select Item */}
       <div className="mb-6">
         <label className="block text-sm font-medium mb-2">
-          Select Item <span className="text-gray-400 text-xs">(Search or select from dropdown)</span>
+          Select Item <span className="text-ink-400 text-xs">(Search or select from dropdown)</span>
         </label>
         
         <div className="relative" ref={dropdownRef}>
           {/* Combined Input with Selected Item Display */}
-          <div className="flex items-stretch border rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-300">
+          <div className="flex items-stretch border rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-400/40">
             {/* Selected Item Display or Search Input */}
             <div className="flex-1 flex items-center">
               {selectedItemId && selectedItem ? (
                 <div className="flex items-center justify-between w-full px-3 py-2">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{selectedItem.name}</span>
-                    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                    <span className="text-xs px-2 py-1 bg-brand-100 text-ink-950 rounded">
                       Selected
                     </span>
                   </div>
                   <button
                     onClick={clearSelection}
-                    className="text-gray-400 hover:text-red-500 text-lg p-1"
+                    className="text-ink-400 hover:text-red-500 text-lg p-1"
                     title="Clear selection"
                   >
                     ✕
@@ -217,7 +217,7 @@ const ItemDetails = () => {
                 </div>
               ) : (
                 <>
-                  <div className="pl-3 text-gray-400">
+                  <div className="pl-3 text-ink-400">
                     🔍
                   </div>
                   <input
@@ -241,7 +241,7 @@ const ItemDetails = () => {
             <button
               type="button"
               onClick={toggleDropdown}
-              className="px-4 border-l bg-gray-50 hover:bg-gray-100 flex items-center justify-center"
+              className="px-4 border-l bg-ink-50 hover:bg-ink-100 flex items-center justify-center"
               disabled={loading}
             >
               {isDropdownOpen ? "▲" : "▼"}
@@ -250,13 +250,13 @@ const ItemDetails = () => {
 
           {/* Dropdown Results */}
           {isDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg max-h-64 overflow-y-auto z-20">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-card max-h-64 overflow-y-auto z-20">
               {/* Currently Selected Item (if any) */}
               {selectedItemId && selectedItem && (
-                <div className="p-3 border-b bg-blue-50">
-                  <div className="text-sm text-gray-500 mb-1">Currently Selected:</div>
+                <div className="p-3 border-b bg-brand-50">
+                  <div className="text-sm text-ink-500 mb-1">Currently Selected:</div>
                   <div className="font-medium">{selectedItem.name}</div>
-                  {/* <div className="text-xs text-gray-500 mt-1">
+                  {/* <div className="text-xs text-ink-500 mt-1">
                     Source: {selectedItem.source || "N/A"} • HSN: {selectedItem.hsnCode || "N/A"}
                   </div> */}
                 </div>
@@ -264,14 +264,14 @@ const ItemDetails = () => {
 
               {/* Available Items */}
               <div className="p-2">
-                <div className="text-xs text-gray-500 px-2 py-1">
+                <div className="text-xs text-ink-500 px-2 py-1">
                   {selectedItemId 
                     ? "Select a different item:" 
                     : "Select an item:"}
                 </div>
                 
                 {loading ? (
-                  <div className="p-4 text-center text-gray-500">
+                  <div className="p-4 text-center text-ink-500">
                     Loading items...
                   </div>
                 ) : filteredItems.length > 0 ? (
@@ -281,23 +281,23 @@ const ItemDetails = () => {
                         <button
                           type="button"
                           onClick={() => handleItemSelect(item.id)}
-                          className="w-full text-left px-4 py-3 hover:bg-gray-50 rounded transition-colors flex items-center justify-between"
+                          className="w-full text-left px-4 py-3 hover:bg-ink-50 rounded transition-colors flex items-center justify-between"
                         >
                           <div>
                             <div className="font-medium">{item.name + " - "}{item.source ==="mongo" ? "Installation Material" : "Raw Material"}</div>
-                            {/* <div className="text-sm text-gray-500 flex items-center gap-3 mt-1">
+                            {/* <div className="text-sm text-ink-500 flex items-center gap-3 mt-1">
                               <span>Source: {item.source || "N/A"}</span>
                               <span>•</span>
                               <span>HSN: {item.hsnCode || "N/A"}</span>
                             </div> */}
                           </div>
-                          <div className="text-blue-500 text-lg">→</div>
+                          <div className="text-brand-700 text-lg">→</div>
                         </button>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <div className="p-4 text-center text-gray-500">
+                  <div className="p-4 text-center text-ink-500">
                     {searchQuery 
                       ? "No other items found matching your search" 
                       : "No other items available"}
@@ -309,7 +309,7 @@ const ItemDetails = () => {
         </div>
 
         {/* Item Count Info */}
-        <div className="mt-2 text-xs text-gray-500">
+        <div className="mt-2 text-xs text-ink-500">
           {selectedItemId ? (
             <div className="flex items-center gap-4">
               <span>
@@ -326,7 +326,7 @@ const ItemDetails = () => {
                   setIsDropdownOpen(true);
                   setSearchQuery("");
                 }}
-                className="text-blue-500 hover:text-blue-700"
+                className="text-brand-700 hover:text-ink-950"
               >
                 Change selection
               </button>
@@ -343,7 +343,7 @@ const ItemDetails = () => {
       {/* Loading State */}
       {loading && !itemDetails && selectedItemId && (
         <div className="flex items-center justify-center p-8">
-          <div className="text-gray-500">Loading item details...</div>
+          <div className="text-ink-500">Loading item details...</div>
         </div>
       )}
 
@@ -355,7 +355,7 @@ const ItemDetails = () => {
               <h3 className="text-lg font-semibold">
                 Item Details
               </h3>
-              {/* <p className="text-sm text-gray-500 mt-1">
+              {/* <p className="text-sm text-ink-500 mt-1">
                 ID: {itemDetails.id} • Last updated: {new Date().toLocaleDateString()}
               </p> */}
             </div>
@@ -366,13 +366,13 @@ const ItemDetails = () => {
                   setIsDropdownOpen(true);
                   setSearchQuery("");
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-ink-300 rounded-lg hover:bg-ink-50 transition-colors"
               >
                 Select Different Item
               </button>
               <button
                 onClick={handleUpdateClick}
-                className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                className="bg-brand-400 hover:bg-brand-500 text-ink-950 font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
               >
                 <span>✏️</span>
                 <span>Edit</span>
@@ -383,63 +383,63 @@ const ItemDetails = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Name */}
             <div>
-              <label className="text-sm text-gray-500">Item Name</label>
-              <div className="w-full border rounded-lg px-3 py-2 bg-gray-50 font-medium">
+              <label className="text-sm text-ink-500">Item Name</label>
+              <div className="w-full border rounded-lg px-3 py-2 bg-ink-50 font-medium">
                 {itemDetails.name}
               </div>
             </div>
 
             {/* Source */}
             <div>
-              <label className="text-sm text-gray-500">Source</label>
-              <div className="w-full border rounded-lg px-3 py-2 bg-gray-50">
+              <label className="text-sm text-ink-500">Source</label>
+              <div className="w-full border rounded-lg px-3 py-2 bg-ink-50">
                 {itemDetails.source || "N/A"}
               </div>
             </div>
 
             {/* Unit */}
             <div>
-              <label className="text-sm text-gray-500">Unit</label>
-              <div className="w-full border rounded-lg px-3 py-2 bg-gray-50">
+              <label className="text-sm text-ink-500">Unit</label>
+              <div className="w-full border rounded-lg px-3 py-2 bg-ink-50">
                 {itemDetails.unit || "N/A"}
               </div>
             </div>
 
             {/* Conversion Unit */}
             <div>
-              <label className="text-sm text-gray-500">
+              <label className="text-sm text-ink-500">
                 Conversion Unit
               </label>
-              <div className="w-full border rounded-lg px-3 py-2 bg-gray-50">
+              <div className="w-full border rounded-lg px-3 py-2 bg-ink-50">
                 {itemDetails.conversionUnit || "N/A"}
               </div>
             </div>
 
             {/* Conversion Factor */}
             <div>
-              <label className="text-sm text-gray-500">
+              <label className="text-sm text-ink-500">
                 Conversion Factor
               </label>
-              <div className="w-full border rounded-lg px-3 py-2 bg-gray-50">
+              <div className="w-full border rounded-lg px-3 py-2 bg-ink-50">
                 {itemDetails.conversionFactor || "N/A"}
               </div>
             </div>
 
             <div>
-              <label className="text-sm text-gray-500">
+              <label className="text-sm text-ink-500">
                 HSN Code
               </label>
-              <div className="w-full border rounded-lg px-3 py-2 bg-gray-50">
+              <div className="w-full border rounded-lg px-3 py-2 bg-ink-50">
                 {itemDetails.hsnCode || "N/A"}
               </div>
             </div>
 
             {/* Description (Full Width) */}
             <div className="md:col-span-2">
-              <label className="text-sm text-gray-500">
+              <label className="text-sm text-ink-500">
                 Description
               </label>
-              <div className="w-full border rounded-lg px-3 py-2 bg-gray-50 min-h-[80px]">
+              <div className="w-full border rounded-lg px-3 py-2 bg-ink-50 min-h-[80px]">
                 {itemDetails.description || "No description available"}
               </div>
             </div>
@@ -450,11 +450,11 @@ const ItemDetails = () => {
       {/* Empty States */}
       {!selectedItemId && !loading && items.length > 0 && (
         <div className="text-center p-8 border-2 border-dashed rounded-lg mt-4">
-          <div className="text-gray-400 mb-2 text-4xl">📦</div>
-          <p className="text-gray-500 italic">
+          <div className="text-ink-400 mb-2 text-4xl">📦</div>
+          <p className="text-ink-500 italic">
             Select an item to view details
           </p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-ink-400 mt-1">
             Click the dropdown arrow or search to select an item
           </p>
         </div>
@@ -462,11 +462,11 @@ const ItemDetails = () => {
 
       {!loading && items.length === 0 && (
         <div className="text-center p-8 border-2 border-dashed rounded-lg mt-4">
-          <div className="text-gray-400 mb-2 text-4xl">📝</div>
-          <p className="text-gray-500 italic">
+          <div className="text-ink-400 mb-2 text-4xl">📝</div>
+          <p className="text-ink-500 italic">
             No items found
           </p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-ink-400 mt-1">
             Add items to get started
           </p>
         </div>
@@ -474,13 +474,13 @@ const ItemDetails = () => {
 
       {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 h-full">
-          <div className="bg-white shadow-lg w-10/12 h-8/12 relative">
+        <div className="fixed inset-0 bg-ink-950 bg-opacity-50 flex items-center justify-center p-4 z-50 h-full">
+          <div className="bg-white shadow-card w-10/12 h-8/12 relative">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <button
                   onClick={handleEditCancel}
-                  className="text-gray-500 hover:text-gray-700 text-2xl absolute top-2 right-4 bg-red-500 text-white px-3 pb-1 rounded-md"
+                  className="text-ink-500 hover:text-ink-700 text-2xl absolute top-2 right-4 bg-red-500 text-white px-3 pb-1 rounded-lg"
                 >
                   ×
                 </button>

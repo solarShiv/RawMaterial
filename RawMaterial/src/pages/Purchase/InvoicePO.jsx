@@ -293,7 +293,7 @@ const InvoicePO = () => {
               <button
                 onClick={handleClear}
                 aria-label="Clear vendor"
-                className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-400 hover:bg-ink-100 hover:text-ink-900"
+                className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-ink-400 hover:bg-ink-100 hover:text-ink-900"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -312,7 +312,7 @@ const InvoicePO = () => {
                             selectedVendor === vendor.id ? "bg-brand-50 font-semibold text-ink-950" : "text-ink-800"
                           }`}
                         >
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-ink-100 text-xs font-bold text-ink-600">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-ink-100 text-xs font-bold text-ink-600">
                             {vendor.displayName?.charAt(0)?.toUpperCase() || "?"}
                           </span>
                           <span className="break-words">{vendor.displayName}</span>

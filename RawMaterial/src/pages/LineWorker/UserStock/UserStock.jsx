@@ -39,14 +39,14 @@ const UserStock = () => {
   }
 
   return (
-    <div className="w-full min-h-screen p-4 md:p-8">
+    <div className="w-full min-h-[60vh] p-4 md:p-8">
 
       {/* Search Bar */}
       <div className="flex justify-center mb-6">
         <input
           type="text"
           placeholder="Search stock..."
-          className="w-full md:w-1/2 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full md:w-1/2 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-400/40"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -60,7 +60,7 @@ const UserStock = () => {
               key={item.rawMaterialId}
               className="border rounded-xl p-4 shadow bg-white hover:shadow-lg transition"
             >
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-lg font-semibold text-ink-800">
                 {item.rawMaterialName}
               </h2>
 
@@ -77,7 +77,7 @@ const UserStock = () => {
             </div>
           ))
         ) : (
-          <h2 className="text-center text-gray-500 col-span-2 mt-6">
+          <h2 className="text-center text-ink-500 col-span-2 mt-6">
             No matching items found
           </h2>
         )}

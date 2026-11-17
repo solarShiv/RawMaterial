@@ -41,8 +41,8 @@ const VendorAllDetails = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">Loading vendor orders...</span>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500"></div>
+        <span className="ml-3 text-ink-600">Loading vendor orders...</span>
       </div>
     );
   }
@@ -54,7 +54,7 @@ const VendorAllDetails = () => {
         <p className="text-sm">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+          className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
         >
           Try Again
         </button>
@@ -63,7 +63,7 @@ const VendorAllDetails = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 bg-ink-50 min-h-[60vh]">
       {/* Header with title and search */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-end gap-4">
         <div className="w-full md:w-72">
@@ -73,10 +73,10 @@ const VendorAllDetails = () => {
               placeholder="Search vendor or contact..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+              className="w-full pl-10 pr-4 py-2 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-shadow"
             />
             <svg
-              className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+              className="absolute left-3 top-2.5 h-5 w-5 text-ink-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -94,7 +94,7 @@ const VendorAllDetails = () => {
 
       {/* No results message */}
       {filteredVendors.length === 0 && (
-        <div className="p-6 text-center text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="p-6 text-center text-ink-500 bg-ink-50 rounded-lg border border-ink-200">
           <p className="text-lg">No vendors match your search.</p>
         </div>
       )}
@@ -108,19 +108,19 @@ const VendorAllDetails = () => {
         return (
           <div
             key={vendor.vendorId}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+            className="bg-white rounded-xl shadow-sm border border-ink-200 overflow-hidden hover:shadow-md transition-shadow"
           >
             {/* Vendor Header */}
-            <div className="p-4 md:p-5 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <div className="p-4 md:p-5 border-b border-ink-200 bg-ink-50 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
               <div>
-                <h2 className="text-lg md:text-xl font-semibold text-gray-800">{vendor.vendorName}</h2>
-                <div className="text-sm text-gray-600 mt-1 space-x-2">
+                <h2 className="text-lg md:text-xl font-semibold text-ink-800">{vendor.vendorName}</h2>
+                <div className="text-sm text-ink-600 mt-1 space-x-2">
                   <span>👤 {vendor.contactPerson || 'N/A'}</span>
                   <span>📞 {vendor.contactNumber || 'N/A'}</span>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-sm">
-                <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+                <span className="px-3 py-1 bg-brand-50 text-ink-950 rounded-full border border-brand-300">
                   Ordered: {formatQty(totalOrdered)}
                 </span>
                 <span className="px-3 py-1 bg-green-50 text-green-700 rounded-full border border-green-200">
@@ -139,35 +139,35 @@ const VendorAllDetails = () => {
             {/* Items Table */}
             <div className="overflow-x-auto">
               {vendor.items && vendor.items.length > 0 ? (
-                <table className="min-w-full divide-y divide-gray-200 text-sm">
-                  <thead className="bg-gray-100">
+                <table className="min-w-full divide-y divide-ink-200 text-sm">
+                  <thead className="bg-ink-100">
                     <tr>
-                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-ink-600 uppercase tracking-wider">
                         Item Name
                       </th>
-                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-ink-600 uppercase tracking-wider">
                         Unit
                       </th>
-                      <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-ink-600 uppercase tracking-wider">
                         Ordered Qty
                       </th>
-                      <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-ink-600 uppercase tracking-wider">
                         Received Qty
                       </th>
-                      <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-ink-600 uppercase tracking-wider">
                         Pending Qty
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-ink-200">
                     {vendor.items.map((item, index) => (
-                      <tr key={index} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-800">{item.itemName || '—'}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-600">{item.unit || '—'}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-gray-700">
+                      <tr key={index} className="hover:bg-ink-50 transition-colors">
+                        <td className="px-4 py-3 whitespace-nowrap text-ink-800">{item.itemName || '—'}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-ink-600">{item.unit || '—'}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-ink-700">
                           {formatQty(item.orderedQty)}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-gray-700">
+                        <td className="px-4 py-3 whitespace-nowrap text-right font-mono text-ink-700">
                           {formatQty(item.receivedQty)}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-right font-mono font-medium">
@@ -186,14 +186,14 @@ const VendorAllDetails = () => {
                   </tbody>
                 </table>
               ) : (
-                <div className="p-4 text-center text-gray-500 italic">
+                <div className="p-4 text-center text-ink-500 italic">
                   No items for this vendor.
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 text-right">
+            <div className="px-4 py-2 bg-ink-50 border-t border-ink-200 text-xs text-ink-500 text-right">
               Total items: {vendor.items?.length || 0}
             </div>
           </div>

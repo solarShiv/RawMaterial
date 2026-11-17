@@ -61,7 +61,7 @@ const ReceivedPurchaseStock = () => {
         value: w._id,
       }));
       setWarehouseList(formatted);
-    } catch (err) {
+    } catch {
       alert("Error loading warehouses");
     }
   };
@@ -166,7 +166,7 @@ const ReceivedPurchaseStock = () => {
         console.log(key, typeof value === 'string' ? 'Text' : 'File', value);
       });
 
-      const response = await Api.post(
+      await Api.post(
         "/purchase/purchase-orders/receive",
         formData,
         { 
@@ -218,14 +218,14 @@ const ReceivedPurchaseStock = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-4 px-3 sm:py-8 sm:px-5">
+    <div className="min-h-[60vh] bg-gradient-to-b from-ink-50 to-ink-100 py-4 px-3 sm:py-8 sm:px-5">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-sm border border-ink-200 p-4 sm:p-6 mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
             <div>
               <div className="flex flex-wrap items-center gap-2 mt-1">
-                <p className="text-gray-600 text-sm sm:text-base">
+                <p className="text-ink-600 text-sm sm:text-base">
                   Purchase Order: #{selectedOrderDetails?.poNumber || "N/A"}
                 </p>
                 {getFullyReceivedItemsCount() > 0 && (
@@ -233,14 +233,14 @@ const ReceivedPurchaseStock = () => {
                     ✓ {getFullyReceivedItemsCount()} item{getFullyReceivedItemsCount() !== 1 ? 's' : ''} fully received
                   </span>
                 )}
-                <span className="text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full text-sm">
+                <span className="text-brand-700 font-medium bg-brand-50 px-3 py-1 rounded-full text-sm">
                   ⏳ {getPendingItemsCount()} item{getPendingItemsCount() !== 1 ? 's' : ''} pending
                 </span>
               </div>
             </div>
             <button
               onClick={handleCancel}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto text-sm sm:text-base"
+              className="px-4 py-2 border border-ink-300 rounded-lg text-ink-700 hover:bg-ink-50 transition-colors w-full sm:w-auto text-sm sm:text-base"
             >
               Cancel
             </button>
@@ -249,7 +249,7 @@ const ReceivedPurchaseStock = () => {
           {/* Order-level information section */}
           <div className="space-y-4 mb-4">
             {/* Warehouse Select */}
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="bg-ink-50 p-4 rounded-lg border border-ink-200">
               <SingleSelect
                 label="Select Destination Warehouse"
                 lists={warehouseList}
@@ -260,40 +260,40 @@ const ReceivedPurchaseStock = () => {
             </div>
 
             {/* Invoice Number Input */}
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="bg-ink-50 p-4 rounded-lg border border-ink-200">
+              <label className="block text-sm font-medium text-ink-700 mb-2">
                 Invoice Number
-                {/* <span className="text-gray-500 font-normal ml-1">(Optional)</span> */}
+                {/* <span className="text-ink-500 font-normal ml-1">(Optional)</span> */}
               </label>
               <input
                 type="text"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                className="w-full p-3 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition"
                 value={invoiceNumber}
                 onChange={(e) => setInvoiceNumber(e.target.value)}
                 placeholder="Enter invoice number from supplier"
                 maxLength={50}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-ink-500 mt-1">
                 Reference number from the supplier's invoice
               </p>
             </div>
 
             {/* Single Bill File Upload for entire order */}
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="bg-ink-50 p-4 rounded-lg border border-ink-200">
+              <label className="block text-sm font-medium text-ink-700 mb-2">
                 Purchase Bill/Invoice Document
-                {/* <span className="text-gray-500 font-normal ml-1">(Optional)</span> */}
+                {/* <span className="text-ink-500 font-normal ml-1">(Optional)</span> */}
               </label>
               <div className="flex items-center gap-3">
                 <label className="flex-1">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                  <div className="border-2 border-dashed border-ink-300 rounded-lg p-4 text-center cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-colors">
                     <input
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
                       className="hidden"
                       onChange={(e) => handleBillFileUpload(e.target.files[0])}
                     />
-                    <div className="text-gray-500">
+                    <div className="text-ink-500">
                       <svg
                         className="mx-auto h-8 w-8 mb-2"
                         fill="none"
@@ -326,7 +326,7 @@ const ReceivedPurchaseStock = () => {
                   </button>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-ink-500 mt-2">
                 Upload the purchase bill or invoice document (optional)
               </p>
             </div>
@@ -335,17 +335,17 @@ const ReceivedPurchaseStock = () => {
 
         {/* Show message if no items to receive */}
         {filteredItems.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+          <div className="bg-white rounded-xl shadow-sm border border-ink-200 p-8 text-center">
             <svg className="mx-auto h-12 w-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">All items already received</h3>
-            <p className="mt-2 text-gray-600">
+            <h3 className="mt-4 text-lg font-medium text-ink-900">All items already received</h3>
+            <p className="mt-2 text-ink-600">
               All items in this purchase order have been fully received. No pending items to receive.
             </p>
             <button
               onClick={handleCancel}
-              className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="mt-6 px-6 py-3 bg-ink-950 text-white rounded-lg hover:bg-ink-800 transition-colors"
             >
               Go Back
             </button>
@@ -362,34 +362,34 @@ const ReceivedPurchaseStock = () => {
                 return (
                   <div
                     key={item.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow"
+                    className="bg-white rounded-xl shadow-sm border border-ink-200 p-4 sm:p-6 hover:shadow-md transition-shadow"
                   >
                     {/* Item Header */}
-                    <div className="mb-4 pb-4 border-b border-gray-100">
+                    <div className="mb-4 pb-4 border-b border-ink-100">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <h2 className="text-lg font-semibold text-gray-800 truncate">
+                        <h2 className="text-lg font-semibold text-ink-800 truncate">
                           {item.itemName}
                         </h2>
-                        <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                        <span className="text-sm text-ink-500 bg-ink-100 px-3 py-1 rounded-full">
                           {item.modelNumber || "N/A"}
                         </span>
                       </div>
                       <div className="grid grid-cols-3 gap-3 mt-3">
-                        <div className="bg-blue-50 p-3 rounded-lg">
-                          <p className="text-xs text-gray-500">Ordered</p>
-                          <p className="text-lg font-semibold text-blue-700">
+                        <div className="bg-brand-50 p-3 rounded-lg">
+                          <p className="text-xs text-ink-500">Ordered</p>
+                          <p className="text-lg font-semibold text-ink-950">
                             {orderedQty}
                           </p>
                         </div>
                         <div className="bg-green-50 p-3 rounded-lg">
-                          <p className="text-xs text-gray-500">Received</p>
+                          <p className="text-xs text-ink-500">Received</p>
                           <p className="text-lg font-semibold text-green-700">
                             {alreadyReceived}
                           </p>
                         </div>
-                        <div className="bg-yellow-50 p-3 rounded-lg">
-                          <p className="text-xs text-gray-500">Remaining</p>
-                          <p className="text-lg font-semibold text-yellow-700">
+                        <div className="bg-brand-50 p-3 rounded-lg">
+                          <p className="text-xs text-ink-500">Remaining</p>
+                          <p className="text-lg font-semibold text-brand-700">
                             {remainingQty}
                           </p>
                         </div>
@@ -400,7 +400,7 @@ const ReceivedPurchaseStock = () => {
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-ink-700 mb-1">
                             Received Qty *
                           </label>
                           <input
@@ -408,20 +408,20 @@ const ReceivedPurchaseStock = () => {
                             min="1"
                             max={remainingQty}
                             step="1"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                            className="w-full p-3 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition"
                             value={itemInputs[index]?.receivedQty || ""}
                             onChange={(e) =>
                               handleInputChange(index, "receivedQty", e.target.value)
                             }
                             placeholder="Enter quantity"
                           />
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-ink-500 mt-1">
                             Max: {remainingQty}
                           </p>
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-ink-700 mb-1">
                             Good Qty
                           </label>
                           <input
@@ -429,7 +429,7 @@ const ReceivedPurchaseStock = () => {
                             min="0"
                             max={itemInputs[index]?.receivedQty || remainingQty}
                             step="1"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                            className="w-full p-3 border border-ink-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                             value={itemInputs[index]?.goodQty || ""}
                             onChange={(e) =>
                               handleInputChange(index, "goodQty", e.target.value)
@@ -439,7 +439,7 @@ const ReceivedPurchaseStock = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-ink-700 mb-1">
                             Damaged Qty
                           </label>
                           <input
@@ -447,7 +447,7 @@ const ReceivedPurchaseStock = () => {
                             min="0"
                             max={itemInputs[index]?.receivedQty || remainingQty}
                             step="1"
-                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
+                            className="w-full p-3 border border-ink-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
                             value={itemInputs[index]?.damagedQty || ""}
                             onChange={(e) =>
                               handleInputChange(index, "damagedQty", e.target.value)
@@ -476,11 +476,11 @@ const ReceivedPurchaseStock = () => {
                       )}
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-ink-700 mb-1">
                           Remarks
                         </label>
                         <textarea
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition resize-none"
+                          className="w-full p-3 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition resize-none"
                           rows="2"
                           value={itemInputs[index]?.remarks || ""}
                           onChange={(e) =>
@@ -496,19 +496,19 @@ const ReceivedPurchaseStock = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 -mx-3 sm:mx-0 sm:rounded-xl sm:border sm:shadow-lg">
+            <div className="sticky bottom-0 bg-white border-t border-ink-200 p-4 -mx-3 sm:mx-0 sm:rounded-xl sm:border sm:shadow-lg">
               <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col sm:flex-row justify-end gap-3">
                   <button
                     onClick={handleCancel}
-                    className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto order-2 sm:order-1"
+                    className="px-6 py-3 border border-ink-300 rounded-lg text-ink-700 hover:bg-ink-50 transition-colors w-full sm:w-auto order-2 sm:order-1"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting || !selectedWarehouse}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors w-full sm:w-auto order-1 sm:order-2"
+                    className="px-6 py-3 bg-ink-950 text-white rounded-lg hover:bg-ink-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors w-full sm:w-auto order-1 sm:order-2"
                   >
                     {isSubmitting ? (
                       <span className="flex items-center justify-center gap-2">
@@ -535,7 +535,7 @@ const ReceivedPurchaseStock = () => {
                     )}
                   </button>
                 </div>
-                <p className="text-sm text-gray-500 text-center mt-3">
+                <p className="text-sm text-ink-500 text-center mt-3">
                   Please verify all quantities and invoice number before submission
                 </p>
               </div>

@@ -34,7 +34,7 @@ export function usePODraft() {
         }
       }
       return draft;
-    } catch (e) {
+    } catch {
       return null;
     }
   }, []);
@@ -43,7 +43,7 @@ export function usePODraft() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     try {
       localStorage.removeItem(DRAFT_KEY);
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, []);

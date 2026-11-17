@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from "react";
 import Api from "../../auth/Api";
+import {
+  AlertTriangle,
+  Building2,
+  CreditCard,
+  Download,
+  FileText,
+  Package,
+  Receipt,
+  RefreshCw,
+  Search,
+  Users,
+  Wallet,
+} from "lucide-react";
 
 const PurchaseDashboard = () => {
   const [dashboardData, setDashboardData] = useState({
@@ -237,10 +250,10 @@ const PurchaseDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="w-12 h-12 border-3 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-base font-medium text-gray-700">Loading dashboard...</p>
+      <div className="flex min-h-[60vh] items-center justify-center p-6">
+        <div className="loading-box">
+          <span className="spinner" />
+          Loading dashboard…
         </div>
       </div>
     );
@@ -248,16 +261,15 @@ const PurchaseDashboard = () => {
 
   if (error) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50 gap-3 p-4">
-        <div className="text-center">
-          <div className="text-red-500 text-4xl mb-3">⚠️</div>
-          <p className="text-red-600 text-base font-medium mb-1">{error}</p>
-          <p className="text-sm text-gray-600 mb-3">Please try again</p>
-          <button
-            onClick={fetchAllData}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2 rounded-md font-medium text-sm"
-          >
-            Retry
+      <div className="page-narrow">
+        <div className="alert-error items-center">
+          <AlertTriangle className="h-5 w-5 shrink-0" />
+          <div className="flex-1">
+            <p className="font-semibold">{error}</p>
+            <p className="text-xs opacity-80">Please try again.</p>
+          </div>
+          <button onClick={fetchAllData} className="btn-outline btn-sm">
+            <RefreshCw className="h-3.5 w-3.5" /> Retry
           </button>
         </div>
       </div>
@@ -267,419 +279,340 @@ const PurchaseDashboard = () => {
   const { poStats, spendStats } = dashboardData;
   const currentPaymentsAmount = getPaymentsAmount(timeRange);
   const totalPaymentsAmount = getPaymentsAmount("total");
+  const rangeLabel = timeRangeLabel[timeRange];
 
-  const topCompanies = [...(paymentsData.companyWise || [])]
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5);
-  const topVendors = [...(paymentsData.vendorWise || [])]
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5);
+  const TABS = [
+    { key: "overview", label: "PO Overview" },
+    { key: "payments", label: "Advance Payments" },
+    { key: "unsettled", label: "Unsettled Advances", count: unsettledPayments.length },
+  ];
+
+  const StatCard = ({ icon: Icon, label, value, title, sub, progress, tone = "bg-brand-400" }) => (
+    <div className="stat-card">
+      <div className="flex items-start justify-between gap-2">
+        <span className="stat-label">{label}</span>
+        {Icon && (
+          <span className="stat-icon">
+            <Icon className="h-4 w-4" />
+          </span>
+        )}
+      </div>
+      <p className="stat-value" title={title}>
+        {value}
+      </p>
+      {sub && <p className="stat-sub">{sub}</p>}
+      {progress != null && (
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink-100">
+          <div
+            className={`h-full rounded-full transition-all duration-300 ${tone}`}
+            style={{ width: `${Math.min(100, progress)}%` }}
+          />
+        </div>
+      )}
+    </div>
+  );
+
+  const BreakdownTable = ({ title, icon: Icon, rows, nameKey }) => (
+    <section className="card flex min-h-0 flex-col">
+      <div className="card-header">
+        <div className="flex items-center gap-3">
+          <span className="step-badge">
+            <Icon className="h-4 w-4" />
+          </span>
+          <div>
+            <h3 className="card-title">{title}</h3>
+            <p className="card-subtitle">{rows.length} entries · {rangeLabel === "Total" ? "financial year" : "all time"}</p>
+          </div>
+        </div>
+      </div>
+      <div className="max-h-[420px] overflow-auto">
+        <table className="table table-compact table-light">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th className="num">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, idx) => (
+              <tr key={idx}>
+                <td className="font-medium">{r[nameKey]}</td>
+                <td className="num font-semibold" title={formatCurrencyFull(r.amount)}>
+                  {formatCurrency(r.amount)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 md:p-5 w-full max-w-screen-2xl mx-auto">
-      {/* Header */}
-      <div className="mb-4 md:mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
+    <div className="page">
+      {/* Tabs + refresh (refresh pinned to the far right) */}
+      <div className="tabs items-center">
+        {TABS.map((t) => (
           <button
-            onClick={fetchAllData}
-            className="flex items-center gap-1 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-md hover:bg-gray-50 transition-colors text-sm"
+            key={t.key}
+            type="button"
+            onClick={() => setActiveTab(t.key)}
+            className={`tab ${activeTab === t.key ? "tab-active" : ""}`}
           >
-            <span className="text-xs">↻</span>
-            Refresh
+            {t.label}
+            {t.count > 0 && <span className="tab-count">{t.count}</span>}
           </button>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-4 overflow-x-auto">
+        ))}
         <button
-          onClick={() => setActiveTab("overview")}
-          className={`px-3 py-2 text-sm font-medium whitespace-nowrap ${activeTab === "overview"
-            ? "border-b-2 border-yellow-500 text-yellow-700"
-            : "text-gray-600 hover:text-gray-900"}`}
+          onClick={fetchAllData}
+          className="btn-outline btn-sm ml-auto mb-1.5 shrink-0"
+          title="Refresh data"
         >
-          PO Overview
-        </button>
-        <button
-          onClick={() => setActiveTab("payments")}
-          className={`px-3 py-2 text-sm font-medium whitespace-nowrap ${activeTab === "payments"
-            ? "border-b-2 border-yellow-500 text-yellow-700"
-            : "text-gray-600 hover:text-gray-900"}`}
-        >
-          Advance Payments Overview
-        </button>
-        <button
-          onClick={() => setActiveTab("unsettled")}
-          className={`px-3 py-2 text-sm font-medium whitespace-nowrap flex items-center gap-1 ${activeTab === "unsettled"
-            ? "border-b-2 border-yellow-500 text-yellow-700"
-            : "text-gray-600 hover:text-gray-900"}`}
-        >
-          ADVANCE PAYMENT - ITEMS UNSETTLED
-          {unsettledPayments.length > 0 && (
-            <span className="ml-1 bg-yellow-100 text-yellow-800 text-xs px-1.5 py-0.5 rounded-full">
-              {unsettledPayments.length}
-            </span>
-          )}
+          <RefreshCw className="h-3.5 w-3.5" /> Refresh
         </button>
       </div>
 
-      {/* Time Range Filter - Only for Overview and Payments tabs */}
+      {/* Time range (overview + payments) */}
       {(activeTab === "overview" || activeTab === "payments") && (
-        <div className="mb-4 md:mb-6">
-          <div className="flex flex-wrap gap-1 md:gap-2">
-            {["today", "weekly", "monthly", "yearly", "total"].map((range) => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-2 md:px-3 py-1.5 rounded text-xs md:text-sm font-medium transition-all ${timeRange === range
-                  ? "bg-yellow-500 text-white shadow-sm"
-                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                  }`}
-              >
-                {timeRangeLabel[range]}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-xs font-semibold uppercase tracking-wider text-ink-500">Period</span>
+          {["today", "weekly", "monthly", "yearly", "total"].map((range) => (
+            <button
+              key={range}
+              type="button"
+              onClick={() => setTimeRange(range)}
+              className={`chip ${timeRange === range ? "chip-active" : ""}`}
+            >
+              {timeRangeLabel[range]}
+            </button>
+          ))}
         </div>
       )}
 
-      {/* Overview Section */}
+      {/* ---------------- Overview ---------------- */}
       {activeTab === "overview" && (
-        <div className="space-y-4 md:space-y-6">
-          {/* Key Metrics - Responsive grid */}
-          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            {/* PO Count Card */}
-            <div className="bg-white rounded-lg p-3 md:p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-2">
-                <div className="text-lg bg-yellow-50 p-1.5 rounded">📊</div>
-                <span className="text-xs font-medium text-gray-500">
-                  {timeRangeLabel[timeRange]}
-                </span>
-              </div>
-              <h3 className="font-medium text-gray-600 text-xs mb-1">Purchase Orders</h3>
-              <div className="mb-2">
-                <p className="text-lg md:text-xl font-bold text-gray-900 truncate" title={formatNumberFull(poStats[timeRange])}>
-                  {formatNumber(poStats[timeRange])}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {calculatePercentage(poStats[timeRange], poStats.total)}% of total
-                </p>
-              </div>
-              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-yellow-500 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min(100, calculatePercentage(poStats[timeRange], poStats.total))}%` }}
-                ></div>
-              </div>
-            </div>
-
-            {/* PO Spend Card */}
-            <div className="bg-white rounded-lg p-3 md:p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-2">
-                <div className="text-lg bg-green-50 p-1.5 rounded">💰</div>
-                <span className="text-xs font-medium text-gray-500">
-                  {timeRangeLabel[timeRange]}
-                </span>
-              </div>
-              <h3 className="font-medium text-gray-600 text-xs mb-1">PO Spend</h3>
-              <div className="mb-2">
-                <p className="text-lg md:text-xl font-bold text-gray-900 truncate" title={formatCurrencyFull(spendStats[timeRange])}>
-                  {formatCurrency(spendStats[timeRange])}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {calculatePercentage(spendStats[timeRange], spendStats.total)}% of total
-                </p>
-              </div>
-              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-green-500 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min(100, calculatePercentage(spendStats[timeRange], spendStats.total))}%` }}
-                ></div>
-              </div>
-            </div>
-
-            {/* Average PO Value Card */}
-            <div className="bg-white rounded-lg p-3 md:p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-2">
-                <div className="text-lg bg-purple-50 p-1.5 rounded">📦</div>
-                <span className="text-xs font-medium text-gray-500">Average</span>
-              </div>
-              <h3 className="font-medium text-gray-600 text-xs mb-1">Avg. PO Value</h3>
-              <div className="mb-2">
-                <p className="text-lg md:text-xl font-bold text-gray-900 truncate">
-                  {formatCurrency(
-                    poStats[timeRange] > 0
-                      ? spendStats[timeRange] / poStats[timeRange]
-                      : 0
-                  )}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Based on {timeRangeLabel[timeRange].toLowerCase()}
-                </p>
-              </div>
-              <div className="flex justify-between text-xs text-gray-600">
-                <span>Orders: {formatNumber(poStats[timeRange])}</span>
-                <span>Spend: {formatCurrency(spendStats[timeRange])}</span>
-              </div>
-            </div>
-
-            {/* Payments Made Card */}
-            <div className="bg-white rounded-lg p-3 md:p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-2">
-              
-                <span className="text-xs font-medium text-gray-500">
-                  {timeRangeLabel[timeRange]}
-                </span>
-              </div>
-              <h3 className="font-medium text-gray-600 text-xs mb-1">Payments Made</h3>
-              <div className="mb-2">
-                <p className="text-lg md:text-xl font-bold text-gray-900 truncate" title={formatCurrencyFull(currentPaymentsAmount)}>
-                  {formatCurrency(currentPaymentsAmount)}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {calculatePercentage(currentPaymentsAmount, totalPaymentsAmount)}% of total
-                </p>
-              </div>
-              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min(100, calculatePercentage(currentPaymentsAmount, totalPaymentsAmount))}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            icon={FileText}
+            label="Purchase Orders"
+            value={formatNumber(poStats[timeRange])}
+            title={formatNumberFull(poStats[timeRange])}
+            sub={`${calculatePercentage(poStats[timeRange], poStats.total)}% of total · ${rangeLabel}`}
+            progress={calculatePercentage(poStats[timeRange], poStats.total)}
+          />
+          <StatCard
+            icon={Wallet}
+            label="PO Spend"
+            value={formatCurrency(spendStats[timeRange])}
+            title={formatCurrencyFull(spendStats[timeRange])}
+            sub={`${calculatePercentage(spendStats[timeRange], spendStats.total)}% of total · ${rangeLabel}`}
+            progress={calculatePercentage(spendStats[timeRange], spendStats.total)}
+            tone="bg-green-500"
+          />
+          <StatCard
+            icon={Package}
+            label="Avg. PO Value"
+            value={formatCurrency(poStats[timeRange] > 0 ? spendStats[timeRange] / poStats[timeRange] : 0)}
+            sub={`${formatNumber(poStats[timeRange])} orders · ${formatCurrency(spendStats[timeRange])} spend`}
+          />
+          <StatCard
+            icon={CreditCard}
+            label="Payments Made"
+            value={formatCurrency(currentPaymentsAmount)}
+            title={formatCurrencyFull(currentPaymentsAmount)}
+            sub={`${calculatePercentage(currentPaymentsAmount, totalPaymentsAmount)}% of total · ${rangeLabel}`}
+            progress={calculatePercentage(currentPaymentsAmount, totalPaymentsAmount)}
+            tone="bg-ink-950"
+          />
         </div>
       )}
 
-      {/* Payments Analytics Section */}
+      {/* ---------------- Advance payments ---------------- */}
       {activeTab === "payments" && (
-        <div className="space-y-4 md:space-y-6">
-          {/* Payment Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+        <>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
             {[
               { key: "today", label: "Today" },
               { key: "week", label: "This Week" },
               { key: "month", label: "This Month" },
               { key: "year", label: "This Year" },
-              { key: "totalFinancialYear", label: "Total" }
+              { key: "totalFinancialYear", label: "Total" },
             ].map((item) => {
-              const amount = paymentsData[item.key] || "0";
-              const numAmount = parseFloat(amount);
+              const numAmount = parseFloat(paymentsData[item.key] || "0");
+              const total = parseFloat(paymentsData.totalFinancialYear || "0");
               return (
-                <div key={item.key} className="bg-white rounded-lg p-3 md:p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="text-lg bg-blue-50 p-1.5 rounded">💵</div>
-                    <span className="text-xs font-medium text-gray-500">{item.label}</span>
-                  </div>
-                  <h3 className="font-medium text-gray-600 text-xs mb-1">Payments</h3>
-                  <p className="text-base md:text-lg font-bold text-gray-900 break-words" title={formatCurrencyFull(numAmount)}>
-                    {formatCurrency(numAmount)}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {calculatePercentage(numAmount, parseFloat(paymentsData.totalFinancialYear || "0"))}% of total
-                  </p>
-                </div>
+                <StatCard
+                  key={item.key}
+                  icon={CreditCard}
+                  label={item.label}
+                  value={formatCurrency(numAmount)}
+                  title={formatCurrencyFull(numAmount)}
+                  sub={`${calculatePercentage(numAmount, total)}% of total`}
+                  progress={calculatePercentage(numAmount, total)}
+                />
               );
             })}
           </div>
 
-          {/* Complete Company List */}
-          {paymentsData.companyWise && paymentsData.companyWise.length > 0 && (
-            <div className="bg-white rounded-lg p-3 md:p-4 shadow-sm border border-gray-200">
-              <details className="group">
-                <summary className="flex justify-between items-center cursor-pointer list-none">
-                  <h3 className="text-base md:text-lg font-bold text-gray-900">📋 Complete Company-wise Payment Details</h3>
-                  <span className="text-gray-500 group-open:rotate-180 transition-transform">▼</span>
-                </summary>
-                <div className="mt-3 overflow-x-auto">
-                  <table className="min-w-full text-xs md:text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="py-2 px-2 text-left text-gray-700 font-medium">Company Name</th>
-                        <th className="py-2 px-2 text-right text-gray-700 font-medium">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paymentsData.companyWise.map((company, idx) => (
-                        <tr key={`full-company-${idx}`} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-2 px-2">{company.companyName}</td>
-                          <td className="py-2 px-2 text-right font-bold whitespace-nowrap">{formatCurrency(company.amount)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </details>
+          {(paymentsData.companyWise?.length > 0 || paymentsData.vendorWise?.length > 0) && (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {paymentsData.companyWise?.length > 0 && (
+                <BreakdownTable
+                  title="Company-wise Payments"
+                  icon={Building2}
+                  rows={paymentsData.companyWise}
+                  nameKey="companyName"
+                />
+              )}
+              {paymentsData.vendorWise?.length > 0 && (
+                <BreakdownTable
+                  title="Vendor-wise Payments"
+                  icon={Users}
+                  rows={paymentsData.vendorWise}
+                  nameKey="vendorName"
+                />
+              )}
             </div>
           )}
-
-          {/* Complete Vendor List */}
-          {paymentsData.vendorWise && paymentsData.vendorWise.length > 0 && (
-            <div className="bg-white rounded-lg p-3 md:p-4 shadow-sm border border-gray-200">
-              <details className="group">
-                <summary className="flex justify-between items-center cursor-pointer list-none">
-                  <h3 className="text-base md:text-lg font-bold text-gray-900">📋 Complete Vendor-wise Payment Details</h3>
-                  <span className="text-gray-500 group-open:rotate-180 transition-transform">▼</span>
-                </summary>
-                <div className="mt-3 overflow-x-auto">
-                  <table className="min-w-full text-xs md:text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="py-2 px-2 text-left text-gray-700 font-medium">Vendor Name</th>
-                        <th className="py-2 px-2 text-right text-gray-700 font-medium">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paymentsData.vendorWise.map((vendor, idx) => (
-                        <tr key={`full-vendor-${idx}`} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="py-2 px-2">{vendor.vendorName}</td>
-                          <td className="py-2 px-2 text-right font-bold whitespace-nowrap">{formatCurrency(vendor.amount)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </details>
-            </div>
-          )}
-        </div>
+        </>
       )}
+
+      {/* ---------------- Unsettled advances ---------------- */}
       {activeTab === "unsettled" && (
-        <div className="space-y-4 md:space-y-6">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 ">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Total Unsettled Amount</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrencyFull(totalUnsettledAmount)}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 ">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Total Transactions</p>
-                  <p className="text-2xl font-bold text-gray-900">{filteredUnsettledPayments.length}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 ">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Unique Vendors</p>
-                  <p className="text-2xl font-bold text-gray-900">{uniqueUnsettledVendorsCount}</p>
-                </div>
-              </div>
-            </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <StatCard
+              icon={Receipt}
+              label="Unsettled Amount"
+              value={formatCurrencyFull(totalUnsettledAmount)}
+              sub="Advances not yet adjusted against invoices"
+            />
+            <StatCard icon={FileText} label="Transactions" value={filteredUnsettledPayments.length} />
+            <StatCard icon={Users} label="Vendors" value={uniqueUnsettledVendorsCount} />
           </div>
 
           {/* Filters */}
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+          <section className="card">
+            <div className="card-body grid gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto_auto_auto] md:items-end">
+              <div>
+                <label className="label">Search</label>
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+                  <input
+                    type="text"
+                    placeholder="PO number or vendor"
+                    value={unsettledSearchTerm}
+                    onChange={(e) => setUnsettledSearchTerm(e.target.value)}
+                    className="input pl-9"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="label">Vendor</label>
+                <select
+                  value={selectedUnsettledVendor}
+                  onChange={(e) => setSelectedUnsettledVendor(e.target.value)}
+                  className="input"
+                >
+                  <option value="">All vendors</option>
+                  {uniqueUnsettledVendors.map((vendor) => (
+                    <option key={vendor.id} value={vendor.id}>
+                      {vendor.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label">From</label>
                 <input
-                  type="text"
-                  placeholder="Search by PO/Vendor..."
-                  value={unsettledSearchTerm}
-                  onChange={(e) => setUnsettledSearchTerm(e.target.value)}
-                  className="border rounded-md px-3 py-2 pl-9 w-full text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  type="date"
+                  value={unsettledDateFrom}
+                  onChange={(e) => setUnsettledDateFrom(e.target.value)}
+                  className="input"
                 />
               </div>
-              
-              <select
-                value={selectedUnsettledVendor}
-                onChange={(e) => setSelectedUnsettledVendor(e.target.value)}
-                className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              >
-                <option value="">All Vendors</option>
-                {uniqueUnsettledVendors.map(vendor => (
-                  <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
-                ))}
-              </select>
-              
-              <input
-                type="date"
-                value={unsettledDateFrom}
-                onChange={(e) => setUnsettledDateFrom(e.target.value)}
-                className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              />
-              
-              <input
-                type="date"
-                value={unsettledDateTo}
-                onChange={(e) => setUnsettledDateTo(e.target.value)}
-                className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              />
-            </div>
-            
-            <div className="mt-3 flex justify-end">
+              <div>
+                <label className="label">To</label>
+                <input
+                  type="date"
+                  value={unsettledDateTo}
+                  onChange={(e) => setUnsettledDateTo(e.target.value)}
+                  className="input"
+                />
+              </div>
               <button
                 onClick={exportUnsettledPaymentsToCSV}
-                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm flex items-center gap-2 hover:bg-green-700 transition-colors"
+                disabled={filteredUnsettledPayments.length === 0}
+                className="btn-dark"
               >
-                📥 Export to CSV
+                <Download className="h-4 w-4" /> Export CSV
               </button>
             </div>
-          </div>
+          </section>
 
-          {/* Unsettled Payments Table */}
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              {loadingUnsettled ? (
-                <div className="flex justify-center items-center py-10">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
-                  <span className="ml-3 text-gray-600">Loading unsettled payments...</span>
-                </div>
-              ) : (
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+          {/* Table */}
+          <section className="card overflow-hidden">
+            <div className="card-header">
+              <div>
+                <h3 className="card-title">Unsettled Advance Payments</h3>
+                <p className="card-subtitle">
+                  Showing {filteredUnsettledPayments.length} of {unsettledPayments.length}
+                </p>
+              </div>
+            </div>
+            {loadingUnsettled ? (
+              <div className="flex items-center justify-center gap-3 py-12 text-sm text-ink-500">
+                <span className="spinner" /> Loading unsettled payments…
+              </div>
+            ) : filteredUnsettledPayments.length === 0 ? (
+              <div className="empty-state">
+                <span className="empty-state-icon">
+                  <Receipt className="h-6 w-6" />
+                </span>
+                <p className="font-semibold text-ink-800">No unsettled advance payments</p>
+                <p className="text-xs">Try clearing the filters above.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Advance Amount</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Date</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Date</th>
+                      <th>PO Number</th>
+                      <th>Vendor</th>
+                      <th className="num">Advance Amount</th>
+                      <th>PO Date</th>
+                      <th>Payment Date</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredUnsettledPayments.length > 0 ? (
-                      filteredUnsettledPayments.map((payment) => (
-                        <tr key={payment.paymentId} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{payment.poNumber}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{payment.vendorName}</td>
-                          <td className="px-4 py-3 text-sm text-right font-semibold text-green-600">
-                            {formatCurrencyFull(payment.advanceAmount)}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-500">{formatDateTime(payment.poDate)}</td>
-                          <td className="px-4 py-3 text-sm text-gray-500">{formatDateTime(payment.paymentDate)}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
-                          No unsettled advance payments found
+                  <tbody>
+                    {filteredUnsettledPayments.map((payment) => (
+                      <tr key={payment.paymentId}>
+                        <td className="font-semibold">{payment.poNumber}</td>
+                        <td>{payment.vendorName}</td>
+                        <td className="num font-semibold text-green-700">
+                          {formatCurrencyFull(payment.advanceAmount)}
                         </td>
+                        <td className="whitespace-nowrap text-ink-600">{formatDateTime(payment.poDate)}</td>
+                        <td className="whitespace-nowrap text-ink-600">{formatDateTime(payment.paymentDate)}</td>
                       </tr>
-                    )}
+                    ))}
                   </tbody>
-                  {/* {filteredUnsettledPayments.length > 0 && (
-                    <tfoot className="bg-gray-50">
-                      <tr>
-                        <td colSpan="2" className="px-4 py-3 text-sm font-semibold text-gray-900">Total</td>
-                        <td className="px-4 py-3 text-sm font-semibold text-right text-green-600">
-                          {formatCurrencyFull(totalUnsettledAmount)}
-                        </td>
-                        <td colSpan="2"></td>
-                      </tr>
-                    </tfoot>
-                  )} */}
+                  <tfoot>
+                    <tr className="bg-ink-50">
+                      <td colSpan="2" className="border-t border-ink-200 px-4 py-3 text-sm font-semibold">
+                        Total
+                      </td>
+                      <td className="num border-t border-ink-200 px-4 py-3 text-sm font-bold text-green-700">
+                        {formatCurrencyFull(totalUnsettledAmount)}
+                      </td>
+                      <td colSpan="2" className="border-t border-ink-200" />
+                    </tr>
+                  </tfoot>
                 </table>
-              )}
-            </div>
-          </div>
-        </div>
+              </div>
+            )}
+          </section>
+        </>
       )}
     </div>
   );

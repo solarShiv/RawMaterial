@@ -52,15 +52,15 @@ const UpdateCompany = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-12 w-12 border-b-2 border-blue-600 rounded-full" />
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="animate-spin h-12 w-12 border-b-2 border-brand-500 rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 md:p-6">
-      <div className="bg-white rounded-xl shadow-lg p-6">
+    <div className="min-h-[60vh] bg-ink-100 p-4 md:p-6">
+      <div className="bg-white rounded-xl shadow-card p-6">
 
         {/* COMPANY SELECT */}
         <div className="mb-6 max-w-md">
@@ -81,13 +81,13 @@ const UpdateCompany = () => {
 
         {detailsLoading && (
           <div className="py-6 text-center">
-            <div className="animate-spin h-8 w-8 border-b-2 border-blue-600 rounded-full mx-auto" />
+            <div className="animate-spin h-8 w-8 border-b-2 border-brand-500 rounded-full mx-auto" />
           </div>
         )}
 
         {/* FORM */}
         {companyDetails && (
-          <div className="bg-gray-50 p-6 rounded-lg border">
+          <div className="bg-ink-50 p-6 rounded-lg border">
 
             {/* GRID → 3 PER ROW */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -117,7 +117,7 @@ const UpdateCompany = () => {
                     className={`w-full px-3 py-2 border rounded-lg ${
                       isEditable
                         ? "bg-white"
-                        : "bg-gray-100 text-gray-600"
+                        : "bg-ink-100 text-ink-600"
                     }`}
                   />
                 </div>
@@ -134,7 +134,7 @@ const UpdateCompany = () => {
                 disabled={!isEditable}
                 rows="3"
                 className={`w-full px-3 py-2 border rounded-lg ${
-                  isEditable ? "bg-white" : "bg-gray-100 text-gray-600"
+                  isEditable ? "bg-white" : "bg-ink-100 text-ink-600"
                 }`}
               />
             </div>
@@ -144,7 +144,7 @@ const UpdateCompany = () => {
               {!isEditable ? (
                 <button
                   onClick={() => setIsEditable(true)}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg"
+                  className="px-6 py-2 bg-ink-950 text-white rounded-lg"
                 >
                   Edit
                 </button>
@@ -158,7 +158,7 @@ const UpdateCompany = () => {
                   </button>
                   <button
                     onClick={() => setIsEditable(false)}
-                    className="px-6 py-2 bg-gray-600 text-white rounded-lg"
+                    className="px-6 py-2 bg-ink-600 text-white rounded-lg"
                   >
                     Cancel
                   </button>

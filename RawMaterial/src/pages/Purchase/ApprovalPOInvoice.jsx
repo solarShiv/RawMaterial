@@ -290,7 +290,7 @@ const ApprovalPOInvoice = () => {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-blue-500 border-t-transparent mb-2"></div>
+          <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-brand-500 border-t-transparent mb-2"></div>
           <p>Loading approval data...</p>
         </div>
       </div>
@@ -301,10 +301,10 @@ const ApprovalPOInvoice = () => {
     <div className="p-4">
       {/* Bulk Actions Bar */}
       {selectedPOs.size > 0 && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mb-6 p-4 bg-brand-50 border border-brand-300 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <span className="text-blue-700 font-semibold">
+              <span className="text-ink-950 font-semibold">
                 {selectedPOs.size} PO(s) selected
               </span>
             </div>
@@ -312,7 +312,7 @@ const ApprovalPOInvoice = () => {
               <button
                 onClick={() => handleBulkApprovalAction("APPROVED")}
                 disabled={bulkActionLoading}
-                className="px-4 py-2 btn-approve text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                className="px-4 py-2 btn-approve text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
               >
                 {bulkActionLoading ? (
                   <>
@@ -361,7 +361,7 @@ const ApprovalPOInvoice = () => {
               <button
                 onClick={() => handleBulkApprovalAction("REJECTED")}
                 disabled={bulkActionLoading}
-                className="px-4 py-2 btn-decline text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                className="px-4 py-2 btn-decline text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
               >
                 <svg
                   className="w-4 h-4 mr-2"
@@ -381,7 +381,7 @@ const ApprovalPOInvoice = () => {
               </button>
               <button
                 onClick={() => setSelectedPOs(new Set())}
-                className="px-4 py-2 bg-gray-500 text-white text-sm font-medium rounded-md hover:bg-gray-600 transition-colors"
+                className="px-4 py-2 bg-ink-500 text-white text-sm font-medium rounded-lg hover:bg-ink-600 transition-colors"
               >
                 Clear Selection
               </button>
@@ -394,7 +394,7 @@ const ApprovalPOInvoice = () => {
         <div className="flex space-x-3">
           <button
             onClick={fetchApprovalData}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
+            className="px-4 py-2 bg-ink-950 text-white rounded-lg hover:bg-ink-800 transition-colors flex items-center"
           >
             <svg
               className="w-4 h-4 mr-2"
@@ -417,21 +417,21 @@ const ApprovalPOInvoice = () => {
 
       {approvalData.length === 0 ? (
         <div className="text-center p-8 bg-white rounded-lg shadow">
-          <div className="text-gray-400 text-6xl mb-4">📋</div>
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">
+          <div className="text-ink-400 text-6xl mb-4">📋</div>
+          <h3 className="text-lg font-semibold text-ink-600 mb-2">
             No Pending Approvals
           </h3>
-          <p className="text-gray-500">
+          <p className="text-ink-500">
             All purchase orders have been processed.
           </p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-ink-200">
+              <thead className="bg-ink-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider w-12">
                     <input
                       type="checkbox"
                       checked={
@@ -439,30 +439,30 @@ const ApprovalPOInvoice = () => {
                         approvalData.length > 0
                       }
                       onChange={handleSelectAll}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-ink-300 text-brand-700 focus:ring-brand-400/40"
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     PO Details
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Vendor
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-ink-200">
                 {approvalData.map((po) => {
                   const isSelected = isRowSelected(po.poId);
                   return (
@@ -470,8 +470,8 @@ const ApprovalPOInvoice = () => {
                       key={po.poId}
                       className={`transition-colors ${
                         isSelected
-                          ? "bg-blue-50 hover:bg-blue-100"
-                          : "hover:bg-gray-50"
+                          ? "bg-brand-50 hover:bg-brand-100"
+                          : "hover:bg-ink-50"
                       }`}
                     >
                       <td className="px-6 py-4">
@@ -479,21 +479,21 @@ const ApprovalPOInvoice = () => {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleSelectPO(po.poId)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="rounded border-ink-300 text-brand-700 focus:ring-brand-400/40"
                         />
                       </td>
                       <td className="px-6 py-4">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-ink-900">
                             {po.poNumber}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-ink-500">
                             {po.companyName}
                           </div>
                           <div className="flex flex-wrap gap-3 mt-1">
                             <button
                               onClick={() => openItemModal(po.items, po.poNumber)}
-                              className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
+                              className="text-xs text-brand-700 hover:text-ink-950 flex items-center"
                             >
                               <svg
                                 className="w-4 h-4 mr-1"
@@ -565,12 +565,12 @@ const ApprovalPOInvoice = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-sm text-ink-900">
                           {po.vendorName}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm font-semibold text-gray-900">
+                        <div className="text-sm font-semibold text-ink-900">
                           {po.currency}{" "}
                           {parseFloat(po.grandTotal).toLocaleString(undefined, {
                             minimumFractionDigits: 2,
@@ -582,7 +582,7 @@ const ApprovalPOInvoice = () => {
                         <span
                           className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                             po.approvalStatus === "Pending"
-                              ? "bg-yellow-100 text-yellow-800"
+                              ? "bg-brand-100 text-brand-700"
                               : po.approvalStatus === "APPROVED"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-red-100 text-red-800"
@@ -591,7 +591,7 @@ const ApprovalPOInvoice = () => {
                           {po.approvalStatus}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-6 py-4 text-sm text-ink-500">
                         {new Date(po.poDate).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "short",
@@ -600,7 +600,7 @@ const ApprovalPOInvoice = () => {
                       </td>
                       <td className="px-6 py-4">
                         {isSelected ? (
-                          <div className="text-sm text-gray-500 italic">
+                          <div className="text-sm text-ink-500 italic">
                             Use bulk actions above
                           </div>
                         ) : (
@@ -612,7 +612,7 @@ const ApprovalPOInvoice = () => {
                               disabled={
                                 actionLoading[po.poId] || selectedPOs.size > 0
                               }
-                              className="px-4 py-2 btn-approve text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                              className="px-4 py-2 btn-approve text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                             >
                               {actionLoading[po.poId] ? (
                                 <svg
@@ -662,7 +662,7 @@ const ApprovalPOInvoice = () => {
                               disabled={
                                 actionLoading[po.poId] || selectedPOs.size > 0
                               }
-                              className="px-4 py-2 btn-decline text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                              className="px-4 py-2 btn-decline text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                             >
                               <svg
                                 className="w-4 h-4 mr-2"
@@ -694,15 +694,15 @@ const ApprovalPOInvoice = () => {
 
       {/* Item View Modal */}
       {viewItemModal.isOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-3/4 md:w-1/2 shadow-lg rounded-lg bg-white">
+        <div className="fixed inset-0 bg-ink-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-3/4 md:w-1/2 shadow-card rounded-lg bg-white">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
+              <h3 className="text-lg font-semibold text-ink-800">
                 Items in PO: {viewItemModal.poNumber}
               </h3>
               <button
                 onClick={closeItemModal}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-ink-400 hover:text-ink-600"
               >
                 <svg
                   className="w-6 h-6"
@@ -722,30 +722,30 @@ const ApprovalPOInvoice = () => {
             </div>
 
             <div className="overflow-y-auto max-h-96">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-ink-200">
+                <thead className="bg-ink-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                       Item Name
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                       Quantity
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                       Unit
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-ink-200">
                   {viewItemModal.items.map((item, index) => (
-                    <tr key={item.id || index} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900">
+                    <tr key={item.id || index} className="hover:bg-ink-50">
+                      <td className="px-4 py-3 text-sm text-ink-900">
                         {item.itemName}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-3 text-sm text-ink-700">
                         {item.quantity}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-3 text-sm text-ink-700">
                         {item.unit}
                       </td>
                     </tr>
@@ -754,10 +754,10 @@ const ApprovalPOInvoice = () => {
               </table>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end">
+            <div className="mt-4 pt-4 border-t border-ink-200 flex justify-end">
               <button
                 onClick={closeItemModal}
-                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                className="px-4 py-2 bg-ink-500 text-white rounded-lg hover:bg-ink-600 transition-colors"
               >
                 Close
               </button>

@@ -140,7 +140,7 @@ const PoPaymentDetails = () => {
   const STATUS_STYLES = {
     completed: "badge-green",
     rejected: "badge-red",
-    progress: "badge bg-blue-50 text-blue-700",
+    progress: "badge bg-brand-50 text-ink-950",
     pending: "badge-yellow",
   };
 
@@ -175,7 +175,7 @@ const PoPaymentDetails = () => {
   const stats = [
     { label: "Total Requests", value: data.length, icon: FileText, tone: "bg-ink-100 text-ink-700", key: "all" },
     { label: "Pending", value: counts.pending, icon: Clock, tone: "bg-brand-100 text-brand-700", key: "pending" },
-    { label: "In Progress", value: counts.progress, icon: Loader2, tone: "bg-blue-50 text-blue-600", key: "progress" },
+    { label: "In Progress", value: counts.progress, icon: Loader2, tone: "bg-brand-50 text-brand-700", key: "progress" },
     { label: "Completed", value: counts.completed, icon: CheckCircle2, tone: "bg-green-50 text-green-600", key: "completed" },
     { label: "Rejected", value: counts.rejected, icon: XCircle, tone: "bg-red-50 text-red-600", key: "rejected" },
   ];

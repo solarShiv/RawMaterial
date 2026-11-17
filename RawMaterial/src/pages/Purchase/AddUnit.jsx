@@ -42,7 +42,7 @@ const AddUnit = () => {
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="name" className="block text-sm font-medium text-ink-700 mb-1">
             Unit Name *
           </label>
           <input
@@ -50,20 +50,20 @@ const AddUnit = () => {
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-ink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400/40"
             placeholder="Enter unit name"
             disabled={loading}
           />
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 text-red-700 rounded-md">
+          <div className="p-3 bg-red-50 text-red-700 rounded-lg">
             {error}
           </div>
         )}
 
         {message && (
-          <div className="p-3 bg-green-50 text-green-700 rounded-md">
+          <div className="p-3 bg-green-50 text-green-700 rounded-lg">
             {message}
           </div>
         )}
@@ -71,10 +71,10 @@ const AddUnit = () => {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-2 px-4 rounded-md font-medium ${
+          className={`w-full py-2 px-4 rounded-lg font-medium ${
             loading
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-yellow-400 hover:bg-yellow-500 text-dark'
+              ? 'bg-ink-400 cursor-not-allowed'
+              : 'bg-brand-400 hover:bg-brand-500 text-dark'
           }`}
         >
           {loading ? 'Adding...' : 'Add Unit'}

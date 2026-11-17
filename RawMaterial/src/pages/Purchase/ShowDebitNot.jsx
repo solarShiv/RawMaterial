@@ -9,7 +9,6 @@ const ShowDebitNot = () => {
 
   const [selectedCompany, setSelectedCompany] = useState("");
   const [selectedPO, setSelectedPO] = useState("");
-  const [selectedVendor, setSelectedVendor] = useState("");
   const [selectedDebitNote, setSelectedDebitNote] = useState("");
 
   const [debitNoteDetails, setDebitNoteDetails] = useState(null);
@@ -102,7 +101,7 @@ const ShowDebitNot = () => {
           {purchaseOrders.map(po => <option key={po.id} value={po.id}>{po.poNumber}</option>)}
         </select>
 
-        <select onChange={e => setSelectedVendor(e.target.value)} className="border p-2 rounded">
+        <select className="border p-2 rounded">
           <option value="">Vendor</option>
           {vendors.map(v => <option key={v.id} value={v.id}>{v.displayName}</option>)}
         </select>
@@ -117,7 +116,7 @@ const ShowDebitNot = () => {
       <button
         onClick={handleDownloadDebitNote}
         disabled={!selectedDebitNote}
-        className="bg-blue-600 text-white px-6 py-2 rounded"
+        className="bg-ink-950 text-white px-6 py-2 rounded"
       >
         {loading ? "Downloading..." : "Download Debit Note"}
       </button>
@@ -142,8 +141,8 @@ const ShowDebitNot = () => {
               "Station": debitNoteDetails.station
             }).map(([label, value]) => (
               <div key={label}>
-                <label className="text-sm text-gray-500">{label}</label>
-                <input value={value || ""} readOnly className="w-full border p-2 rounded bg-gray-100" />
+                <label className="text-sm text-ink-500">{label}</label>
+                <input value={value || ""} readOnly className="w-full border p-2 rounded bg-ink-100" />
               </div>
             ))}
           </div>
@@ -152,7 +151,7 @@ const ShowDebitNot = () => {
           <h3 className="text-lg font-semibold mt-6">Damaged Stock</h3>
           <div className="overflow-x-auto">
             <table className="w-full border mt-2">
-              <thead className="bg-gray-100">
+              <thead className="bg-ink-100">
                 <tr>
                   <th className="border p-2">Item</th>
                   <th className="border p-2">Model</th>

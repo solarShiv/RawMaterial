@@ -437,7 +437,7 @@ const SingleOut = () => {
   const renderSelectedBadges = () => {
     if (selectedItems.length === 0) {
       return (
-        <div className="text-gray-500 italic text-sm">
+        <div className="text-ink-500 italic text-sm">
           No items selected
         </div>
       );
@@ -448,16 +448,16 @@ const SingleOut = () => {
         {selectedItems.map((item) => (
           <div
             key={item.id}
-            className="flex items-center bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full text-sm"
+            className="flex items-center bg-brand-100 text-ink-950 px-3 py-1.5 rounded-full text-sm"
           >
             <span className="mr-2">{item.name}</span>
-            <span className="bg-blue-200 px-2 py-0.5 rounded text-xs">
+            <span className="bg-brand-100 px-2 py-0.5 rounded text-xs">
               {itemQuantities[item.id] || 0} {item.unit}
             </span>
             <button
               type="button"
               onClick={() => handleRemoveItem(item.id)}
-              className="ml-2 text-blue-600 hover:text-blue-800"
+              className="ml-2 text-brand-700 hover:text-ink-950"
             >
               ×
             </button>
@@ -468,39 +468,39 @@ const SingleOut = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 bg-white rounded-lg shadow-lg">
+    <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 bg-white rounded-lg shadow-card">
 
       {loading ? (
         <div className="text-center py-8">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-          <p className="mt-2 text-gray-600">Loading items...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand-500"></div>
+          <p className="mt-2 text-ink-600">Loading items...</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
           {/* MULTI-SELECT DROPDOWN SECTION */}
           <div className="mb-6">
-            <label className="block mb-2 font-medium text-gray-700">
+            <label className="block mb-2 font-medium text-ink-700">
               Select Items <span className="text-red-500">*</span>
             </label>
             
             <div className="relative" ref={dropdownRef}>
               {/* DROPDOWN TRIGGER */}
               <div
-                className="border border-gray-300 rounded-lg px-3 py-2.5 cursor-pointer bg-white flex justify-between items-center hover:border-blue-500 transition"
+                className="border border-ink-300 rounded-lg px-3 py-2.5 cursor-pointer bg-white flex justify-between items-center hover:border-brand-500 transition"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
                 <div className="flex-1">
                   {selectedItems.length > 0 ? (
-                    <span className="text-gray-700">
+                    <span className="text-ink-700">
                       {selectedItems.length} item(s) selected
                     </span>
                   ) : (
-                    <span className="text-gray-500">Click to select items...</span>
+                    <span className="text-ink-500">Click to select items...</span>
                   )}
                 </div>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`h-5 w-5 text-gray-400 transform transition ${dropdownOpen ? 'rotate-180' : ''}`}
+                  className={`h-5 w-5 text-ink-400 transform transition ${dropdownOpen ? 'rotate-180' : ''}`}
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -514,21 +514,21 @@ const SingleOut = () => {
 
               {/* DROPDOWN MENU */}
               {dropdownOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-96 overflow-hidden">
+                <div className="absolute z-50 w-full mt-1 bg-white border border-ink-300 rounded-lg shadow-card max-h-96 overflow-hidden">
                   {/* SEARCH INPUT */}
-                  <div className="p-3 border-b border-gray-200">
+                  <div className="p-3 border-b border-ink-200">
                     <div className="relative">
                       <input
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Search items..."
-                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-ink-300 rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500"
                         onClick={(e) => e.stopPropagation()}
                       />
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 text-gray-400 absolute left-3 top-3"
+                        className="h-4 w-4 text-ink-400 absolute left-3 top-3"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -546,7 +546,7 @@ const SingleOut = () => {
                   {/* ITEMS LIST */}
                   <div className="overflow-y-auto max-h-64">
                     {filteredItems.length === 0 ? (
-                      <div className="p-4 text-center text-gray-500">
+                      <div className="p-4 text-center text-ink-500">
                         No items found
                       </div>
                     ) : (
@@ -557,7 +557,7 @@ const SingleOut = () => {
                         return (
                           <div
                             key={item.id}
-                            className={`px-4 py-3 flex items-center hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                            className={`px-4 py-3 flex items-center hover:bg-ink-50 cursor-pointer border-b border-ink-100 last:border-b-0 ${
                               isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                             onClick={() => !isOutOfStock && handleItemSelection(item)}
@@ -568,17 +568,17 @@ const SingleOut = () => {
                                 checked={isSelected}
                                 onChange={() => {}}
                                 disabled={isOutOfStock}
-                                className="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                                className="h-4 w-4 text-brand-700 rounded focus:ring-brand-400/40"
                               />
                             </div>
                             <div className="ml-3 flex-1">
                               <div className="flex justify-between items-start">
                                 <div>
-                                  <div className="font-medium text-gray-900">
+                                  <div className="font-medium text-ink-900">
                                     {item.name}
                                   </div>
                                   {item.code && (
-                                    <div className="text-xs text-gray-500 mt-0.5">
+                                    <div className="text-xs text-ink-500 mt-0.5">
                                       Code: {item.code}
                                     </div>
                                   )}
@@ -586,7 +586,7 @@ const SingleOut = () => {
                                 <div className="text-right">
                                   <div className={`text-sm font-semibold ${
                                     item.totalStock > 10 ? 'text-green-600' : 
-                                    item.totalStock > 0 ? 'text-yellow-600' : 
+                                    item.totalStock > 0 ? 'text-brand-600' : 
                                     'text-red-600'
                                   }`}>
                                     {item.totalStock.toLocaleString()} {item.unit}
@@ -606,9 +606,9 @@ const SingleOut = () => {
                   </div>
 
                   {/* SELECTED COUNT */}
-                  <div className="px-4 py-2 border-t border-gray-200 bg-gray-50">
+                  <div className="px-4 py-2 border-t border-ink-200 bg-ink-50">
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">
+                      <span className="text-ink-600">
                         {selectedItems.length} item(s) selected
                       </span>
                       <button
@@ -617,7 +617,7 @@ const SingleOut = () => {
                           setSearchTerm("");
                           setDropdownOpen(false);
                         }}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-brand-700 hover:text-ink-950"
                       >
                         Done
                       </button>
@@ -628,7 +628,7 @@ const SingleOut = () => {
             </div>
 
             {/* SELECTED ITEMS DISPLAY */}
-            <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+            <div className="mt-3 p-3 border border-ink-200 rounded-lg bg-ink-50">
               {renderSelectedBadges()}
             </div>
 
@@ -641,7 +641,7 @@ const SingleOut = () => {
           {selectedItems.length > 0 && (
             <div className="mb-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-700">
+                <h3 className="text-lg font-semibold text-ink-700">
                   Set Quantities ({selectedItems.length} items)
                 </h3>
               </div>
@@ -651,17 +651,17 @@ const SingleOut = () => {
                 {selectedItems.map((item) => (
                   <div
                     key={item.id}
-                    className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition"
+                    className="p-4 border border-ink-200 rounded-lg hover:border-brand-400 transition"
                   >
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                       {/* ITEM INFO */}
                       <div className="md:col-span-3">
-                        <div className="font-medium text-gray-900">{item.name}</div>
+                        <div className="font-medium text-ink-900">{item.name}</div>
                         <div className="flex items-center mt-1">
-                          <div className="text-xs text-gray-500 mr-3">
+                          <div className="text-xs text-ink-500 mr-3">
                             Stock: <span className="font-semibold">{item.stock} {item.unit}</span>
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-ink-500">
                             Unit: <span className="font-semibold">{item.unit}</span>
                           </div>
                         </div>
@@ -669,7 +669,7 @@ const SingleOut = () => {
 
                       {/* QUANTITY INPUT (total of containers when the item has container stock) */}
                       <div className="md:col-span-4">
-                        <div className="mb-1 text-xs font-medium text-gray-500">
+                        <div className="mb-1 text-xs font-medium text-ink-500">
                           {hasContainers(item) ? "Total quantity" : "Quantity"}
                         </div>
                         <div className="flex items-center space-x-3">
@@ -682,12 +682,12 @@ const SingleOut = () => {
                               onChange={(e) => handleQuantityChange(item.id, e.target.value)}
                               readOnly={hasContainers(item)}
                               title={hasContainers(item) ? "Sum of the container quantities below" : undefined}
-                              className={`w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
-                                hasContainers(item) ? "bg-gray-50 text-gray-700 cursor-default" : ""
+                              className={`w-full border border-ink-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
+                                hasContainers(item) ? "bg-ink-50 text-ink-700 cursor-default" : ""
                               }`}
                               placeholder={hasContainers(item) ? "From containers" : "Enter quantity"}
                             />
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ink-500 text-sm">
                               {item.unit}
                             </div>
                           </div>
@@ -706,8 +706,8 @@ const SingleOut = () => {
 
                       {/* ISSUE TYPE */}
                       <div className="md:col-span-3">
-                        <div className="mb-1 text-xs font-medium text-gray-500">Issue type</div>
-                        <div className="flex rounded-lg overflow-hidden border border-gray-300 text-sm">
+                        <div className="mb-1 text-xs font-medium text-ink-500">Issue type</div>
+                        <div className="flex rounded-lg overflow-hidden border border-ink-300 text-sm">
                           {ISSUE_TYPES.map((type) => (
                             <button
                               key={type}
@@ -716,9 +716,9 @@ const SingleOut = () => {
                               className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 font-medium transition-colors ${
                                 itemIssueTypes[item.id] === type
                                   ? type === "RETURNABLE"
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-gray-700 text-white"
-                                  : "bg-white text-gray-600 hover:bg-gray-100"
+                                    ? "bg-ink-950 text-white"
+                                    : "bg-ink-700 text-white"
+                                  : "bg-white text-ink-600 hover:bg-ink-100"
                               }`}
                             >
                               {type === "RETURNABLE" ? (
@@ -741,7 +741,7 @@ const SingleOut = () => {
                       {/* ACTIONS */}
                       <div className="md:col-span-2 flex justify-end">
                         <div className="flex items-center space-x-3">
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-ink-600">
                             <span className="font-semibold text-green-600">
                               {parseFloat(itemQuantities[item.id]) || 0}
                             </span> / {getAvailableQty(item)} {item.unit}
@@ -761,10 +761,10 @@ const SingleOut = () => {
                     </div>
 
                     {/* CONTAINERS: pick one or more, then how much to take from each */}
-                    <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="mt-3 pt-3 border-t border-ink-100">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                         <div className="sm:w-72 shrink-0">
-                          <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                          <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-ink-500">
                             <ArchiveBoxIcon className="h-4 w-4" />
                             Containers
                           </div>
@@ -781,7 +781,7 @@ const SingleOut = () => {
                               invalid={!!errors[`container_${item.id}`]}
                             />
                           ) : (
-                            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-400">
+                            <div className="rounded-lg border border-dashed border-ink-300 bg-ink-50 px-3 py-2 text-sm text-ink-400">
                               No container stock
                             </div>
                           )}
@@ -789,13 +789,13 @@ const SingleOut = () => {
 
                         {(itemContainers[item.id] || []).length > 0 && (
                           <div className="flex-1 min-w-0">
-                            <div className="mb-1 text-xs font-medium text-gray-500">Quantity by container</div>
+                            <div className="mb-1 text-xs font-medium text-ink-500">Quantity by container</div>
                             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                               {itemContainers[item.id].map((name) => (
-                                <div key={name} className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5">
+                                <div key={name} className="flex items-center gap-2 rounded-lg border border-ink-200 bg-ink-50 px-2 py-1.5">
                                   <div className="min-w-0 flex-1">
-                                    <div className="truncate text-sm font-semibold text-gray-900" title={name}>{name}</div>
-                                    <div className="text-xs text-gray-500">
+                                    <div className="truncate text-sm font-semibold text-ink-900" title={name}>{name}</div>
+                                    <div className="text-xs text-ink-500">
                                       Available: {toNum(item.containerStock?.[name])} {item.unit}
                                     </div>
                                   </div>
@@ -804,7 +804,7 @@ const SingleOut = () => {
                                     inputMode="decimal"
                                     value={containerQtys[item.id]?.[name] ?? ""}
                                     onChange={(e) => handleContainerQtyChange(item.id, name, e.target.value)}
-                                    className="w-20 border border-gray-300 rounded-md px-2 py-1.5 text-right text-sm font-semibold bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-20 border border-ink-300 rounded-lg px-2 py-1.5 text-right text-sm font-semibold bg-white focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500"
                                     placeholder="0"
                                   />
                                 </div>
@@ -825,14 +825,14 @@ const SingleOut = () => {
 
           {/* LINE WORKER SELECTION */}
           <div className="mb-6">
-            <label className="block mb-2 font-medium text-gray-700">
+            <label className="block mb-2 font-medium text-ink-700">
               Issued To <span className="text-red-500">*</span>
             </label>
             <select
               value={selectedWorker}
               onChange={handleWorkerChange}
-              className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
-                errors.selectedWorker ? 'border-red-500' : 'border-gray-300'
+              className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
+                errors.selectedWorker ? 'border-red-500' : 'border-ink-300'
               }`}
             >
               <option value="">Select Issued To</option>
@@ -848,11 +848,11 @@ const SingleOut = () => {
 
             {/* OTHER NAME AND DEPARTMENT FIELDS */}
             {selectedWorker === OTHERS_ID && othersWorker && (
-              <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-blue-50">
+              <div className="mt-4 p-4 border border-ink-300 rounded-lg bg-brand-50">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* OTHER NAME */}
                   <div>
-                    <label className="block mb-2 font-medium text-gray-700">
+                    <label className="block mb-2 font-medium text-ink-700">
                       Name <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -860,8 +860,8 @@ const SingleOut = () => {
                       value={otherName}
                       onChange={(e) => setOtherName(e.target.value)}
                       placeholder="Enter person's name"
-                      className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
-                        errors.otherName ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
+                        errors.otherName ? 'border-red-500' : 'border-ink-300'
                       }`}
                     />
                     {errors.otherName && (
@@ -871,7 +871,7 @@ const SingleOut = () => {
 
                   {/* OTHER DEPARTMENT */}
                   <div>
-                    <label className="block mb-2 font-medium text-gray-700">
+                    <label className="block mb-2 font-medium text-ink-700">
                       Department <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -879,8 +879,8 @@ const SingleOut = () => {
                       value={otherDepartment}
                       onChange={(e) => setOtherDepartment(e.target.value)}
                       placeholder="Enter department name"
-                      className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
-                        errors.otherDepartment ? 'border-red-500' : 'border-gray-300'
+                      className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
+                        errors.otherDepartment ? 'border-red-500' : 'border-ink-300'
                       }`}
                     />
                     {errors.otherDepartment && (
@@ -896,8 +896,8 @@ const SingleOut = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* IMAGE UPLOAD UI */}
           <div className="flex flex-col">
-            <label className="flex items-center gap-2 mb-1 font-medium text-gray-700">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <label className="flex items-center gap-2 mb-1 font-medium text-ink-700">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-brand-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -925,16 +925,16 @@ const SingleOut = () => {
                 className={`flex flex-col items-center justify-center w-full px-4 py-6 sm:py-8 border-2 border-dashed rounded-lg cursor-pointer transition text-center ${
                   errors.file
                     ? 'border-red-400 bg-red-50 hover:bg-red-100'
-                    : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50'
+                    : 'border-ink-300 bg-ink-50 hover:border-brand-400 hover:bg-brand-50'
                 }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className={`h-10 w-10 mb-2 ${errors.file ? 'text-red-400' : 'text-gray-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-10 w-10 mb-2 ${errors.file ? 'text-red-400' : 'text-ink-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                <span className="text-sm sm:text-base font-medium text-blue-600">
+                <span className="text-sm sm:text-base font-medium text-brand-700">
                   Tap to upload image
                 </span>
-                <span className="mt-1 text-xs text-gray-500">PNG, JPG, JPEG</span>
+                <span className="mt-1 text-xs text-ink-500">PNG, JPG, JPEG</span>
               </label>
             ) : (
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border border-green-300 bg-green-50 rounded-lg">
@@ -942,7 +942,7 @@ const SingleOut = () => {
                   <img
                     src={filePreview}
                     alt="Selected proof"
-                    className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-md border border-gray-200"
+                    className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg border border-ink-200"
                   />
                 )}
                 <div className="flex-1 min-w-0">
@@ -952,17 +952,17 @@ const SingleOut = () => {
                     </svg>
                     Image selected
                   </div>
-                  <p className="text-sm text-gray-700 truncate mt-0.5" title={file.name}>
+                  <p className="text-sm text-ink-700 truncate mt-0.5" title={file.name}>
                     {file.name}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-ink-500">
                     {(file.size / 1024).toFixed(1)} KB
                   </p>
                 </div>
                 <div className="flex gap-2">
                   <label
                     htmlFor="proof-image"
-                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-300 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 transition"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-white border border-ink-300 text-ink-700 rounded-lg cursor-pointer hover:bg-ink-100 transition"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -995,18 +995,18 @@ const SingleOut = () => {
 
           {/* REMARKS */}
           <div className="flex flex-col">
-            <label className="flex items-center gap-2 mb-1 font-medium text-gray-700">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <label className="flex items-center gap-2 mb-1 font-medium text-ink-700">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-brand-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               Remarks
             </label>
-            {/* <p className="mb-3 text-xs sm:text-sm text-gray-500">Optional notes about this transaction</p> */}
+            {/* <p className="mb-3 text-xs sm:text-sm text-ink-500">Optional notes about this transaction</p> */}
             <textarea
               rows={5}
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
-              className="w-full flex-1 min-h-[8rem] border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition resize-none"
+              className="w-full flex-1 min-h-[8rem] border border-ink-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition resize-none"
               placeholder="Add any notes or remarks about this transaction..."
             />
           </div>
@@ -1016,10 +1016,10 @@ const SingleOut = () => {
             <button
               type="submit"
               disabled={submitting || selectedItems.length === 0}
-              className="flex-1 bg-yellow-600 to-emerald-600 
-              text-black rounded-lg px-4 py-3 font-medium hover:from-yellow-700 
-              hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 
-              disabled:cursor-not-allowed transition shadow-md hover:shadow-lg"
+              className="flex-1 bg-brand-600 to-emerald-600 
+ text-ink-950 rounded-lg px-4 py-3 font-medium hover:from-brand-700 
+ hover:to-emerald-700 disabled:from-ink-400 disabled:to-ink-500 
+ disabled:cursor-not-allowed transition shadow-card hover:shadow-lg"
             >
               {submitting ? (
                 <span className="flex items-center justify-center">
@@ -1040,13 +1040,13 @@ const SingleOut = () => {
       {/* EMPTY STATE */}
       {!loading && uniqueItemList.length === 0 && (
         <div className="text-center py-8">
-          <div className="inline-block p-4 bg-gray-100 rounded-full mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="inline-block p-4 bg-ink-100 rounded-full mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-600 mb-2">No items available</h3>
-          <p className="text-gray-500">
+          <h3 className="text-lg font-medium text-ink-600 mb-2">No items available</h3>
+          <p className="text-ink-500">
             There are no items in the warehouse to issue.
           </p>
         </div>

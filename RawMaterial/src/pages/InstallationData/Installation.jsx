@@ -156,23 +156,23 @@ const Installation = () => {
     <div className="w-full p-4 sm:p-6">
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white rounded-xl shadow-sm border border-ink-200 p-4 sm:p-6 mb-8">
+        <h2 className="text-lg font-semibold text-ink-900 mb-4">
           Filter Stock
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
           {/* Warehouse */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-ink-700 mb-2">
               Select Warehouse *
             </label>
             <select
               value={selectedWarehouse}
               onChange={(e) => setSelectedWarehouse(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg 
-                focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                transition duration-150 ease-in-out bg-white
-                hover:border-gray-400 cursor-pointer text-sm sm:text-base"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-ink-300 rounded-lg 
+ focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500
+ transition duration-150 ease-in-out bg-white
+ hover:border-ink-400 cursor-pointer text-sm sm:text-base"
             >
               <option value="">-- Select Warehouse --</option>
               {warehouseList.map((w) => (
@@ -185,16 +185,16 @@ const Installation = () => {
 
           {/* System */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-ink-700 mb-2">
               Select System *
             </label>
             <select
               value={selectedSystem}
               onChange={(e) => setSelectedSystem(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg 
-                focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                transition duration-150 ease-in-out bg-white
-                hover:border-gray-400 cursor-pointer text-sm sm:text-base"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-ink-300 rounded-lg 
+ focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500
+ transition duration-150 ease-in-out bg-white
+ hover:border-ink-400 cursor-pointer text-sm sm:text-base"
             >
               <option value="">-- Select System --</option>
               {systemList.map((s) => (
@@ -207,19 +207,19 @@ const Installation = () => {
 
           {selectedSystem && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-ink-700 mb-2">
                 Select Pump
               </label>
               {loadingPumpData ? (
-                <p className="text-sm text-gray-500">Loading pumps...</p>
+                <p className="text-sm text-ink-500">Loading pumps...</p>
               ) : pumpData.length > 0 ? (
                 <select
                   value={selectedPump}
                   onChange={(e) => setSelectedPump(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg 
-                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  transition duration-150 ease-in-out bg-white
-                  hover:border-gray-400 cursor-pointer text-sm sm:text-base"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-ink-300 rounded-lg 
+ focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500
+ transition duration-150 ease-in-out bg-white
+ hover:border-ink-400 cursor-pointer text-sm sm:text-base"
                 >
                   <option value="">-- Select Pump --</option>
                   {getPumpOptions().map((pump) => (
@@ -229,7 +229,7 @@ const Installation = () => {
                   ))}
                 </select>
               ) : (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-ink-500">
                   No pumps available for this system.
                 </p>
               )}
@@ -239,33 +239,33 @@ const Installation = () => {
 
         {/* Shortage Check Section */}
         {selectedWarehouse && selectedSystem && selectedPump && (
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <h3 className="text-md font-semibold text-gray-800 mb-4">
+          <div className="mt-6 pt-6 border-t border-ink-200">
+            <h3 className="text-md font-semibold text-ink-800 mb-4">
               Check Stock Shortage
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-700 mb-2">
                   Value (v) *
                 </label>
                 <input
                   type="number"
                   value={shortageValue}
                   onChange={(e) => setShortageValue(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg 
-                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                    transition duration-150 ease-in-out bg-white
-                    hover:border-gray-400 text-sm sm:text-base"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-ink-300 rounded-lg 
+ focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500
+ transition duration-150 ease-in-out bg-white
+ hover:border-ink-400 text-sm sm:text-base"
                 />
               </div>
               <div className="flex items-end">
                 <button
                   onClick={handleCheckShortage}
                   disabled={loadingShortage}
-                  className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 
-                    text-white font-medium rounded-lg shadow-sm 
-                    transition duration-150 ease-in-out
-                    disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-ink-950 hover:bg-ink-800 
+ text-white font-medium rounded-lg shadow-sm 
+ transition duration-150 ease-in-out
+ disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingShortage ? "Checking..." : "Check Shortage"}
                 </button>
@@ -276,19 +276,19 @@ const Installation = () => {
             {shortageData && (
               <div className="mt-4">
                 <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-sm font-medium text-gray-700">
+                  <h4 className="text-sm font-medium text-ink-700">
                     Shortage Result:
                   </h4>
                   <div className="flex gap-2">
                     <button
                       onClick={exportToExcel}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      className="text-brand-700 hover:text-ink-950 text-sm font-medium"
                     >
                       Export to Excel
                     </button>
                     <button
                       onClick={() => setShortageData(null)}
-                      className="text-gray-400 hover:text-gray-600 transition"
+                      className="text-ink-400 hover:text-ink-600 transition"
                     >
                       ✕
                     </button>
@@ -299,16 +299,16 @@ const Installation = () => {
                     shortageData.map((item, idx) => (
                       <div
                         key={idx}
-                        className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition"
+                        className="bg-white rounded-lg shadow-sm border border-ink-200 p-4 hover:shadow-md transition"
                       >
                         {Object.entries(item)
                           .filter(([key]) => key !== "itemId")
                           .map(([key, value]) => (
                             <div key={key} className="mb-2 last:mb-0">
-                              <span className="text-xs font-medium text-gray-500 uppercase block">
+                              <span className="text-xs font-medium text-ink-500 uppercase block">
                                 {key.replace(/_/g, " ")}
                               </span>
-                              <span className="text-sm text-gray-900 break-words">
+                              <span className="text-sm text-ink-900 break-words">
                                 {value !== null && value !== undefined
                                   ? String(value)
                                   : "-"}
@@ -318,19 +318,19 @@ const Installation = () => {
                       </div>
                     ))
                   ) : (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:col-span-2 lg:col-span-3">
+                    <div className="bg-white rounded-lg shadow-sm border border-ink-200 p-4 sm:col-span-2 lg:col-span-3">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {Object.entries(shortageData)
                           .filter(([key]) => key !== "itemId")
                           .map(([key, value]) => (
                             <div
                               key={key}
-                              className="border-b border-gray-100 pb-2 last:border-0"
+                              className="border-b border-ink-100 pb-2 last:border-0"
                             >
-                              <span className="text-xs font-medium text-gray-500 uppercase block">
+                              <span className="text-xs font-medium text-ink-500 uppercase block">
                                 {key.replace(/_/g, " ")}
                               </span>
-                              <span className="text-sm text-gray-900 break-words">
+                              <span className="text-sm text-ink-900 break-words">
                                 {value !== null && value !== undefined
                                   ? String(value)
                                   : "-"}

@@ -492,7 +492,7 @@ const PoStockReceiving = () => {
                                 onClick={() => toggleRowExpand(po.id)}
                                 aria-label={expanded ? "Hide items" : "View items"}
                                 aria-expanded={expanded}
-                                className="flex h-7 w-7 items-center justify-center rounded-md text-ink-500 hover:bg-ink-100"
+                                className="flex h-7 w-7 items-center justify-center rounded-lg text-ink-500 hover:bg-ink-100"
                               >
                                 <ChevronDown
                                   className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`}
@@ -625,7 +625,7 @@ const PoStockReceiving = () => {
                     onClick={() => goToPage(currentPage - 1)}
                     disabled={currentPage === 1}
                     aria-label="Previous page"
-                    className="flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-8 items-center gap-1 rounded-lg border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Prev</span>
                   </button>
@@ -634,7 +634,7 @@ const PoStockReceiving = () => {
                       key={page}
                       onClick={() => goToPage(page)}
                       aria-current={currentPage === page ? "page" : undefined}
-                      className={`h-8 min-w-8 rounded-md px-2.5 text-xs font-semibold ${
+                      className={`h-8 min-w-8 rounded-lg px-2.5 text-xs font-semibold ${
                         currentPage === page
                           ? "bg-ink-950 text-brand-400"
                           : "border border-ink-200 text-ink-700 hover:bg-ink-100"
@@ -647,7 +647,7 @@ const PoStockReceiving = () => {
                     onClick={() => goToPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     aria-label="Next page"
-                    className="flex h-8 items-center gap-1 rounded-md border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-8 items-center gap-1 rounded-lg border border-ink-200 px-2 text-xs font-semibold text-ink-700 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <span className="hidden sm:inline">Next</span> <ChevronRight className="h-4 w-4" />
                   </button>

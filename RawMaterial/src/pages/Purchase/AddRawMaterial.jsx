@@ -6,7 +6,6 @@ const AddRawMaterial = ({
   isEditMode = false,
   editData = null,
   onSuccess,
-  onCancel,
   closeModal,
 }) => {
   const [rawMaterialName, setRawMaterialName] = useState("");
@@ -161,10 +160,6 @@ const AddRawMaterial = ({
     }
   };
 
-  const handleClearConversion = () => {
-    setConversionUnit("");
-    setConversionFactor("");
-  };
 // mohit changes 
   const downloadTemplate = () => {
     const header = "name,unit,source,hsnCode,description,conversionUnit,conversionFactor";
@@ -210,7 +205,7 @@ const AddRawMaterial = ({
 
 
   return (
-    <div className="w-full bg-gradient-to-br from-slate-100 flex items-center justify-center px-4">
+    <div className="w-full bg-gradient-to-br from-ink-100 flex items-center justify-center px-4">
       <div className="w-full bg-white shadow-xs p-4">
 
         <form
@@ -340,7 +335,7 @@ const AddRawMaterial = ({
             <button
               type="submit"
               disabled={loading}
-              className={`h-[48px] rounded-lg bg-yellow-400 font-semibold hover:bg-yellow-500 transition-all ${
+              className={`h-[48px] rounded-lg bg-brand-400 font-semibold hover:bg-brand-500 transition-all ${
                 isEditMode ? "flex-1" : "w-full"
               }`}
             >
@@ -358,7 +353,7 @@ const AddRawMaterial = ({
                 type="button"
                 onClick={handleCreateNew}
                 disabled={loading}
-                className="h-[48px] flex-1 rounded-lg bg-yellow-400 text-dark font-semibold hover:bg-yellow-400 transition-all"
+                className="h-[48px] flex-1 rounded-lg bg-brand-400 text-dark font-semibold hover:bg-brand-400 transition-all"
               >
                 Create New Item
               </button>
@@ -370,10 +365,10 @@ const AddRawMaterial = ({
         {/* multiple items upload */}
         {!isEditMode && (
           <div className="mt-8 border-t pt-6">
-            <h3 className="text-lg font-bold text-gray-700 mb-1">Bulk Upload via CSV</h3>
-            <p className="text-sm text-gray-500 mb-4">
+            <h3 className="text-lg font-bold text-ink-700 mb-1">Bulk Upload via CSV</h3>
+            <p className="text-sm text-ink-500 mb-4">
               Upload a CSV with columns:{" "}
-              <code className="bg-gray-100 px-1 rounded text-xs">
+              <code className="bg-ink-100 px-1 rounded text-xs">
                 name, unit, source, hsnCode, description, conversionUnit, conversionFactor
               </code>
               . Source must be <strong>Raw Material</strong> or{" "}
@@ -384,7 +379,7 @@ const AddRawMaterial = ({
               <button
                 type="button"
                 onClick={downloadTemplate}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+                className="px-4 py-2 rounded-lg border border-ink-300 text-sm font-semibold text-ink-700 hover:bg-ink-50 transition-all"
               >
                 ⬇ Download Template
               </button>
@@ -397,14 +392,14 @@ const AddRawMaterial = ({
                   setBulkResult(null);
                   setBulkFile(e.target.files[0] || null);
                 }}
-                className="text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-yellow-400 file:font-semibold file:text-sm hover:file:bg-yellow-500"
+                className="text-sm text-ink-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-brand-400 file:font-semibold file:text-sm hover:file:bg-brand-500"
               />
 
               <button
                 type="button"
                 onClick={handleBulkUpload}
                 disabled={bulkLoading || !bulkFile}
-                className="px-4 py-2 rounded-lg bg-yellow-400 font-semibold text-sm hover:bg-yellow-500 transition-all disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-brand-400 font-semibold text-sm hover:bg-brand-500 transition-all disabled:opacity-50"
               >
                 {bulkLoading ? "Uploading..." : "Upload"}
               </button>

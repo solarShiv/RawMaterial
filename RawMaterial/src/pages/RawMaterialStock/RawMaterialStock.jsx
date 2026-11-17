@@ -273,7 +273,7 @@ const RawMaterialStock = () => {
         {item.containers.map((c) => (
           <span
             key={c.name}
-            className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs ${
+            className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-xs ${
               containerFilter === c.name
                 ? "border-brand-400 bg-brand-100 text-ink-950"
                 : "border-ink-200 bg-white text-ink-700"
@@ -341,7 +341,7 @@ const RawMaterialStock = () => {
       <td>
         <div className="flex items-start gap-3">
           <div
-            className={`shrink-0 h-8 w-8 rounded-md flex items-center justify-center ${
+            className={`shrink-0 h-8 w-8 rounded-lg flex items-center justify-center ${
               isOutOfStock(item) ? "bg-red-100 text-red-600" : "bg-brand-100 text-brand-700"
             }`}
           >
@@ -448,7 +448,7 @@ const RawMaterialStock = () => {
               <button
                 onClick={() => setViewMode("grid")}
                 title="Grid view"
-                className={`h-8 w-9 rounded-md flex items-center justify-center ${
+                className={`h-8 w-9 rounded-lg flex items-center justify-center ${
                   viewMode === "grid" ? "bg-ink-950 text-brand-400" : "text-ink-500 hover:text-ink-900"
                 }`}
               >
@@ -457,7 +457,7 @@ const RawMaterialStock = () => {
               <button
                 onClick={() => setViewMode("list")}
                 title="List view"
-                className={`h-8 w-9 rounded-md flex items-center justify-center ${
+                className={`h-8 w-9 rounded-lg flex items-center justify-center ${
                   viewMode === "list" ? "bg-ink-950 text-brand-400" : "text-ink-500 hover:text-ink-900"
                 }`}
               >
@@ -466,7 +466,7 @@ const RawMaterialStock = () => {
               <button
                 onClick={() => setViewMode("container")}
                 title="Container-wise view"
-                className={`h-8 w-9 rounded-md flex items-center justify-center ${
+                className={`h-8 w-9 rounded-lg flex items-center justify-center ${
                   viewMode === "container" ? "bg-ink-950 text-brand-400" : "text-ink-500 hover:text-ink-900"
                 }`}
               >
@@ -583,7 +583,7 @@ const RawMaterialStock = () => {
                   <div key={group.name} className="rounded-lg border border-ink-200 overflow-hidden">
                     <div className="flex items-center justify-between gap-3 bg-ink-50 border-b border-ink-200 px-4 py-2.5">
                       <div className="flex items-center gap-2 min-w-0">
-                        <div className="shrink-0 h-8 w-8 rounded-md bg-ink-950 text-brand-400 flex items-center justify-center">
+                        <div className="shrink-0 h-8 w-8 rounded-lg bg-ink-950 text-brand-400 flex items-center justify-center">
                           <ArchiveBoxIcon className="h-4 w-4" />
                         </div>
                         <h3 className="font-semibold text-ink-950 truncate">

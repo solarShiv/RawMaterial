@@ -149,7 +149,7 @@ const AddContainer = () => {
               onClick={fetchContainers}
               disabled={listLoading}
               aria-label="Refresh"
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-ink-300 text-ink-700 hover:bg-ink-100 disabled:opacity-50"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink-300 text-ink-700 hover:bg-ink-100 disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${listLoading ? "animate-spin" : ""}`} />
             </button>

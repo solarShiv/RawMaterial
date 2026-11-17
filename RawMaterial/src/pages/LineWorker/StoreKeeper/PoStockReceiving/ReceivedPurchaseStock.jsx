@@ -810,7 +810,7 @@ const ReceivedPurchaseStock = () => {
                                 type="button"
                                 onClick={() => handleInputChange(index, "receivedQty", String(remainingQty))}
                                 title="Receive full remaining quantity"
-                                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md bg-ink-950 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-brand-400 hover:bg-ink-800"
+                                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-lg bg-ink-950 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-brand-400 hover:bg-ink-800"
                               >
                                 Max
                               </button>
@@ -874,7 +874,7 @@ const ReceivedPurchaseStock = () => {
                             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                               {input.containerIds.map((id) => (
                                 <div key={id} className="flex items-center gap-2">
-                                  <span className="min-w-0 flex-1 truncate rounded-md bg-brand-300 px-2 py-2 text-xs font-bold text-ink-950">
+                                  <span className="min-w-0 flex-1 truncate rounded-lg bg-brand-300 px-2 py-2 text-xs font-bold text-ink-950">
                                     {getContainerName(id)}
                                   </span>
                                   <input

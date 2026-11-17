@@ -60,7 +60,7 @@ const ItemChips = ({ items }) => (
     {(items || []).map((item, idx) => (
       <span
         key={idx}
-        className="inline-flex items-center gap-1.5 rounded-md border border-ink-200 bg-ink-50 px-2 py-1 text-xs"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-ink-50 px-2 py-1 text-xs"
       >
         <span className="font-medium text-ink-900">{item.rawMaterialName}</span>
         <span className="font-bold tabular-nums text-ink-950">

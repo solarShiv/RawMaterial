@@ -16,7 +16,6 @@ const AdminDashboard = () => {
   const [actionType, setActionType] = useState(null);
   const [remarks, setRemarks] = useState('');
   const [notification, setNotification] = useState(null);
-  const [bulkSelect, setBulkSelect] = useState(false);
   
   // Search and pagination states
   const [searchTerm, setSearchTerm] = useState('');
@@ -93,7 +92,6 @@ const AdminDashboard = () => {
         setFilteredRequests(response.data.data);
         // Clear selection when data is refreshed
         setSelectedRequests([]);
-        setBulkSelect(false);
       } else {
         setError('Failed to fetch payment requests');
       }
@@ -163,7 +161,6 @@ const AdminDashboard = () => {
         setSelectedRequests([]);
         setActionType(null);
         setRemarks('');
-        setBulkSelect(false);
         
         // Refresh data after a short delay
         setTimeout(() => {
@@ -343,36 +340,35 @@ const AdminDashboard = () => {
   // Clear all selections
   const clearAllSelections = () => {
     setSelectedRequests([]);
-    setBulkSelect(false);
   };
 
   if (loading) {
     return (
       <div className="p-4">
         <div className="mb-6">
-          <div className="h-8 w-64 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-8 w-64 bg-ink-200 rounded animate-pulse"></div>
         </div>
         
         {/* Search skeleton */}
         <div className="bg-white rounded-lg shadow p-3 mb-4 animate-pulse">
-          <div className="h-10 bg-gray-200 rounded w-full"></div>
+          <div className="h-10 bg-ink-200 rounded w-full"></div>
         </div>
         
         {/* Table skeleton */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-200">
-            <div className="h-6 bg-gray-200 rounded w-48 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-32"></div>
+          <div className="px-4 py-3 border-b border-ink-200">
+            <div className="h-6 bg-ink-200 rounded w-48 mb-2"></div>
+            <div className="h-4 bg-ink-200 rounded w-32"></div>
           </div>
           
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="px-4 py-3 border-b border-gray-200">
+            <div key={i} className="px-4 py-3 border-b border-ink-200">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-24"></div>
-                  <div className="h-3 bg-gray-200 rounded w-16"></div>
+                  <div className="h-4 bg-ink-200 rounded w-24"></div>
+                  <div className="h-3 bg-ink-200 rounded w-16"></div>
                 </div>
-                <div className="h-8 bg-gray-200 rounded w-24"></div>
+                <div className="h-8 bg-ink-200 rounded w-24"></div>
               </div>
             </div>
           ))}
@@ -382,20 +378,20 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="p-4 max-w-full overflow-x-hidden bg-gray-50 min-h-screen">
+    <div className="p-4 max-w-full overflow-x-hidden bg-ink-50 min-h-[60vh]">
       {/* Global refreshing overlay */}
       {refreshing && (
-        <div className="fixed inset-0 bg-gray-200 bg-opacity-75 z-40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center max-w-[90%]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-            <p className="text-gray-700 text-center">Updating data...</p>
+        <div className="fixed inset-0 bg-ink-200 bg-opacity-75 z-40 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-card flex flex-col items-center max-w-[90%]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mb-4"></div>
+            <p className="text-ink-700 text-center">Updating data...</p>
           </div>
         </div>
       )}
 
       {/* Notification */}
       {notification && (
-        <div className={`fixed top-4 right-4 z-50 max-w-md ${notification.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : notification.type === 'warning' ? 'bg-yellow-50 border-yellow-200 text-yellow-700' : 'bg-red-50 border-red-200 text-red-700'} border px-4 py-3 rounded shadow-lg transition-opacity duration-300`}>
+        <div className={`fixed top-4 right-4 z-50 max-w-md ${notification.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : notification.type === 'warning' ? 'bg-brand-50 border-brand-200 text-brand-700' : 'bg-red-50 border-red-200 text-red-700'} border px-4 py-3 rounded shadow-card transition-opacity duration-300`}>
           <div className="flex items-center">
             {notification.type === 'success' ? (
               <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -417,11 +413,11 @@ const AdminDashboard = () => {
 
       {/* Confirmation Modal */}
       {showModal && selectedRequests.length > 0 && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-ink-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-card max-w-md w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-ink-900">
                   Confirm {actionType === 'APPROVE' ? 'Approval' : 'Rejection'}
                 </h3>
                 <button
@@ -431,7 +427,7 @@ const AdminDashboard = () => {
                     setActionType(null);
                     setRemarks('');
                   }}
-                  className="text-gray-400 hover:text-gray-500 transition-colors"
+                  className="text-ink-400 hover:text-ink-500 transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -440,26 +436,26 @@ const AdminDashboard = () => {
               </div>
               
               <div className="mb-6">
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-ink-600 mb-3">
                   You are about to {actionType === 'APPROVE' ? 'approve' : 'reject'} {selectedRequests.length} payment request{selectedRequests.length > 1 ? 's' : ''}.
                 </p>
                 
-                <div className="bg-gray-50 rounded-lg p-4 max-h-40 overflow-y-auto">
-                  <h4 className="text-xs font-medium text-gray-700 mb-2">Selected Items:</h4>
+                <div className="bg-ink-50 rounded-lg p-4 max-h-40 overflow-y-auto">
+                  <h4 className="text-xs font-medium text-ink-700 mb-2">Selected Items:</h4>
                   <ul className="space-y-2">
-                    {selectedRequests.slice(0, 5).map((request, index) => (
+                    {selectedRequests.slice(0, 5).map((request) => (
                       <li key={request.paymentRequestId} className="flex items-center justify-between p-2 bg-white rounded border">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{request.poNumber}</p>
-                          <p className="text-xs text-gray-500 truncate">{request.vendorName}</p>
+                          <p className="text-sm font-medium text-ink-900 truncate">{request.poNumber}</p>
+                          <p className="text-xs text-ink-500 truncate">{request.vendorName}</p>
                         </div>
-                        <span className="text-sm font-semibold text-gray-900 ml-2">
+                        <span className="text-sm font-semibold text-ink-900 ml-2">
                           {formatCurrency(request.requestedAmount, request.currency)}
                         </span>
                       </li>
                     ))}
                     {selectedRequests.length > 5 && (
-                      <li className="text-center text-gray-500 text-sm py-2">
+                      <li className="text-center text-ink-500 text-sm py-2">
                         ...and {selectedRequests.length - 5} more
                       </li>
                     )}
@@ -475,14 +471,14 @@ const AdminDashboard = () => {
                     setActionType(null);
                     setRemarks('');
                   }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-ink-700 bg-white border border-ink-300 rounded-lg hover:bg-ink-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-400/40 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleUpdateStatus}
                   disabled={updateLoading}
-                  className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
+                  className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
                     actionType === 'APPROVE'
                       ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
                       : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
@@ -508,25 +504,25 @@ const AdminDashboard = () => {
 
       {/* PDF Viewer Modal */}
       {showPdfModal && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-90 z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-ink-900 bg-opacity-90 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-card w-full max-w-6xl h-[90vh] flex flex-col">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 border-b border-ink-200">
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-gray-900 truncate">
+                <h3 className="text-lg font-semibold text-ink-900 truncate">
                   Invoice Preview
                 </h3>
-                <p className="text-sm text-gray-600 truncate">
+                <p className="text-sm text-ink-600 truncate">
                   {selectedPdfUrl.split('/').pop()}
                 </p>
               </div>
               <div className="flex items-center space-x-4">
                 {pdfNumPages && pdfNumPages > 1 && (
-                  <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-md">
+                  <div className="flex items-center space-x-2 bg-ink-100 px-3 py-1 rounded-lg">
                     <button
                       onClick={() => setPdfPageNumber(prev => Math.max(prev - 1, 1))}
                       disabled={pdfPageNumber <= 1}
-                      className="text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="text-ink-600 hover:text-ink-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -538,7 +534,7 @@ const AdminDashboard = () => {
                     <button
                       onClick={() => setPdfPageNumber(prev => Math.min(prev + 1, pdfNumPages))}
                       disabled={pdfPageNumber >= pdfNumPages}
-                      className="text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="text-ink-600 hover:text-ink-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -550,7 +546,7 @@ const AdminDashboard = () => {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => window.open(selectedPdfUrl, '_blank')}
-                    className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors flex items-center"
+                    className="px-3 py-1.5 text-sm font-medium text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors flex items-center"
                   >
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -566,7 +562,7 @@ const AdminDashboard = () => {
                       link.click();
                       document.body.removeChild(link);
                     }}
-                    className="px-3 py-1.5 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-md transition-colors flex items-center"
+                    className="px-3 py-1.5 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors flex items-center"
                   >
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -580,7 +576,7 @@ const AdminDashboard = () => {
                       setPdfNumPages(null);
                       setPdfPageNumber(1);
                     }}
-                    className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
+                    className="p-2 text-ink-400 hover:text-ink-600 rounded-lg hover:bg-ink-100 transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -591,12 +587,12 @@ const AdminDashboard = () => {
             </div>
 
             {/* Modal Body - PDF Viewer */}
-            <div className="flex-1 overflow-hidden bg-gray-100">
+            <div className="flex-1 overflow-hidden bg-ink-100">
               {pdfLoading && (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading PDF document...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500 mx-auto mb-4"></div>
+                    <p className="text-ink-600">Loading PDF document...</p>
                   </div>
                 </div>
               )}
@@ -609,10 +605,10 @@ const AdminDashboard = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <p className="text-gray-700 mb-4">{pdfError}</p>
+                    <p className="text-ink-700 mb-4">{pdfError}</p>
                     <button
                       onClick={() => window.open(selectedPdfUrl, '_blank')}
-                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
+                      className="px-4 py-2 bg-ink-950 hover:bg-ink-800 text-white rounded-lg transition-colors"
                     >
                       Open PDF in New Tab
                     </button>
@@ -628,13 +624,13 @@ const AdminDashboard = () => {
                     onLoadError={onDocumentLoadError}
                     loading={
                       <div className="flex items-center justify-center h-64">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
                       </div>
                     }
                   >
                     <Page 
                       pageNumber={pdfPageNumber} 
-                      className="shadow-lg"
+                      className="shadow-card"
                       renderAnnotationLayer={false}
                       renderTextLayer={false}
                       width={Math.min(800, window.innerWidth - 100)}
@@ -649,19 +645,19 @@ const AdminDashboard = () => {
 
       {/* Selection Summary Bar */}
       {selectedRequests.length > 0 && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm">
+        <div className="mb-6 bg-brand-50 border border-brand-300 rounded-xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className="bg-blue-100 p-2 rounded-lg mr-3">
-                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <div className="bg-brand-100 p-2 rounded-lg mr-3">
+                <svg className="w-5 h-5 text-brand-700" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">
+                <h3 className="font-semibold text-ink-900">
                   {selectedRequests.length} payment request{selectedRequests.length > 1 ? 's' : ''} selected
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-ink-600">
                   Total amount: {formatCurrency(
                     selectedRequests.reduce((sum, req) => sum + req.requestedAmount, 0),
                     selectedRequests[0]?.currency || 'USD'
@@ -673,7 +669,7 @@ const AdminDashboard = () => {
             <div className="flex items-center space-x-3">
               <button
                 onClick={clearAllSelections}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-ink-700 bg-white border border-ink-300 rounded-lg hover:bg-ink-50 transition-colors"
               >
                 Clear Selection
               </button>
@@ -708,7 +704,7 @@ const AdminDashboard = () => {
           <div className="md:col-span-2">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -717,7 +713,7 @@ const AdminDashboard = () => {
                 placeholder="Search payment requests..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2.5 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="pl-10 pr-4 py-2.5 w-full border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-transparent transition-colors"
               />
             </div>
           </div>
@@ -726,7 +722,7 @@ const AdminDashboard = () => {
             <select
               value={searchField}
               onChange={(e) => setSearchField(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="w-full px-3 py-2.5 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-transparent transition-colors"
             >
               {searchFields.map((field) => (
                 <option key={field.value} value={field.value}>
@@ -738,7 +734,7 @@ const AdminDashboard = () => {
             {searchTerm && (
               <button
                 onClick={clearSearch}
-                className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors whitespace-nowrap"
+                className="px-4 py-2.5 text-sm font-medium text-ink-700 bg-ink-100 hover:bg-ink-200 rounded-lg transition-colors whitespace-nowrap"
               >
                 Clear
               </button>
@@ -747,7 +743,7 @@ const AdminDashboard = () => {
         </div>
         
         <div className="mt-4 flex flex-wrap items-center justify-between">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-ink-600">
             <span className="font-medium">{filteredRequests.length}</span> request(s) found
             {searchTerm && (
               <span className="ml-2">
@@ -758,7 +754,7 @@ const AdminDashboard = () => {
           
           <button
             onClick={fetchPaymentRequests}
-            className="flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+            className="flex items-center px-4 py-2 text-sm font-medium text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -776,8 +772,8 @@ const AdminDashboard = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Data</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h3 className="text-lg font-medium text-ink-900 mb-2">Error Loading Data</h3>
+          <p className="text-ink-600 mb-4">{error}</p>
           <button 
             onClick={fetchPaymentRequests}
             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
@@ -788,43 +784,43 @@ const AdminDashboard = () => {
       ) : (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           {/* Table Header */}
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="px-6 py-4 border-b border-ink-200 bg-ink-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <h2 className="text-lg font-semibold text-gray-900">Payment Requests</h2>
+                <h2 className="text-lg font-semibold text-ink-900">Payment Requests</h2>
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-ink-300 text-brand-700 focus:ring-brand-400/40"
                     checked={currentItems.length > 0 && currentItems.every(item => 
                       selectedRequests.some(selected => selected.paymentRequestId === item.paymentRequestId)
                     )}
                     onChange={handleSelectAllOnCurrentPage}
                   />
-                  <span className="text-sm text-gray-600">Select Page</span>
+                  <span className="text-sm text-ink-600">Select Page</span>
                 </label>
               </div>
               
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-600">Show</span>
+                <span className="text-sm text-ink-600">Show</span>
                 <select
                   value={itemsPerPage}
                   onChange={handleItemsPerPageChange}
-                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  className="border border-ink-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-brand-400/40 focus:border-transparent transition-colors"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>
                   <option value={100}>100</option>
                 </select>
-                <span className="text-sm text-gray-600">per page</span>
+                <span className="text-sm text-ink-600">per page</span>
               </div>
             </div>
             
-            <div className="mt-2 text-sm text-gray-600">
+            <div className="mt-2 text-sm text-ink-600">
               Showing {filteredRequests.length === 0 ? 0 : indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredRequests.length)} of {filteredRequests.length} entries
               {selectedRequests.length > 0 && (
-                <span className="ml-2 text-blue-600 font-medium">
+                <span className="ml-2 text-brand-700 font-medium">
                   • {selectedRequests.length} selected
                 </span>
               )}
@@ -835,50 +831,50 @@ const AdminDashboard = () => {
           <div className="md:hidden">
             {currentItems.length === 0 ? (
               <div className="text-center py-12">
-                <div className="mx-auto w-16 h-16 text-gray-300 mb-4">
+                <div className="mx-auto w-16 h-16 text-ink-300 mb-4">
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No payment requests found</h3>
-                <p className="text-gray-600 mb-4">
+                <h3 className="text-lg font-medium text-ink-900 mb-2">No payment requests found</h3>
+                <p className="text-ink-600 mb-4">
                   {searchTerm ? 'No results match your search criteria' : 'There are no payment requests pending approval'}
                 </p>
                 {searchTerm && (
                   <button
                     onClick={clearSearch}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
+                    className="text-brand-700 hover:text-ink-950 font-medium"
                   >
                     Clear search
                   </button>
                 )}
               </div>
             ) : (
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-ink-200">
                 {currentItems.map((request) => (
-                  <div key={request.paymentRequestId} className="p-4 hover:bg-gray-50 transition-colors">
+                  <div key={request.paymentRequestId} className="p-4 hover:bg-ink-50 transition-colors">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-start space-x-3">
                         <input
                           type="checkbox"
-                          className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="mt-1 rounded border-ink-300 text-brand-700 focus:ring-brand-400/40"
                           checked={isItemSelected(request.paymentRequestId)}
                           onChange={() => handleSelectItem(request)}
                         />
                         <div>
-                          <div className="font-semibold text-gray-900">
+                          <div className="font-semibold text-ink-900">
                             {request.poNumber}
                           </div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-ink-600">
                             {request.companyName}
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-gray-900">
+                        <div className="font-bold text-ink-900">
                           {formatCurrency(request.requestedAmount, request.currency)}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-ink-500">
                           {formatDate(request.createdAt).split(',')[0]}
                         </div>
                       </div>
@@ -886,38 +882,38 @@ const AdminDashboard = () => {
                     
                     <div className="grid grid-cols-2 gap-3 mb-3">
                       <div>
-                        <div className="text-xs text-gray-500 mb-1">Vendor</div>
+                        <div className="text-xs text-ink-500 mb-1">Vendor</div>
                         <div className="text-sm font-medium">{request.vendorName}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 mb-1">Requested By</div>
+                        <div className="text-xs text-ink-500 mb-1">Requested By</div>
                         <div className="text-sm font-medium">{request.paymentRequestedBy}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 mb-1">Type</div>
+                        <div className="text-xs text-ink-500 mb-1">Type</div>
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           request.billpaymentType === 'Advance_Payment' 
-                            ? 'bg-blue-100 text-blue-800'
+                            ? 'bg-brand-100 text-ink-950'
                             : 'bg-green-100 text-green-800'
                         }`}>
                           {request.billpaymentType.replace('_', ' ')}
                         </span>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500 mb-1">Invoices</div>
+                        <div className="text-xs text-ink-500 mb-1">Invoices</div>
                         <div className="flex flex-wrap gap-1">
                           {request.invoices && request.invoices.length > 0 ? (
                             request.invoices.map((invoice, idx) => (
                               <button
                                 key={idx}
                                 onClick={() => handleViewPdf(invoice.invoiceUrl)}
-                                className="px-2 py-1 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                                className="px-2 py-1 text-xs text-brand-700 bg-brand-50 hover:bg-brand-100 rounded transition-colors"
                               >
                                 View PDF
                               </button>
                             ))
                           ) : (
-                            <span className="text-xs text-gray-500 italic">No invoice</span>
+                            <span className="text-xs text-ink-500 italic">No invoice</span>
                           )}
                         </div>
                       </div>
@@ -990,80 +986,80 @@ const AdminDashboard = () => {
 
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-ink-200">
+              <thead className="bg-ink-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     <input
                       type="checkbox"
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-ink-300 text-brand-700 focus:ring-brand-400/40"
                       checked={currentItems.length > 0 && currentItems.every(item => 
                         selectedRequests.some(selected => selected.paymentRequestId === item.paymentRequestId)
                       )}
                       onChange={handleSelectAllOnCurrentPage}
                     />
                   </th>
-                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     PO Number
                   </th> */}
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Company
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Vendor
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Type
                   </th>
-                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Requested By
                   </th> */}
-                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Date
                   </th> */}
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Invoice
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-ink-200">
                 {currentItems.map((request) => (
-                  <tr key={request.paymentRequestId} className="hover:bg-gray-50 transition-colors">
+                  <tr key={request.paymentRequestId} className="hover:bg-ink-50 transition-colors">
                     <td className="px-6 py-4">
                       <input
                         type="checkbox"
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-ink-300 text-brand-700 focus:ring-brand-400/40"
                         checked={isItemSelected(request.paymentRequestId)}
                         onChange={() => handleSelectItem(request)}
                       />
                     </td>
                     
                     {/* <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-ink-900">
                         {request.poNumber}
                       </div>
                     </td> */}
                     
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-ink-900">
                         {request.companyName}
                       </div>
                     </td>
                     
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-ink-900">
                         {request.vendorName}
                       </div>
                     </td>
                     
                     <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-gray-900">
+                      <div className="text-sm font-semibold text-ink-900">
                         {formatCurrency(request.requestedAmount, request.currency)}
                       </div>
                     </td>
@@ -1071,7 +1067,7 @@ const AdminDashboard = () => {
                     <td className="px-6 py-4">
                       <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
                         request.billpaymentType === 'Advance_Payment' 
-                          ? 'bg-blue-100 text-blue-800'
+                          ? 'bg-brand-100 text-ink-950'
                           : 'bg-green-100 text-green-800'
                       }`}>
                         {request.billpaymentType.replace('_', ' ')}
@@ -1079,16 +1075,16 @@ const AdminDashboard = () => {
                     </td>
                    
                     {/* <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-ink-900">
                         {request.paymentRequestedBy}
                       </div>
                     </td> */}
                     
                     {/* <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm text-ink-900">
                         {formatDate(request.createdAt).split(',')[0]}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-ink-500">
                         {formatDate(request.createdAt).split(',')[1]}
                       </div>
                     </td> */}
@@ -1100,7 +1096,7 @@ const AdminDashboard = () => {
                             <button
                               key={idx}
                               onClick={() => handleViewPdf(invoice.invoiceUrl)}
-                              className="inline-flex items-center px-3 py-1.5 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                              className="inline-flex items-center px-3 py-1.5 text-sm text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition-colors"
                             >
                               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -1109,7 +1105,7 @@ const AdminDashboard = () => {
                             </button>
                           ))
                         ) : (
-                          <span className="text-sm text-gray-500 italic">No invoice</span>
+                          <span className="text-sm text-ink-500 italic">No invoice</span>
                         )}
                       </div>
                     </td>
@@ -1178,19 +1174,19 @@ const AdminDashboard = () => {
             
             {currentItems.length === 0 && (
               <div className="text-center py-12">
-                <div className="mx-auto w-16 h-16 text-gray-300 mb-4">
+                <div className="mx-auto w-16 h-16 text-ink-300 mb-4">
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No payment requests found</h3>
-                <p className="text-gray-600 mb-4">
+                <h3 className="text-lg font-medium text-ink-900 mb-2">No payment requests found</h3>
+                <p className="text-ink-600 mb-4">
                   {searchTerm ? 'No results match your search criteria' : 'There are no payment requests pending approval'}
                 </p>
                 {searchTerm && (
                   <button
                     onClick={clearSearch}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
+                    className="text-brand-700 hover:text-ink-950 font-medium"
                   >
                     Clear search
                   </button>
@@ -1201,9 +1197,9 @@ const AdminDashboard = () => {
 
           {/* Pagination */}
           {filteredRequests.length > 0 && (
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <div className="px-6 py-4 border-t border-ink-200 bg-ink-50">
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
+                <div className="text-sm text-ink-700">
                   Page <span className="font-medium">{currentPage}</span> of{' '}
                   <span className="font-medium">{totalPages}</span> •{' '}
                   <span className="font-medium">{filteredRequests.length}</span> total items
@@ -1215,8 +1211,8 @@ const AdminDashboard = () => {
                     disabled={currentPage === 1}
                     className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                       currentPage === 1
-                        ? 'text-gray-400 cursor-not-allowed'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'text-ink-400 cursor-not-allowed'
+                        : 'text-ink-700 hover:bg-ink-100'
                     }`}
                   >
                     Previous
@@ -1230,10 +1226,10 @@ const AdminDashboard = () => {
                         disabled={number === '...'}
                         className={`w-10 h-10 flex items-center justify-center text-sm font-medium rounded-lg transition-colors ${
                           number === '...'
-                            ? 'text-gray-500 cursor-default'
+                            ? 'text-ink-500 cursor-default'
                             : currentPage === number
-                            ? 'bg-blue-600 text-white'
-                            : 'text-gray-700 hover:bg-gray-100'
+                            ? 'bg-ink-950 text-white'
+                            : 'text-ink-700 hover:bg-ink-100'
                         }`}
                       >
                         {number}
@@ -1246,8 +1242,8 @@ const AdminDashboard = () => {
                     disabled={currentPage === totalPages}
                     className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                       currentPage === totalPages
-                        ? 'text-gray-400 cursor-not-allowed'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'text-ink-400 cursor-not-allowed'
+                        : 'text-ink-700 hover:bg-ink-100'
                     }`}
                   >
                     Next

@@ -184,13 +184,13 @@
 //   const getStatusBadgeClass = (status) => {
 //     switch (status) {
 //       case "Pending":
-//         return "bg-yellow-100 text-yellow-800";
+//         return "bg-brand-100 text-brand-700";
 //       case "Completed":
 //         return "bg-green-100 text-green-800";
 //       case "PartiallyPaid":
-//         return "bg-blue-100 text-blue-800";
+//         return "bg-brand-100 text-ink-950";
 //       default:
-//         return "bg-gray-100 text-gray-800";
+//         return "bg-ink-100 text-ink-800";
 //     }
 //   };
 
@@ -258,7 +258,7 @@
 //   if (loading) {
 //     return (
 //       <div className="flex justify-center items-center h-64">
-//         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+//         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500"></div>
 //       </div>
 //     );
 //   }
@@ -278,11 +278,11 @@
 //   }
 
 //   return (
-//     <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+//     <div className="p-4 md:p-6 bg-ink-50 min-h-[60vh]">
 //       <div className="w-full mx-auto">
 //         {/* Header */}
 //         <div className="mb-6">
-//           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Payment Pending Details</h1>
+//           <h1 className="text-2xl md:text-3xl font-bold text-ink-900">Payment Pending Details</h1>
 //         </div>
 
 //         {/* Search and Filters - Responsive Stack */}
@@ -294,11 +294,11 @@
 //               <div className="flex-1">
 //                 <div className="relative">
 //                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-//                     <Search className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
+//                     <Search className="h-4 w-4 md:h-5 md:w-5 text-ink-400" />
 //                   </div>
 //                   <input
 //                     type="text"
-//                     className="block w-full pl-9 md:pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+//                     className="block w-full pl-9 md:pl-10 pr-3 py-2 text-sm border border-ink-300 rounded-lg leading-5 bg-white placeholder-ink-500 focus:outline-none focus:placeholder-ink-400 focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500"
 //                     placeholder={`Search ${
 //                       searchFilter === "all" ? "all fields" : searchFilter
 //                     }...`}
@@ -311,7 +311,7 @@
 //               {/* Search Filter Dropdown */}
 //               <div className="w-full md:w-48">
 //                 <select
-//                   className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+//                   className="block w-full px-3 py-2 text-sm border border-ink-300 rounded-lg shadow-sm focus:outline-none focus:ring-brand-400/40 focus:border-brand-500"
 //                   value={searchFilter}
 //                   onChange={(e) => setSearchFilter(e.target.value)}
 //                 >
@@ -329,7 +329,7 @@
 //               {/* Items Per Page */}
 //               <div className="w-full md:w-32">
 //                 <select
-//                   className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+//                   className="block w-full px-3 py-2 text-sm border border-ink-300 rounded-lg shadow-sm focus:outline-none focus:ring-brand-400/40 focus:border-brand-500"
 //                   value={itemsPerPage}
 //                   onChange={(e) => {
 //                     setItemsPerPage(Number(e.target.value));
@@ -346,7 +346,7 @@
 //               {/* Advanced Filters Toggle */}
 //               <button
 //                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-//                 className="inline-flex items-center justify-center px-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+//                 className="inline-flex items-center justify-center px-4 py-2 text-sm border border-ink-300 rounded-lg shadow-sm font-medium text-ink-700 bg-white hover:bg-ink-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-400/40"
 //               >
 //                 <Filter className="h-4 w-4 mr-2" />
 //                 Filters
@@ -361,7 +361,7 @@
 //               {(searchTerm || statusFilter !== "all") && (
 //                 <button
 //                   onClick={clearFilters}
-//                   className="inline-flex items-center justify-center px-4 py-2 text-sm border border-transparent rounded-md shadow-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+//                   className="inline-flex items-center justify-center px-4 py-2 text-sm border border-transparent rounded-lg shadow-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
 //                 >
 //                   Clear Filters
 //                 </button>
@@ -371,11 +371,11 @@
 
 //           {/* Advanced Filters */}
 //           {showAdvancedFilters && (
-//             <div className="mt-4 pt-4 border-t border-gray-200">
+//             <div className="mt-4 pt-4 border-t border-ink-200">
 //               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 //                 {/* Status Filter */}
 //                 <div>
-//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                   <label className="block text-sm font-medium text-ink-700 mb-2">
 //                     Payment Status
 //                   </label>
 //                   <div className="flex flex-wrap gap-2">
@@ -383,8 +383,8 @@
 //                       onClick={() => setStatusFilter("all")}
 //                       className={`px-3 py-1 text-xs md:text-sm rounded-full font-medium ${
 //                         statusFilter === "all"
-//                           ? "bg-blue-100 text-blue-800"
-//                           : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+//                           ? "bg-brand-100 text-ink-950"
+//                           : "bg-ink-100 text-ink-800 hover:bg-ink-200"
 //                       }`}
 //                     >
 //                       All ({purchaseOrders.length})
@@ -393,8 +393,8 @@
 //                       onClick={() => setStatusFilter("Pending")}
 //                       className={`px-3 py-1 text-xs md:text-sm rounded-full font-medium ${
 //                         statusFilter === "Pending"
-//                           ? "bg-yellow-100 text-yellow-800"
-//                           : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+//                           ? "bg-brand-100 text-brand-700"
+//                           : "bg-ink-100 text-ink-800 hover:bg-ink-200"
 //                       }`}
 //                     >
 //                       Pending ({statusCounts.Pending})
@@ -404,7 +404,7 @@
 //                       className={`px-3 py-1 text-xs md:text-sm rounded-full font-medium ${
 //                         statusFilter === "Completed"
 //                           ? "bg-green-100 text-green-800"
-//                           : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+//                           : "bg-ink-100 text-ink-800 hover:bg-ink-200"
 //                       }`}
 //                     >
 //                       Completed ({statusCounts.Completed})
@@ -414,7 +414,7 @@
 
 //                 {/* Currency Filter */}
 //                 <div>
-//                   <label className="block text-sm font-medium text-gray-700 mb-2">
+//                   <label className="block text-sm font-medium text-ink-700 mb-2">
 //                     Currency
 //                   </label>
 //                   <div className="flex flex-wrap gap-2">
@@ -424,7 +424,7 @@
 //                         onClick={() => {
 //                           // Add currency filter logic here if needed
 //                         }}
-//                         className="px-3 py-1 text-xs md:text-sm rounded-full font-medium bg-gray-100 text-gray-800 hover:bg-gray-200"
+//                         className="px-3 py-1 text-xs md:text-sm rounded-full font-medium bg-ink-100 text-ink-800 hover:bg-ink-200"
 //                       >
 //                         {currency} ({count})
 //                       </button>
@@ -437,12 +437,12 @@
 
 //           {/* Results Count */}
 //           <div className="mt-4 flex flex-col md:flex-row justify-between items-start md:items-center">
-//             <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-0">
+//             <p className="text-xs md:text-sm text-ink-600 mb-2 md:mb-0">
 //               Showing <span className="font-medium">{currentItems.length}</span>{" "}
 //               of <span className="font-medium">{filteredData.length}</span>{" "}
 //               filtered POs (Total: {purchaseOrders.length} POs)
 //             </p>
-//             <div className="text-xs md:text-sm text-gray-600">
+//             <div className="text-xs md:text-sm text-ink-600">
 //               Page <span className="font-medium">{currentPage}</span> of{" "}
 //               <span className="font-medium">{totalPages}</span>
 //             </div>
@@ -452,12 +452,12 @@
 //         {/* POs Table */}
 //         {filteredData.length === 0 ? (
 //           <div className="bg-white rounded-lg shadow p-6 md:p-8 text-center">
-//             <Search className="h-10 w-10 md:h-12 md:w-12 text-gray-400 mx-auto mb-3 md:mb-4" />
-//             <p className="text-gray-500 text-base md:text-lg">
+//             <Search className="h-10 w-10 md:h-12 md:w-12 text-ink-400 mx-auto mb-3 md:mb-4" />
+//             <p className="text-ink-500 text-base md:text-lg">
 //               No POs found matching your criteria
 //             </p>
 //             {searchTerm && (
-//               <p className="text-gray-400 mt-1 md:mt-2 text-sm md:text-base">
+//               <p className="text-ink-400 mt-1 md:mt-2 text-sm md:text-base">
 //                 Try adjusting your search or filters
 //               </p>
 //             )}
@@ -472,8 +472,8 @@
 //                     {/* Header */}
 //                     <div className="flex justify-between items-start">
 //                       <div>
-//                         <h3 className="font-bold text-gray-900">{po.poNumber}</h3>
-//                         <p className="text-sm text-gray-500">{po.companyName}</p>
+//                         <h3 className="font-bold text-ink-900">{po.poNumber}</h3>
+//                         <p className="text-sm text-ink-500">{po.companyName}</p>
 //                       </div>
 //                       <span
 //                         className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(
@@ -486,20 +486,20 @@
 
 //                     {/* Vendor */}
 //                     <div>
-//                       <p className="text-sm text-gray-600">Vendor</p>
+//                       <p className="text-sm text-ink-600">Vendor</p>
 //                       <p className="font-medium">{po.vendorName}</p>
 //                     </div>
 
 //                     {/* Amounts */}
 //                     <div className="grid grid-cols-2 gap-4">
 //                       <div>
-//                         <p className="text-xs text-gray-500">Sub Total</p>
+//                         <p className="text-xs text-ink-500">Sub Total</p>
 //                         <p className="font-medium">
 //                           {formatCurrency(po.subTotal, po.currency)}
 //                         </p>
 //                       </div>
 //                       <div>
-//                         <p className="text-xs text-gray-500">Grand Total</p>
+//                         <p className="text-xs text-ink-500">Grand Total</p>
 //                         <p className="font-medium">
 //                           {formatCurrency(po.grandTotal, po.currency)}
 //                         </p>
@@ -520,13 +520,13 @@
 
 //                     {/* Items Count */}
 //                     <div className="flex items-center justify-between">
-//                       <span className="text-sm text-gray-600">
+//                       <span className="text-sm text-ink-600">
 //                         {po.orderedItems.length} item(s)
 //                       </span>
 //                       <div className="flex space-x-2">
 //                         <button
 //                           onClick={() => toggleRowExpand(po.poId)}
-//                           className="flex items-center text-sm text-blue-600 hover:text-blue-800"
+//                           className="flex items-center text-sm text-brand-700 hover:text-ink-950"
 //                         >
 //                           <Eye className="h-4 w-4 mr-1" />
 //                           {expandedRows.has(po.poId) ? "Hide" : "View"}
@@ -545,16 +545,16 @@
 
 //                     {/* Expanded Items */}
 //                     {expandedRows.has(po.poId) && (
-//                       <div className="mt-3 pt-3 border-t border-gray-200">
-//                         <h4 className="font-medium text-gray-700 mb-2">Items</h4>
+//                       <div className="mt-3 pt-3 border-t border-ink-200">
+//                         <h4 className="font-medium text-ink-700 mb-2">Items</h4>
 //                         <div className="space-y-2">
 //                           {po.orderedItems.map((item) => (
 //                             <div
 //                               key={item.purchaseOrderItemId}
-//                               className="bg-gray-50 p-2 rounded"
+//                               className="bg-ink-50 p-2 rounded"
 //                             >
 //                               <p className="font-medium text-sm">{item.itemName}</p>
-//                               <div className="flex justify-between text-xs text-gray-500 mt-1">
+//                               <div className="flex justify-between text-xs text-ink-500 mt-1">
 //                                 <span>HSN: {item.hsnCode}</span>
 //                                 <span>
 //                                   {item.quantity} {item.unit}
@@ -573,55 +573,55 @@
 //             {/* Desktop Table View */}
 //             <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden mb-6">
 //               <div className="overflow-x-auto">
-//                 <table className="min-w-full divide-y divide-gray-200">
-//                   <thead className="bg-gray-50">
+//                 <table className="min-w-full divide-y divide-ink-200">
+//                   <thead className="bg-ink-50">
 //                     <tr>
-//                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+//                       <th className="px-4 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider whitespace-nowrap">
 //                         PO Details
 //                       </th>
-//                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+//                       <th className="px-4 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider whitespace-nowrap">
 //                         Company
 //                       </th>
-//                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+//                       <th className="px-4 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider whitespace-nowrap">
 //                         Vendor
 //                       </th>
-//                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+//                       <th className="px-4 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider whitespace-nowrap">
 //                         Amounts
 //                       </th>
-//                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+//                       <th className="px-4 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider whitespace-nowrap">
 //                         Status
 //                       </th>
-//                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+//                       <th className="px-4 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider whitespace-nowrap">
 //                         Items
 //                       </th>
-//                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+//                       <th className="px-4 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider whitespace-nowrap">
 //                         Actions
 //                       </th>
 //                     </tr>
 //                   </thead>
-//                   <tbody className="bg-white divide-y divide-gray-200">
+//                   <tbody className="bg-white divide-y divide-ink-200">
 //                     {currentItems.map((po) => (
 //                       <React.Fragment key={po.poId}>
-//                         <tr className="hover:bg-gray-50">
+//                         <tr className="hover:bg-ink-50">
 //                           <td className="px-4 py-4 whitespace-nowrap">
-//                             <div className="font-medium text-gray-900 text-sm">
+//                             <div className="font-medium text-ink-900 text-sm">
 //                               {po.poNumber}
 //                             </div>
-//                             <div className="text-xs text-gray-500">
+//                             <div className="text-xs text-ink-500">
 //                               Sub: {formatCurrency(po.subTotal, po.currency)}
 //                             </div>
-//                             <div className="text-xs text-gray-500">
+//                             <div className="text-xs text-ink-500">
 //                               Grand:{" "}
 //                               {formatCurrency(po.grandTotal, po.currency)}
 //                             </div>
 //                           </td>
 //                           <td className="px-4 py-4 whitespace-nowrap">
-//                             <div className="text-sm text-gray-900">
+//                             <div className="text-sm text-ink-900">
 //                               {po.companyName}
 //                             </div>
 //                           </td>
 //                           <td className="px-4 py-4 whitespace-nowrap">
-//                             <div className="text-sm text-gray-900">
+//                             <div className="text-sm text-ink-900">
 //                               {po.vendorName}
 //                             </div>
 //                           </td>
@@ -648,7 +648,7 @@
 //                           </td>
 //                           <td className="px-4 py-4 whitespace-nowrap">
 //                             <div className="flex items-center">
-//                               <span className="text-sm text-gray-500">
+//                               <span className="text-sm text-ink-500">
 //                                 {po.orderedItems.length} item(s)
 //                               </span>
 //                             </div>
@@ -657,7 +657,7 @@
 //                             <div className="flex flex-col space-y-2">
 //                               <button
 //                                 onClick={() => toggleRowExpand(po.poId)}
-//                                 className="inline-flex items-center text-blue-600 hover:text-blue-900 text-sm"
+//                                 className="inline-flex items-center text-brand-700 hover:text-ink-950 text-sm"
 //                               >
 //                                 {/* <Eye className="h-4 w-4 mr-1" /> */}
 //                                 {expandedRows.has(po.poId)
@@ -678,41 +678,41 @@
 //                         </tr>
 //                         {expandedRows.has(po.poId) && (
 //                           <tr>
-//                             <td colSpan="7" className="px-4 py-4 bg-gray-50">
-//                               <div className="border border-gray-200 rounded-lg overflow-hidden">
-//                                 <table className="min-w-full divide-y divide-gray-200">
-//                                   <thead className="bg-gray-100">
+//                             <td colSpan="7" className="px-4 py-4 bg-ink-50">
+//                               <div className="border border-ink-200 rounded-lg overflow-hidden">
+//                                 <table className="min-w-full divide-y divide-ink-200">
+//                                   <thead className="bg-ink-100">
 //                                     <tr>
-//                                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+//                                       <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">
 //                                         Item Name
 //                                       </th>
-//                                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+//                                       <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">
 //                                         HSN Code
 //                                       </th>
-//                                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+//                                       <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">
 //                                         Quantity
 //                                       </th>
-//                                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+//                                       <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">
 //                                         Unit
 //                                       </th>
 //                                     </tr>
 //                                   </thead>
-//                                   <tbody className="bg-white divide-y divide-gray-200">
+//                                   <tbody className="bg-white divide-y divide-ink-200">
 //                                     {po.orderedItems.map((item) => (
 //                                       <tr
 //                                         key={item.purchaseOrderItemId}
-//                                         className="hover:bg-gray-50"
+//                                         className="hover:bg-ink-50"
 //                                       >
-//                                         <td className="px-3 py-2 text-sm text-gray-900">
+//                                         <td className="px-3 py-2 text-sm text-ink-900">
 //                                           {item.itemName}
 //                                         </td>
-//                                         <td className="px-3 py-2 text-sm text-gray-500">
+//                                         <td className="px-3 py-2 text-sm text-ink-500">
 //                                           {item.hsnCode}
 //                                         </td>
-//                                         <td className="px-3 py-2 text-sm text-gray-900 font-medium">
+//                                         <td className="px-3 py-2 text-sm text-ink-900 font-medium">
 //                                           {item.quantity}
 //                                         </td>
-//                                         <td className="px-3 py-2 text-sm text-gray-900 font-medium">
+//                                         <td className="px-3 py-2 text-sm text-ink-900 font-medium">
 //                                           {item.unit}
 //                                         </td>
 //                                       </tr>
@@ -731,15 +731,15 @@
 //             </div>
 
 //             {/* Pagination Controls */}
-//             <div className="bg-white rounded-lg shadow px-3 py-3 flex items-center justify-between border-t border-gray-200">
+//             <div className="bg-white rounded-lg shadow px-3 py-3 flex items-center justify-between border-t border-ink-200">
 //               <div className="flex-1 flex justify-between">
 //                 <button
 //                   onClick={prevPage}
 //                   disabled={currentPage === 1}
-//                   className={`relative inline-flex items-center px-3 py-2 text-sm border border-gray-300 font-medium rounded-md ${
+//                   className={`relative inline-flex items-center px-3 py-2 text-sm border border-ink-300 font-medium rounded-lg ${
 //                     currentPage === 1
-//                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-//                       : "bg-white text-gray-700 hover:bg-gray-50"
+//                       ? "bg-ink-100 text-ink-400 cursor-not-allowed"
+//                       : "bg-white text-ink-700 hover:bg-ink-50"
 //                   }`}
 //                 >
 //                   Previous
@@ -747,17 +747,17 @@
 //                 <button
 //                   onClick={nextPage}
 //                   disabled={currentPage === totalPages}
-//                   className={`ml-3 relative inline-flex items-center px-3 py-2 text-sm border border-gray-300 font-medium rounded-md ${
+//                   className={`ml-3 relative inline-flex items-center px-3 py-2 text-sm border border-ink-300 font-medium rounded-lg ${
 //                     currentPage === totalPages
-//                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-//                       : "bg-white text-gray-700 hover:bg-gray-50"
+//                       ? "bg-ink-100 text-ink-400 cursor-not-allowed"
+//                       : "bg-white text-ink-700 hover:bg-ink-50"
 //                   }`}
 //                 >
 //                   Next
 //                 </button>
 //               </div>
 //               <div className="hidden sm:block">
-//                 <p className="text-sm text-gray-700">
+//                 <p className="text-sm text-ink-700">
 //                   Page <span className="font-medium">{currentPage}</span> of{" "}
 //                   <span className="font-medium">{totalPages}</span>
 //                 </p>
@@ -767,7 +767,7 @@
 //             {/* Page Jump */}
 //             <div className="mt-4 flex justify-center">
 //               <div className="flex items-center space-x-2">
-//                 <span className="text-sm text-gray-700">Go to page:</span>
+//                 <span className="text-sm text-ink-700">Go to page:</span>
 //                 <input
 //                   type="text"
 //                   min="1"
@@ -779,9 +779,9 @@
 //                       goToPage(page);
 //                     }
 //                   }}
-//                   className="w-16 px-2 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+//                   className="w-16 px-2 py-1 text-sm border border-ink-300 rounded-lg shadow-sm focus:outline-none focus:ring-brand-400/40 focus:border-brand-500"
 //                 />
-//                 <span className="text-sm text-gray-700">of {totalPages}</span>
+//                 <span className="text-sm text-ink-700">of {totalPages}</span>
 //               </div>
 //             </div>
 //           </>
@@ -1331,7 +1331,7 @@ const PaymentPending = () => {
                     onClick={() => goToPage(go)}
                     disabled={disabled}
                     aria-label={label}
-                    className="flex h-8 w-8 items-center justify-center rounded-md border border-ink-200 text-ink-600 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 text-ink-600 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {React.createElement(icon, { className: "h-4 w-4" })}
                   </button>
@@ -1341,7 +1341,7 @@ const PaymentPending = () => {
                     key={pageNum}
                     onClick={() => goToPage(pageNum)}
                     aria-current={currentPage === pageNum ? "page" : undefined}
-                    className={`h-8 min-w-8 rounded-md px-2.5 text-xs font-semibold ${
+                    className={`h-8 min-w-8 rounded-lg px-2.5 text-xs font-semibold ${
                       currentPage === pageNum ? "bg-ink-950 text-brand-400" : "border border-ink-200 text-ink-700 hover:bg-ink-100"
                     }`}
                   >
@@ -1357,7 +1357,7 @@ const PaymentPending = () => {
                     onClick={() => goToPage(go)}
                     disabled={disabled}
                     aria-label={label}
-                    className="flex h-8 w-8 items-center justify-center rounded-md border border-ink-200 text-ink-600 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-ink-200 text-ink-600 hover:bg-ink-100 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {React.createElement(icon, { className: "h-4 w-4" })}
                   </button>

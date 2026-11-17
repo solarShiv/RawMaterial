@@ -381,10 +381,10 @@ const DebitNot = () => {
     }
   };
 
-  const { subtotal, totalGST, otherChargesTotal, grandTotal } = calculateTotals();
+  const { otherChargesTotal } = calculateTotals();
 
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-6">
+    <div className="min-h-[60vh] bg-ink-100 px-4 py-6">
 
       {/* Message Display */}
       {message.text && (
@@ -394,7 +394,7 @@ const DebitNot = () => {
       )}
 
       {/* Main Card */}
-      <div className="bg-white rounded-xl shadow-md p-6 w-full max-w-6xl">
+      <div className="bg-white rounded-xl shadow-card p-6 w-full max-w-6xl">
         <form onSubmit={handleSubmit}>
           {/* Company */}
           <div className="mb-4">
@@ -404,7 +404,7 @@ const DebitNot = () => {
             <select
               value={selectedCompany}
               onChange={(e) => setSelectedCompany(e.target.value)}
-              className="w-full border border-black rounded-lg px-3 py-2"
+              className="w-full border border-ink-950 rounded-lg px-3 py-2"
               required
             >
               <option value="">-- Select Company --</option>
@@ -424,12 +424,12 @@ const DebitNot = () => {
               </label>
 
               {loadingPO ? (
-                <p className="text-blue-600 text-sm">Loading PO...</p>
+                <p className="text-brand-700 text-sm">Loading PO...</p>
               ) : (
                 <select
                   value={selectedPO}
                   onChange={(e) => setSelectedPO(e.target.value)}
-                  className="w-full border border-black rounded-lg px-3 py-2"
+                  className="w-full border border-ink-950 rounded-lg px-3 py-2"
                   required
                 >
                   <option value="">-- Select PO Number --</option>
@@ -445,7 +445,7 @@ const DebitNot = () => {
 
           {/* PO DETAILS */}
           {loadingDetails && (
-            <p className="text-blue-600">Loading PO details...</p>
+            <p className="text-brand-700">Loading PO details...</p>
           )}
 
           {poDetails && items.length > 0 && (
@@ -453,35 +453,35 @@ const DebitNot = () => {
               {/* Header Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
-                  <label className="text-sm text-gray-600">PO Number</label>
+                  <label className="text-sm text-ink-600">PO Number</label>
                   <input
                     value={poDetails.poNumber}
                     disabled
-                    className="w-full border border-black rounded px-3 py-2 bg-gray-100"
+                    className="w-full border border-ink-950 rounded px-3 py-2 bg-ink-100"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm text-gray-600">Company</label>
+                  <label className="text-sm text-ink-600">Company</label>
                   <input
                     value={poDetails.companyName}
                     disabled
-                    className="w-full border border-black rounded px-3 py-2 bg-gray-100"
+                    className="w-full border border-ink-950 rounded px-3 py-2 bg-ink-100"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm text-gray-600">Vendor</label>
+                  <label className="text-sm text-ink-600">Vendor</label>
                   <input
                     value={poDetails.vendorName}
                     disabled
-                    className="w-full border border-black rounded px-3 py-2 bg-gray-100"
+                    className="w-full border border-ink-950 rounded px-3 py-2 bg-ink-100"
                   />
                 </div>
               </div>
 
               {/* Additional Information Section */}
-              <div className="mb-8 p-4 border border-black rounded-lg bg-gray-50">
+              <div className="mb-8 p-4 border border-ink-950 rounded-lg bg-ink-50">
                 <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -493,7 +493,7 @@ const DebitNot = () => {
                       type="text"
                       value={orgInvoiceNo}
                       onChange={(e) => setOrgInvoiceNo(e.target.value)}
-                      className="w-full border border-black rounded px-3 py-2"
+                      className="w-full border border-ink-950 rounded px-3 py-2"
                       required
                     />
                   </div>
@@ -506,7 +506,7 @@ const DebitNot = () => {
                       type="date"
                       value={orgInvoiceDate}
                       onChange={(e) => setOrgInvoiceDate(e.target.value)}
-                      className="w-full border border-black rounded px-3 py-2"
+                      className="w-full border border-ink-950 rounded px-3 py-2"
                       required
                     />
                   </div>
@@ -519,7 +519,7 @@ const DebitNot = () => {
                       type="text"
                       value={grRrNo}
                       onChange={(e) => setGrRrNo(e.target.value)}
-                      className="w-full border border-black rounded px-3 py-2"
+                      className="w-full border border-ink-950 rounded px-3 py-2"
                     />
                   </div>
 
@@ -531,7 +531,7 @@ const DebitNot = () => {
                       type="text"
                       value={transport}
                       onChange={(e) => setTransport(e.target.value)}
-                      className="w-full border border-black rounded px-3 py-2"
+                      className="w-full border border-ink-950 rounded px-3 py-2"
                     />
                   </div>
                   <div>
@@ -542,7 +542,7 @@ const DebitNot = () => {
                       type="text"
                       value={station}
                       onChange={(e) => setStation(e.target.value)}
-                      className="w-full border border-black rounded px-3 py-2"
+                      className="w-full border border-ink-950 rounded px-3 py-2"
                     />
                   </div>
 
@@ -553,7 +553,7 @@ const DebitNot = () => {
                     <select
                       value={gstType}
                       onChange={(e) => setGstType(e.target.value)}
-                      className="w-full border border-black rounded px-3 py-2"
+                      className="w-full border border-ink-950 rounded px-3 py-2"
                       required
                     >
                       <option value="">-- Select GST Type --</option>
@@ -564,12 +564,12 @@ const DebitNot = () => {
                       ))}
                     </select>
                     {!isItemwiseGST && gstType && (
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-ink-500 mt-1">
                         Default GST Rate: {getDefaultGSTRate()}%
                       </p>
                     )}
                     {isItemwiseGST && (
-                      <p className="text-sm text-blue-600 mt-1">
+                      <p className="text-sm text-brand-700 mt-1">
                         You can set GST rate for each item individually below
                       </p>
                     )}
@@ -583,7 +583,7 @@ const DebitNot = () => {
                     <button
                       type="button"
                       onClick={addOtherCharge}
-                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                      className="px-3 py-1 bg-ink-950 text-white text-sm rounded hover:bg-ink-800"
                     >
                       + Add Charge
                     </button>
@@ -591,12 +591,12 @@ const DebitNot = () => {
                   
                   <div className="space-y-3">
                     {otherCharges.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">
+                      <div className="text-center py-4 text-ink-500">
                         No charges added yet. Click "Add Charge" to add one.
                       </div>
                     ) : (
                       otherCharges.map((charge, index) => (
-                        <div key={charge.id} className="flex items-center gap-3 p-3 border border-black rounded bg-white">
+                        <div key={charge.id} className="flex items-center gap-3 p-3 border border-ink-950 rounded bg-white">
                           <div className="flex-1">
                             <label className="block text-sm font-medium mb-1">
                               Charge Name
@@ -605,7 +605,7 @@ const DebitNot = () => {
                               type="text"
                               value={charge.name}
                               onChange={(e) => handleOtherChargeChange(index, 'name', e.target.value)}
-                              className="w-full border border-black rounded px-3 py-2"
+                              className="w-full border border-ink-950 rounded px-3 py-2"
                               placeholder="e.g., Freight, Loading, Insurance, etc."
                             />
                           </div>
@@ -620,7 +620,7 @@ const DebitNot = () => {
                               min="0"
                               value={charge.amount}
                               onChange={(e) => handleOtherChargeChange(index, 'amount', e.target.value)}
-                              className="w-full border border-black rounded px-3 py-2"
+                              className="w-full border border-ink-950 rounded px-3 py-2"
                               placeholder="Enter amount"
                             />
                           </div>
@@ -641,7 +641,7 @@ const DebitNot = () => {
 
                   {/* Summary of Other Charges */}
                   {otherChargesTotal > 0 && (
-                    <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+                    <div className="mt-4 p-3 bg-brand-50 rounded border border-brand-300">
                       <div className="flex justify-between items-center">
                         <span className="font-medium">Total Other Charges:</span>
                         <span className="font-bold text-lg">₹{otherChargesTotal.toFixed(2)}</span>
@@ -666,13 +666,13 @@ const DebitNot = () => {
                   const total = taxableValue + gstAmount;
                   
                   return (
-                    <div key={item.id} className="border-2 border-black rounded-lg p-4 bg-white">
+                    <div key={item.id} className="border-2 border-ink-950 rounded-lg p-4 bg-white">
                       {/* Item Name Header */}
-                      <div className="mb-4 pb-3 border-b-2 border-black">
-                        <h3 className="text-lg font-semibold text-gray-800">
+                      <div className="mb-4 pb-3 border-b-2 border-ink-950">
+                        <h3 className="text-lg font-semibold text-ink-800">
                           {item.itemName}
                         </h3>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-ink-500 mt-1">
                           Source: {item.itemSource || "mysql"} | Item ID: {item.itemId?.substring(0, 8)}...
                         </p>
                       </div>
@@ -687,7 +687,7 @@ const DebitNot = () => {
                             type="text"
                             value={item.hsnCode}
                             onChange={(e) => handleItemChange(index, 'hsnCode', e.target.value)}
-                            className="w-full border border-black rounded px-3 py-2"
+                            className="w-full border border-ink-950 rounded px-3 py-2"
                             placeholder="Enter HSN Code"
                           />
                         </div>
@@ -700,7 +700,7 @@ const DebitNot = () => {
                             type="text"
                             value={item.modelNumber}
                             onChange={(e) => handleItemChange(index, 'modelNumber', e.target.value)}
-                            className="w-full border border-black rounded px-3 py-2"
+                            className="w-full border border-ink-950 rounded px-3 py-2"
                             placeholder="Enter Model Number"
                           />
                         </div>
@@ -715,7 +715,7 @@ const DebitNot = () => {
                             min="0"
                             value={item.quantity}
                             onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                            className="w-full border border-black rounded px-3 py-2"
+                            className="w-full border border-ink-950 rounded px-3 py-2"
                             required
                           />
                         </div>
@@ -727,7 +727,7 @@ const DebitNot = () => {
                           <label className="block text-sm font-medium mb-1">
                             Unit
                           </label>
-                          <div className="w-full border border-black rounded px-3 py-2 bg-gray-50">
+                          <div className="w-full border border-ink-950 rounded px-3 py-2 bg-ink-50">
                             {item.unit}
                           </div>
                         </div>
@@ -742,7 +742,7 @@ const DebitNot = () => {
                             min="0"
                             value={item.rate}
                             onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
-                            className="w-full border border-black rounded px-3 py-2"
+                            className="w-full border border-ink-950 rounded px-3 py-2"
                             required
                           />
                         </div>
@@ -751,7 +751,7 @@ const DebitNot = () => {
                           <label className="block text-sm font-medium mb-1">
                             Taxable Value (₹)
                           </label>
-                          <div className="w-full border border-black rounded px-3 py-2 bg-gray-50 text-right font-medium">
+                          <div className="w-full border border-ink-950 rounded px-3 py-2 bg-ink-50 text-right font-medium">
                             ₹{taxableValue.toFixed(2)}
                           </div>
                         </div>
@@ -772,14 +772,14 @@ const DebitNot = () => {
                                 max="100"
                                 value={item.gstRate}
                                 onChange={(e) => handleItemChange(index, 'gstRate', e.target.value)}
-                                className="w-full border border-black rounded px-3 py-2"
+                                className="w-full border border-ink-950 rounded px-3 py-2"
                                 required={isItemwiseGST}
                                 placeholder="0-100"
                               />
                               <span className="ml-2 text-sm">%</span>
                             </div>
                           ) : (
-                            <div className="w-full border border-black rounded px-3 py-2 bg-gray-50">
+                            <div className="w-full border border-ink-950 rounded px-3 py-2 bg-ink-50">
                               GST Rate is determined by selected GST Type: {getDefaultGSTRate()}%
                             </div>
                           )}
@@ -789,7 +789,7 @@ const DebitNot = () => {
                           <label className="block text-sm font-medium mb-1">
                             GST Amount (₹)
                           </label>
-                          <div className="w-full border border-black rounded px-3 py-2 bg-gray-50 text-right font-medium">
+                          <div className="w-full border border-ink-950 rounded px-3 py-2 bg-ink-50 text-right font-medium">
                             ₹{gstAmount.toFixed(2)}
                           </div>
                         </div>
@@ -798,7 +798,7 @@ const DebitNot = () => {
                           <label className="block text-sm font-medium mb-1">
                             Total (₹)
                           </label>
-                          <div className="w-full border-2 border-black rounded px-3 py-2 bg-gray-100 text-right font-bold">
+                          <div className="w-full border-2 border-ink-950 rounded px-3 py-2 bg-ink-100 text-right font-bold">
                             ₹{total.toFixed(2)}
                           </div>
                         </div>
@@ -812,7 +812,7 @@ const DebitNot = () => {
                         <textarea
                           value={item.itemDetail}
                           onChange={(e) => handleItemChange(index, 'itemDetail', e.target.value)}
-                          className="w-full border-2 border-black rounded px-3 py-2 min-h-[100px]"
+                          className="w-full border-2 border-ink-950 rounded px-3 py-2 min-h-[100px]"
                           placeholder="Enter detailed product description, specifications, condition, etc."
                           rows="4"
                         />
@@ -827,7 +827,7 @@ const DebitNot = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed border-2 border-blue-800"
+                  className="px-6 py-2 bg-ink-950 text-white rounded-lg hover:bg-ink-800 disabled:bg-brand-100 disabled:cursor-not-allowed border-2 border-brand-500"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">

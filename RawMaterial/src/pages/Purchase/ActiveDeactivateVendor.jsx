@@ -21,7 +21,6 @@ const ActiveDeactivateVendor = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [actionType, setActionType] = useState("");
-  const [error, setError] = useState(null);
 
   /* ================= FETCH DATA ================= */
   useEffect(() => {
@@ -38,7 +37,7 @@ const ActiveDeactivateVendor = () => {
       const res = await Api.get("/purchase/vendors/data");
       setVendors(res.data?.data || []);
     } catch (err) {
-      setError("Failed to load vendors");
+      console.error("Failed to load vendors", err);
     } finally {
       setLoading(false);
     }
@@ -125,14 +124,14 @@ const ActiveDeactivateVendor = () => {
   /* ================= LOADING ================= */
   if (loading) {
     return (
-      <div className="min-h-screen flex justify-center items-center">
-        <ArrowPathIcon className="h-10 w-10 animate-spin text-blue-600" />
+      <div className="min-h-[60vh] flex justify-center items-center">
+        <ArrowPathIcon className="h-10 w-10 animate-spin text-brand-700" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-[60vh] bg-ink-100 p-6">
       {/* ================= MODAL ================= */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -140,7 +139,7 @@ const ActiveDeactivateVendor = () => {
             <h2 className="text-lg font-bold mb-3">
               Confirm {actionType === "activate" ? "Activation" : "Deactivation"}
             </h2>
-            <p className="mb-4 text-gray-600">{selectedVendor?.name}</p>
+            <p className="mb-4 text-ink-600">{selectedVendor?.name}</p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowConfirmModal(false)}
@@ -164,26 +163,26 @@ const ActiveDeactivateVendor = () => {
       )}
 
       {/* ================= MAIN CARD ================= */}
-      <div className="bg-white rounded-xl shadow-lg w-full">
+      <div className="bg-white rounded-xl shadow-card w-full">
         {/* HEADER */}
         <div className="p-6 border-b">
 
           {/* FILTERS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
             <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-gray-400" />
+              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-ink-400" />
               <input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search vendor..."
-                className="pl-10 w-full border rounded-md py-2"
+                className="pl-10 w-full border rounded-lg py-2"
               />
             </div>
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border rounded-md py-2 px-3"
+              className="border rounded-lg py-2 px-3"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -195,7 +194,7 @@ const ActiveDeactivateVendor = () => {
         {/* ================= TABLE ================= */}
         <div className="overflow-x-auto">
           <table className="w-full table-auto border-collapse">
-            <thead className="bg-gray-50">
+            <thead className="bg-ink-50">
               <tr>
                 {["name", "gstNumber", "state", "country"].map((key) => (
                   <th
@@ -216,10 +215,10 @@ const ActiveDeactivateVendor = () => {
 
             <tbody>
               {filteredVendors.map((vendor) => (
-                <tr key={vendor.id} className="border-t hover:bg-gray-50">
+                <tr key={vendor.id} className="border-t hover:bg-ink-50">
                   <td className="px-6 py-4">
                     <p className="font-semibold">{vendor.name}</p>
-                    <p className="text-sm text-gray-500 break-words">
+                    <p className="text-sm text-ink-500 break-words">
                       {vendor.address}
                     </p>
                   </td>
@@ -256,7 +255,7 @@ const ActiveDeactivateVendor = () => {
         </div>
 
         {/* FOOTER */}
-        <div className="p-4 bg-gray-50 text-sm text-gray-600 flex justify-between">
+        <div className="p-4 bg-ink-50 text-sm text-ink-600 flex justify-between">
           <span>
             Showing {filteredVendors.length} of {vendors.length}
           </span>

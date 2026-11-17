@@ -18,7 +18,6 @@ const ItemRequest = () => {
   const [selectedStorePerson, setSelectedStorePerson] = useState(null);
   const [quantities, setQuantities] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState(""); // New state for search term
 
   useEffect(() => {
@@ -28,7 +27,6 @@ const ItemRequest = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      setSubmitMessage("");
 
       const [materialsResponse, storePersonsResponse] = await Promise.all([
         Api.get("/line-worker/rawMaterialForItemRequest"),
@@ -75,9 +73,11 @@ const ItemRequest = () => {
       }
     });
 
-    // Remove deselected items
+    // Remove deselected items. Object keys are always strings, so compare as
+    // strings or numeric ids would wipe every quantity on each change.
+    const selectedKeys = selectedIds.map(String);
     Object.keys(newQuantities).forEach(key => {
-      if (!selectedIds.includes(key)) {
+      if (!selectedKeys.includes(key)) {
         delete newQuantities[key];
       }
     });
@@ -88,18 +88,14 @@ const ItemRequest = () => {
   const handleQuantityChange = (materialId, value) => {
     const numValue = parseInt(value) || 0;
     const material = rawMaterials.find((m) => m.id === materialId);
+    if (!material) return;
 
-    if (numValue >= 0 && numValue <= material.stock) {
-      setQuantities((prev) => ({
-        ...prev,
-        [materialId]: numValue,
-      }));
-    } else if (numValue > material.stock) {
-      setQuantities((prev) => ({
-        ...prev,
-        [materialId]: material.stock,
-      }));
-    }
+    // Clamp to [0, stock]
+    const stock = Number(material.stock) || 0;
+    setQuantities((prev) => ({
+      ...prev,
+      [materialId]: Math.max(0, Math.min(numValue, stock)),
+    }));
   };
 
   const handleStorePersonSelect = (personId) => {
@@ -107,18 +103,19 @@ const ItemRequest = () => {
       setSelectedStorePerson(null);
       return;
     }
-    const person = storePersons.find((p) => p.id === personId);
-    setSelectedStorePerson(person);
+    // <select> always yields a string; ids from the API may be numbers
+    const person = storePersons.find((p) => String(p.id) === String(personId));
+    setSelectedStorePerson(person || null);
   };
 
   const handleSubmitRequest = async () => {
     if (!selectedStorePerson) {
-      setSubmitMessage("Please select a store person");
+      alert("Please select a store person");
       return;
     }
 
     if (selectedMaterials.length === 0) {
-      setSubmitMessage("Please select at least one material");
+      alert("Please select at least one material");
       return;
     }
 
@@ -128,13 +125,12 @@ const ItemRequest = () => {
     });
 
     if (invalidMaterials.length > 0) {
-      setSubmitMessage("Please enter valid quantities for all selected materials");
+      alert("Please enter valid quantities for all selected materials");
       return;
     }
 
     try {
       setSubmitting(true);
-      setSubmitMessage("");
 
       const requestData = {
         type: Type || "PRE",
@@ -153,20 +149,18 @@ const ItemRequest = () => {
       );
 
       if (response.data.success) {
-        setSubmitMessage("Request submitted successfully!");
         setSelectedMaterials([]);
         setSelectedStorePerson(null);
         setQuantities({});
         setSearchTerm(""); // Clear search term on successful submit
         setTimeout(() => fetchData(), 1000);
-        alert("Successfully: ", response?.data?.message)
+        alert("Successfully: " + (response?.data?.message || "Request submitted"));
       } else {
-        setSubmitMessage("Failed: " + response?.data?.message);
+        alert("Failed: " + response?.data?.message);
       }
     } catch (err) {
       console.log(err?.response?.data?.error);
-      setSubmitMessage("Error: " + (err?.response?.data?.message || err?.message));
-      alert("Error - " + err?.response?.data?.error);
+      alert("Error - " + (err?.response?.data?.error || err?.response?.data?.message || err?.message));
     } finally {
       setSubmitting(false);
     }
@@ -179,7 +173,7 @@ const ItemRequest = () => {
   const multiSelectMaterials = filteredMaterials.map(mat => ({
     id: mat.id,
     name: `${mat.name} (${mat.stock} ${mat.unit})`,
-    disabled: mat.outOfStock
+    disabled: Boolean(mat.outOfStock) || Number(mat.stock) <= 0,
   }));
 
   if (loading)
@@ -193,7 +187,7 @@ const ItemRequest = () => {
       </div>
     );
   return (
-    <div className="min-h-screen bg-white p-4 text-black font-inter">
+    <div className="min-h-[60vh] bg-white p-4 text-ink-950 ">
       <div className="text-center mb-2">
         <p className="text-black-600 mt-1 text-lg font-bold">
           REQUEST RAW MATERIALS FROM THE STORE
@@ -210,7 +204,7 @@ const ItemRequest = () => {
         />
 
         {/* Materials Selection */}
-        <div className="border shadow-md rounded-xl p-6 bg-white">
+        <div className="border shadow-card rounded-xl p-6 bg-white">
           <h2 className="text-xl font-semibold mb-4">Select Materials *</h2>
           
           {/* Search Bar */}
@@ -236,7 +230,7 @@ const ItemRequest = () => {
 
           {/* Search Results Info */}
           {searchTerm && (
-            <div className="mt-2 text-sm text-gray-600">
+            <div className="mt-2 text-sm text-ink-600">
               Showing {filteredMaterials.length} of {rawMaterials.length} materials matching "{searchTerm}"
             </div>
           )}
@@ -245,18 +239,18 @@ const ItemRequest = () => {
           <div className="flex gap-4 mt-3">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 bg-green-600 rounded-full"></span>
-              <p className="text-sm text-gray-600">In Stock</p>
+              <p className="text-sm text-ink-600">In Stock</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 bg-red-600 rounded-full"></span>
-              <p className="text-sm text-gray-600">Out of Stock</p>
+              <p className="text-sm text-ink-600">Out of Stock</p>
             </div>
           </div>
         </div>
 
         {/* Selected Materials List */}
         {selectedMaterials.length > 0 && (
-          <div className="border shadow-md rounded-xl p-6 bg-white">
+          <div className="border shadow-card rounded-xl p-6 bg-white">
             <h2 className="text-xl font-semibold mb-4">
               Selected Materials ({selectedMaterials.length})
             </h2>
@@ -274,7 +268,7 @@ const ItemRequest = () => {
                         mat.outOfStock
                           ? "bg-red-200 text-red-700"
                           : mat.stock <= 10
-                          ? "bg-yellow-200 text-yellow-700"
+                          ? "bg-brand-200 text-brand-700"
                           : "bg-green-200 text-green-700"
                       }`}
                     >
@@ -286,7 +280,7 @@ const ItemRequest = () => {
                     </span>
                   </div>
 
-                  <p className="text-gray-700 mt-2">
+                  <p className="text-ink-700 mt-2">
                     Available: <b>{mat.stock}</b> {mat.unit}
                   </p>
 
@@ -315,7 +309,7 @@ const ItemRequest = () => {
             variant="primary"
             loading={submitting}
             disabled={disabledSubmit}
-            className="w-32 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-white font-semibold py-2 border border-yellow-500 hover:scale-[1.03] transition-all duration-200"
+            className="w-32 rounded-lg bg-brand-400 hover:bg-brand-500 text-ink-950 font-semibold py-2 border border-brand-500 hover:scale-[1.03] transition-all duration-200"
             title="Submit" 
           />
            

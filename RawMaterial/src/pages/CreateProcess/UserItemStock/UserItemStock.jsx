@@ -16,9 +16,6 @@ const UserItemStock = () => {
   const [quantities, setQuantities] = useState({});
   const [extraRawMaterialRequired, setExtraRawMaterialRequired] =
     useState(false);
-  const [requestItems, setRequestItems] = useState([
-    { material: "", quantity: "" },
-  ]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -161,7 +158,7 @@ const UserItemStock = () => {
         <p className="text-red-600 text-lg">Error: {error}</p>
         <button
           onClick={fetchUserItemStock}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          className="px-4 py-2 bg-ink-950 text-white rounded hover:bg-ink-800 transition-colors"
         >
           Retry
         </button>
@@ -169,20 +166,20 @@ const UserItemStock = () => {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-[60vh] bg-ink-50 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h3 className="text-xl font-semibold text-gray-700 mb-4">
+          <h3 className="text-xl font-semibold text-ink-700 mb-4">
             Available Stock
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {userItemStock.map((item) => (
               <div
                 key={item.rawMaterialId}
-                className="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+                className="bg-white rounded-lg shadow-card border border-ink-200 p-6 hover:shadow-lg transition-shadow"
               >
                 <div className="flex justify-between items-start mb-4">
-                  <h4 className="text-lg font-semibold text-gray-800">
+                  <h4 className="text-lg font-semibold text-ink-800">
                     {item.rawMaterialName}
                   </h4>
                   <span
@@ -190,7 +187,7 @@ const UserItemStock = () => {
                       item.itemStock > 50
                         ? "bg-green-100 text-green-800"
                         : item.itemStock > 20
-                        ? "bg-yellow-100 text-yellow-800"
+                        ? "bg-brand-100 text-brand-700"
                         : "bg-red-100 text-red-800"
                     }`}
                   >
@@ -198,12 +195,12 @@ const UserItemStock = () => {
                   </span>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-gray-600">
-                    <strong className="text-gray-800">Current Quantity:</strong>{" "}
+                  <p className="text-ink-600">
+                    <strong className="text-ink-800">Current Quantity:</strong>{" "}
                     {item.quantity} {item.unit}
                   </p>
-                  <p className="text-gray-600">
-                    <strong className="text-gray-800">Available Stock:</strong>{" "}
+                  <p className="text-ink-600">
+                    <strong className="text-ink-800">Available Stock:</strong>{" "}
                     {item.itemStock} {item.unit}
                   </p>
                 </div>
@@ -211,17 +208,17 @@ const UserItemStock = () => {
             ))}
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
-          <label className="block text-lg font-semibold text-gray-700 mb-4">
+        <div className="bg-white rounded-lg shadow-card border border-ink-200 p-6 mb-6">
+          <label className="block text-lg font-semibold text-ink-700 mb-4">
             Select Materials (Multiple Selection):
           </label>
 
           <div className="relative">
             <div
-              className="flex justify-between items-center p-4 border border-gray-300 rounded-lg cursor-pointer bg-white hover:border-gray-400 transition-colors"
+              className="flex justify-between items-center p-4 border border-ink-300 rounded-lg cursor-pointer bg-white hover:border-ink-400 transition-colors"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              <span className="text-gray-700">
+              <span className="text-ink-700">
                 {selectedMaterials.length === 0
                   ? "Select materials"
                   : `${selectedMaterials.length} material(s) selected`}
@@ -236,28 +233,28 @@ const UserItemStock = () => {
             </div>
 
             {isDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 bg-white border border-ink-300 rounded-lg shadow-card z-10 max-h-60 overflow-y-auto">
                 {userItemStock.map((item) => (
                   <div
                     key={item.rawMaterialId}
-                    className={`flex justify-between items-center p-4 cursor-pointer border-b border-gray-100 last:border-b-0 hover:bg-gray-50 ${
+                    className={`flex justify-between items-center p-4 cursor-pointer border-b border-ink-100 last:border-b-0 hover:bg-ink-50 ${
                       isMaterialSelected(item.rawMaterialId)
-                        ? "bg-blue-50 border-blue-200"
+                        ? "bg-brand-50 border-brand-300"
                         : ""
                     }`}
                     onClick={() => toggleMaterialSelection(item)}
                   >
                     <div className="flex flex-col">
-                      <span className="font-medium text-gray-800">
+                      <span className="font-medium text-ink-800">
                         {item.rawMaterialName}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-ink-500">
                         Stock: {item.itemStock} {item.unit}
                       </span>
                     </div>
-                    <div className="w-6 h-6 flex items-center justify-center border-2 border-gray-300 rounded">
+                    <div className="w-6 h-6 flex items-center justify-center border-2 border-ink-300 rounded">
                       {isMaterialSelected(item.rawMaterialId) && (
-                        <span className="text-blue-600 font-bold">✓</span>
+                        <span className="text-brand-700 font-bold">✓</span>
                       )}
                     </div>
                   </div>
@@ -268,20 +265,20 @@ const UserItemStock = () => {
 
           {selectedMaterials.length > 0 && (
             <div className="mt-6">
-              <h4 className="text-lg font-semibold text-gray-700 mb-4">
+              <h4 className="text-lg font-semibold text-ink-700 mb-4">
                 Selected Materials & Quantities:
               </h4>
               <div className="space-y-4">
                 {selectedMaterials.map((material) => (
                   <div
                     key={material.rawMaterialId}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-ink-50 rounded-lg border border-ink-200"
                   >
                     <div className="flex flex-col mb-3 sm:mb-0">
-                      <span className="font-medium text-gray-800">
+                      <span className="font-medium text-ink-800">
                         {material.rawMaterialName}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-ink-500">
                         Available: {material.itemStock} {material.unit}
                       </span>
                     </div>
@@ -301,9 +298,9 @@ const UserItemStock = () => {
                         placeholder="Enter quantity"
                         min="0"
                         max={material.itemStock}
-                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-32 px-3 py-2 border border-ink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400/40 focus:border-transparent"
                       />
-                      <span className="text-gray-600 font-medium min-w-12">
+                      <span className="text-ink-600 font-medium min-w-12">
                         {material.unit}
                       </span>
                     </div>
@@ -315,9 +312,9 @@ const UserItemStock = () => {
         </div>
 
         {/* Extra Raw Material Section */}
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-card border border-ink-200 p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-            <label className="text-lg font-semibold text-gray-700 mb-3 sm:mb-0">
+            <label className="text-lg font-semibold text-ink-700 mb-3 sm:mb-0">
               Extra Raw Material Requirement:
             </label>
             <div className="flex space-x-6">
@@ -327,9 +324,9 @@ const UserItemStock = () => {
                   value="yes"
                   checked={extraRawMaterialRequired === true}
                   onChange={handleExtraMaterialToggle}
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                  className="w-4 h-4 text-brand-700 focus:ring-brand-400/40"
                 />
-                <span className="text-gray-700">Yes</span>
+                <span className="text-ink-700">Yes</span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
@@ -337,9 +334,9 @@ const UserItemStock = () => {
                   value="no"
                   checked={extraRawMaterialRequired === false}
                   onChange={handleExtraMaterialToggle}
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                  className="w-4 h-4 text-brand-700 focus:ring-brand-400/40"
                 />
-                <span className="text-gray-700">No</span>
+                <span className="text-ink-700">No</span>
               </label>
             </div>
           </div>
@@ -354,8 +351,8 @@ const UserItemStock = () => {
             disabled={submitting || selectedMaterials.length === 0}
             className={`px-8 py-3 rounded-lg font-semibold text-lg transition-colors ${
               submitting || selectedMaterials.length === 0
-                ? "bg-gray-400 cursor-not-allowed text-gray-200"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
+                ? "bg-ink-400 cursor-not-allowed text-ink-200"
+                : "bg-ink-950 hover:bg-ink-800 text-white"
             }`}
           />
         </div>

@@ -104,9 +104,9 @@ const PaymentRequest = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-5xl rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-6 text-gray-800">
+    <div className="min-h-[60vh] bg-ink-100 flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-5xl rounded-lg shadow-card p-6">
+        <h2 className="text-xl font-semibold mb-6 text-ink-800">
           Payment Request
         </h2>
 
@@ -114,38 +114,38 @@ const PaymentRequest = () => {
           {/* Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-ink-600 mb-1">
                 PO Number
               </label>
               <input
                 type="text"
                 value={poData?.poNumber || ""}
                 disabled
-                className="w-full px-3 py-2 border rounded-md bg-gray-100"
+                className="w-full px-3 py-2 border rounded-lg bg-ink-100"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-ink-600 mb-1">
                 Vendor Name
               </label>
               <input
                 type="text"
                 value={poData?.vendorName || ""}
                 disabled
-                className="w-full px-3 py-2 border rounded-md bg-gray-100"
+                className="w-full px-3 py-2 border rounded-lg bg-ink-100"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-ink-600 mb-1">
                 Sub Total
               </label>
               <input
                 type="text"
                 value={subTotal}
                 disabled
-                className="w-full px-3 py-2 border rounded-md bg-gray-100"
+                className="w-full px-3 py-2 border rounded-lg bg-ink-100"
               />
             </div>
           </div>
@@ -153,25 +153,25 @@ const PaymentRequest = () => {
           {/* Row 2 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-ink-600 mb-1">
                 Pending Amount
               </label>
               <input
                 type="text"
                 value={pendingAmount}
                 disabled
-                className="w-full px-3 py-2 border rounded-md bg-gray-100"
+                className="w-full px-3 py-2 border rounded-lg bg-ink-100"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-ink-600 mb-1">
                 Payment Type
               </label>
               <select
                 value={billpaymentType}
                 onChange={(e) => setBillpaymentType(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border rounded-lg"
               >
                 <option value="">Select Payment Type</option>
                 <option value="Advance_Payment">Advance Payment</option>
@@ -182,14 +182,14 @@ const PaymentRequest = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-ink-600 mb-1">
                 Calculation Base
               </label>
               <input
                 type="text"
                 value={baseAmount}
                 disabled
-                className="w-full px-3 py-2 border rounded-md bg-gray-100"
+                className="w-full px-3 py-2 border rounded-lg bg-ink-100"
               />
             </div>
           </div>
@@ -197,7 +197,7 @@ const PaymentRequest = () => {
           {/* Row 3 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-ink-600 mb-1">
                 Percentage (%)
               </label>
               <input
@@ -207,7 +207,7 @@ const PaymentRequest = () => {
                   setPercentage(e.target.value);
                   setLastChanged("percentage");
                 }}
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border rounded-lg"
                 min="0"
                 max="100"
                 step="0.01"
@@ -215,7 +215,7 @@ const PaymentRequest = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+              <label className="block text-sm font-medium text-ink-600 mb-1">
                 Amount
               </label>
               <input
@@ -235,7 +235,7 @@ const PaymentRequest = () => {
                     setLastChanged("amount");
                   }
                 }}
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border rounded-lg"
                 min="0"
                 step="0.01"
               />
@@ -247,7 +247,7 @@ const PaymentRequest = () => {
             <button
               type="submit"
               disabled={loading}
-              className="bg-yellow-400 text-dark px-6 py-2 rounded-md hover:bg-yellow-400 disabled:opacity-50"
+              className="bg-brand-400 text-dark px-6 py-2 rounded-lg hover:bg-brand-400 disabled:opacity-50"
             >
               {loading ? "Submitting..." : "Submit Payment Request"}
             </button>
