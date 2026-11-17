@@ -1,6 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowLeftRight, Loader2, Lock, Percent } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowLeftRight,
+  Loader2,
+  Lock,
+  Percent,
+  UserPlus,
+} from "lucide-react";
 import Api from "../../auth/Api";
 import SearchableSelect from "../../components/dropdown/SearchableSelect";
 
@@ -43,14 +51,10 @@ const GST_LABELS = {
   LGST_ITEMWISE: "LGST Itemwise",
 };
 
-// Never show NaN / Infinity in numeric inputs
-// Loose name compare: ignore case, punctuation and extra spaces
-const normName = (v) =>
-  String(v || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
+// GST numbers compared without spaces and case
+const normGst = (v) => String(v || "").replace(/\s+/g, "").toUpperCase();
 
+// Never show NaN / Infinity in numeric inputs
 const cleanNum = (v) => {
   const str = v === null || v === undefined ? "" : String(v);
   return /^(NaN|-?Infinity)$/.test(str) ? "" : str;
@@ -108,8 +112,10 @@ const TransferPurchaseOrder = () => {
   const [companies, setCompanies] = useState([]);
   const [companyId, setCompanyId] = useState("");
   const [vendorId, setVendorId] = useState("");
-  // true when the PO's current company was found in the vendor list
-  const [vendorMatched, setVendorMatched] = useState(false);
+  // true when no active vendor has the current company's GST number
+  const [vendorMissing, setVendorMissing] = useState(false);
+  const vendorName =
+    vendors.find((v) => String(v.id) === String(vendorId))?.displayName || "";
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -118,11 +124,16 @@ const TransferPurchaseOrder = () => {
     const load = async () => {
       setLoading(true);
       try {
-        const [orderRes, vendorRes, warehouseRes, companyRes] = await Promise.all([
+        const [orderRes, vendorRes, warehouseRes, companyRes, vendorDataRes] = await Promise.all([
           Api.get(`/purchase/purchase-orders/details/${poId}`),
           Api.get("/purchase/vendors"),
           Api.get("/purchase/warehouses"),
           Api.get("/purchase/companies"),
+          // Has each vendor's gstNumber (the list above only has id + displayName)
+          Api.get("/purchase/vendors/data").catch((err) => {
+            console.error("Error loading vendor GST data:", err);
+            return null;
+          }),
         ]);
         const details = orderRes?.data?.data;
         if (!details) {
@@ -134,16 +145,18 @@ const TransferPurchaseOrder = () => {
         // On transfer the PO's current company becomes the vendor of the new PO,
         // and the user picks the company the new PO is raised from.
         const vendorList = vendorRes?.data?.data || [];
-        const currentCompany = normName(details.companyName);
-        const companyAsVendor = currentCompany
-          ? vendorList.find((v) =>
-              [v.displayName, v.name, v.companyName].some(
-                (n) => normName(n) === currentCompany,
-              ),
+        const activeIds = new Set(vendorList.map((v) => String(v.id)));
+
+        // The vendor is fixed: the active vendor whose GST number equals the company's GST number
+        const companyGst = normGst(details.company?.gstNumber);
+        const gstVendor = companyGst
+          ? (vendorDataRes?.data?.data || []).find(
+              (v) => activeIds.has(String(v.id)) && normGst(v.gstNumber) === companyGst,
             )
           : null;
-        setVendorId(companyAsVendor ? String(companyAsVendor.id) : "");
-        setVendorMatched(Boolean(companyAsVendor));
+
+        setVendorId(gstVendor ? String(gstVendor.id) : "");
+        setVendorMissing(!gstVendor);
         setCompanyId("");
         setVendors(vendorList);
         setCompanies(companyRes?.data?.data || []);
@@ -265,7 +278,7 @@ const TransferPurchaseOrder = () => {
       return;
     }
     if (!vendorId) {
-      alert("Please select a vendor");
+      alert("Please add vendor first");
       return;
     }
     if (items.some((i) => i.rate === "" || isNaN(parseFloat(i.rate)))) {
@@ -314,9 +327,6 @@ const TransferPurchaseOrder = () => {
       })),
     };
 
-    const vendorName =
-      vendors.find((v) => String(v.id) === String(vendorId))?.displayName ||
-      "selected vendor";
     const newCompanyName =
       companies.find((c) => String(c.id) === String(companyId))?.companyName ||
       "selected company";
@@ -324,7 +334,7 @@ const TransferPurchaseOrder = () => {
       !window.confirm(
         `Transfer PO ${order.poNumber}?\n` +
           `Company: ${newCompanyName}\n` +
-          `Vendor: ${vendorName}\n` +
+          `Vendor: ${vendorName || "—"}\n` +
           `A new PO with a new PO number will be created.\n` +
           `The original PO will not be changed.`,
       )
@@ -421,6 +431,33 @@ const TransferPurchaseOrder = () => {
           </div>
         </div>
 
+        {vendorMissing && (
+          <div className="flex flex-col gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+              <p className="text-sm text-red-800">
+                <b>Please add vendor first.</b> No active vendor has the GST number of{" "}
+                <b>{order.companyName || order.company?.name}</b>
+                {order.company?.gstNumber ? (
+                  <>
+                    {" "}(<b>{order.company.gstNumber}</b>)
+                  </>
+                ) : (
+                  " (company has no GST number)"
+                )}
+                . Add it as a vendor with this GST number, then open Transfer PO again.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate("/add-vendor")}
+              className="btn-danger shrink-0"
+            >
+              <UserPlus className="h-4 w-4" /> Add Vendor
+            </button>
+          </div>
+        )}
+
         {/* Info banner */}
         <div className="flex items-center gap-3 rounded-xl border border-brand-300 bg-brand-50 px-4 py-3">
           <ArrowLeftRight className="h-5 w-5 shrink-0 text-brand-700" />
@@ -453,24 +490,19 @@ const TransferPurchaseOrder = () => {
               />
             </Field>
 
-            <Field
-              label="Vendor"
-              required
-              hint={
-                vendorMatched
-                  ? `Current company · original vendor: ${order.vendorName || "—"}`
-                  : `"${order.companyName || "Current company"}" is not in the vendor list — select it manually`
-              }
-            >
-              <SearchableSelect
-                options={vendors.map((v) => ({ id: v.id, name: v.displayName }))}
-                value={vendorId}
-                onChange={(id) => setVendorId(String(id))}
-                disabled={submitting}
-                placeholder="Select vendor"
-                searchPlaceholder="Search vendor…"
+            {vendorMissing ? (
+              <Field label="Vendor" required>
+                <div className="input flex cursor-not-allowed items-center gap-2 border-red-300 bg-red-50 text-red-700">
+                  <span className="min-w-0 flex-1 truncate">Please add vendor first</span>
+                  <Lock className="h-3.5 w-3.5 shrink-0 text-red-300" />
+                </div>
+              </Field>
+            ) : (
+              <ReadOnly
+                label="Vendor"
+                value={vendorName}
               />
-            </Field>
+            )}
 
             <ReadOnly label="GST Type" value={GST_LABELS[order.gstType] || order.gstType} />
             <ReadOnly label="Currency" value={currency} />
@@ -650,10 +682,10 @@ const TransferPurchaseOrder = () => {
         {/* Submit */}
         <div className="card flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-ink-500">
-            {!companyId
+            {!vendorId
+              ? "Please add vendor first."
+              : !companyId
               ? "Select a company to continue."
-              : !vendorId
-              ? "Select a vendor to continue."
               : "Review the details above, then transfer the purchase order."}
           </p>
           <div className="flex gap-2">

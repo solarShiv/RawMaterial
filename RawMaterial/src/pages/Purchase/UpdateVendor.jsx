@@ -19,6 +19,7 @@ import {
   DocumentArrowUpIcon,
   TrashIcon,
   EyeIcon,
+  
 } from "@heroicons/react/24/outline";
 
 const UpdateVendor = () => {
