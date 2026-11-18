@@ -1354,6 +1354,8 @@ const ShowPurchaseOrder = () => {
           foreignGrandTotal: po.foreignGrandTotal,
           grandTotal: po.grandTotal,
           displayGrandTotal: po.displayGrandTotal,
+          // Set when this PO was created by a transfer — hides "Transfer Po"
+          source_po_id: po.source_po_id ?? po.sourcePoId ?? null,
         }));
 
         setPoListing(mappedData);
@@ -1437,6 +1439,14 @@ const ShowPurchaseOrder = () => {
     return "—";
   };
 
+  // source_po_id is "available" only when it holds a real value (not null / "" / "null")
+  const hasSourcePo = (po) => {
+    const v = po?.source_po_id ?? po?.sourcePoId;
+    if (v === null || v === undefined) return false;
+    const s = String(v).trim().toLowerCase();
+    return s !== "" && s !== "null" && s !== "undefined";
+  };
+
   // Secondary actions shown in the "More" menu
   const menuActions = (po) =>
     [
@@ -1444,7 +1454,12 @@ const ShowPurchaseOrder = () => {
       { key: "email", show: canSendEmail(po), label: "Email to Vendor", icon: <MdEmail />, onClick: () => handleSendEmail(po.id, po?.poNumber), disabled: emailLoading },
       {
         key: "transfer",
-        show: true,
+        // Received / Partially Received POs can always be transferred (backend decides).
+        // Otherwise a PO that was itself created by a transfer cannot be transferred again.
+        show:
+          po?.status === "Received" ||
+          po?.status === "PartiallyReceived" ||
+          !hasSourcePo(po),
         label: "Transfer Po",
         icon: <HiSwitchHorizontal />,
         onClick: () => navigate(`/transfer-purchase-order/${po.id}`),

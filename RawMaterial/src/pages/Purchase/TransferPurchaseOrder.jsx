@@ -109,6 +109,7 @@ const TransferPurchaseOrder = () => {
   const [order, setOrder] = useState(null);
   const [vendors, setVendors] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
+  const [warehouseId, setWarehouseId] = useState("");
   const [companies, setCompanies] = useState([]);
   const [companyId, setCompanyId] = useState("");
   const [vendorId, setVendorId] = useState("");
@@ -160,7 +161,16 @@ const TransferPurchaseOrder = () => {
         setCompanyId("");
         setVendors(vendorList);
         setCompanies(companyRes?.data?.data || []);
-        setWarehouses(warehouseRes?.data?.data || []);
+        const warehouseList = warehouseRes?.data?.data || [];
+        setWarehouses(warehouseList);
+        // Start with the original PO's warehouse; the user can change it
+        setWarehouseId(
+          String(
+            details.warehouseId ||
+              warehouseList.find((w) => w.warehouseName === details.warehouseName)?._id ||
+              "",
+          ),
+        );
         // For non-INR POs the API returns `rate` in INR and the PO-currency rate in
         // `rateInForeign`. The create API expects rates in the PO currency, so use that.
         const isForeign = (details.currency || "INR") !== "INR";
@@ -286,10 +296,10 @@ const TransferPurchaseOrder = () => {
       return;
     }
 
-    const warehouseId =
-      order.warehouseId ||
-      warehouses.find((w) => w.warehouseName === order.warehouseName)?._id ||
-      "";
+    if (!warehouseId) {
+      alert("Please select a warehouse");
+      return;
+    }
 
     const payload = {
       companyId,
@@ -463,8 +473,8 @@ const TransferPurchaseOrder = () => {
           <ArrowLeftRight className="h-5 w-5 shrink-0 text-brand-700" />
           <p className="text-sm text-ink-800">
             The current company <b>{order.companyName}</b> becomes the <b>Vendor</b> of the
-            new PO — select the <b>Company</b> to transfer to. Item <b>Rate / Total</b> (or{" "}
-            <b>Increase %</b>) can also be changed. The original PO is not modified.
+            new PO — select the <b>Company</b> to transfer to. The <b>Warehouse</b> and item{" "}
+            <b>Rate / Total</b> (or <b>Increase %</b>) can also be changed. The original PO is not modified.
           </p>
         </div>
 
@@ -510,7 +520,23 @@ const TransferPurchaseOrder = () => {
               label={`Exchange Rate${currency !== "INR" ? ` (1 ${currency} = ? INR)` : ""}`}
               value={currency === "INR" ? "1.00 (Fixed)" : String(order.exchangeRate || "")}
             />
-            <ReadOnly label="Warehouse" value={order.warehouseName} />
+            <Field
+              label="Warehouse"
+              required
+              hint={order.warehouseName ? `Original: ${order.warehouseName}` : undefined}
+            >
+              <SearchableSelect
+                options={warehouses.map((w) => ({
+                  id: String(w._id ?? w.id),
+                  name: w.warehouseName || w.name || "",
+                }))}
+                value={warehouseId}
+                onChange={(id) => setWarehouseId(String(id))}
+                disabled={submitting}
+                placeholder="Select warehouse"
+                searchPlaceholder="Search warehouse…"
+              />
+            </Field>
             <ReadOnly label="Expected Delivery Date" value={formatDate(order.expectedDeliveryDate)} />
             <ReadOnly label="Payment Terms" value={order.paymentTerms} />
             <ReadOnly label="Delivery Terms" value={order.deliveryTerms} />
@@ -686,13 +712,15 @@ const TransferPurchaseOrder = () => {
               ? "Please add vendor first."
               : !companyId
               ? "Select a company to continue."
+              : !warehouseId
+              ? "Select a warehouse to continue."
               : "Review the details above, then transfer the purchase order."}
           </p>
           <div className="flex gap-2">
             <button type="button" onClick={() => navigate(-1)} className="btn-outline h-11 px-5">
               Cancel
             </button>
-            <button type="submit" disabled={submitting || !companyId || !vendorId} className="btn-primary h-11 shrink-0 px-6">
+            <button type="submit" disabled={submitting || !companyId || !vendorId || !warehouseId} className="btn-primary h-11 shrink-0 px-6">
               <ArrowLeftRight className="h-4 w-4" />
               Transfer Po
             </button>

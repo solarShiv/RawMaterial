@@ -410,7 +410,7 @@ const ReceivedPurchaseStock = () => {
         formData.append("billFile", billFile);
       }
 
-      await Api.post("/store-keeper/purchaseOrder/receive", formData, {
+      await Api.post("/v2/store-keeper/purchaseOrder/receive", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
