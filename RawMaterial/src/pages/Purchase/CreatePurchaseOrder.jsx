@@ -1361,11 +1361,12 @@ const CreatePurchaseOrder = () => {
         cellNo: String(cellNo),
         warehouseId: selectedWarehouse,
         prePoId: selectedPrePo || undefined,
-        items: itemDetails.map((item) => {
+        items: itemDetails.map((item, index) => {
           const selectedItemData = itemList.find(
             (i) => i.id === item.selectedItem,
           );
           const itemData = {
+            serial_no: index + 1,
             id: item.selectedItem,
             name: selectedItemData?.name || "",
             source: selectedItemData?.source || "",

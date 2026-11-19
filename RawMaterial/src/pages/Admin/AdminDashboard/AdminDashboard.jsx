@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Api from '../../../auth/Api';
 import { Document, Page, pdfjs } from 'react-pdf';
 
@@ -20,6 +20,7 @@ const AdminDashboard = () => {
   // Search and pagination states
   const [searchTerm, setSearchTerm] = useState('');
   const [searchField, setSearchField] = useState('all');
+  const [requestedByFilter, setRequestedByFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -54,17 +55,38 @@ const AdminDashboard = () => {
     }
   }, [notification]);
 
-  // Filter payment requests when search term changes
+  // Unique list of users who raised payment requests (for the filter dropdown)
+  const requesterNames = useMemo(() => {
+    const names = new Set();
+    paymentRequests.forEach((req) => {
+      const name = req.paymentRequestedBy?.trim();
+      if (name) names.add(name);
+    });
+    return [...names].sort((a, b) => a.localeCompare(b));
+  }, [paymentRequests]);
+
+  // Reset the requester filter if the selected name no longer exists after a refresh
   useEffect(() => {
+    if (requestedByFilter !== 'all' && !requesterNames.includes(requestedByFilter)) {
+      setRequestedByFilter('all');
+    }
+  }, [requesterNames, requestedByFilter]);
+
+  // Filter payment requests when search term or requester filter changes
+  useEffect(() => {
+    const byRequester = requestedByFilter === 'all'
+      ? paymentRequests
+      : paymentRequests.filter(req => req.paymentRequestedBy?.trim() === requestedByFilter);
+
     if (!searchTerm.trim()) {
-      setFilteredRequests(paymentRequests);
+      setFilteredRequests(byRequester);
       setCurrentPage(1);
       return;
     }
 
-    const filtered = paymentRequests.filter(request => {
+    const filtered = byRequester.filter(request => {
       const term = searchTerm.toLowerCase();
-      
+
       if (searchField === 'all') {
         return (
           request.poNumber?.toLowerCase().includes(term) ||
@@ -80,7 +102,7 @@ const AdminDashboard = () => {
 
     setFilteredRequests(filtered);
     setCurrentPage(1);
-  }, [searchTerm, searchField, paymentRequests]);
+  }, [searchTerm, searchField, paymentRequests, requestedByFilter]);
 
   const fetchPaymentRequests = async () => {
     try {
@@ -335,6 +357,7 @@ const AdminDashboard = () => {
   const clearSearch = () => {
     setSearchTerm('');
     setSearchField('all');
+    setRequestedByFilter('all');
   };
 
   // Clear all selections
@@ -717,7 +740,32 @@ const AdminDashboard = () => {
               />
             </div>
           </div>
-          
+
+          <div className="flex items-center gap-3">
+            <select
+              value={requestedByFilter}
+              onChange={(e) => setRequestedByFilter(e.target.value)}
+              className="w-full px-3 py-2.5 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-transparent transition-colors"
+              aria-label="Filter by requested by"
+            >
+              <option value="all">All Requesters ({paymentRequests.length})</option>
+              {requesterNames.map((name) => (
+                <option key={name} value={name}>
+                  {name} ({paymentRequests.filter(r => r.paymentRequestedBy?.trim() === name).length})
+                </option>
+              ))}
+            </select>
+
+            {(searchTerm || requestedByFilter !== 'all') && (
+              <button
+                onClick={clearSearch}
+                className="px-4 py-2.5 text-sm font-medium text-ink-700 bg-ink-100 hover:bg-ink-200 rounded-lg transition-colors whitespace-nowrap"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
           {/* <div className="flex items-center space-x-3">
             <select
               value={searchField}
@@ -745,7 +793,7 @@ const AdminDashboard = () => {
         <div className="mt-4 flex flex-wrap items-center justify-between">
           <div className="text-sm text-ink-600">
             <span className="font-medium">{filteredRequests.length}</span> request(s) found
-            {searchTerm && (
+            {(searchTerm || requestedByFilter !== 'all') && (
               <span className="ml-2">
                 (filtered from {paymentRequests.length})
               </span>
@@ -1014,9 +1062,9 @@ const AdminDashboard = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Type
                   </th>
-                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Requested By
-                  </th> */}
+                  </th>
                   {/* <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Date
                   </th> */}
@@ -1074,11 +1122,11 @@ const AdminDashboard = () => {
                       </span>
                     </td>
                    
-                    {/* <td className="px-6 py-4">
+                    <td className="px-6 py-4">
                       <div className="text-sm text-ink-900">
-                        {request.paymentRequestedBy}
+                        {request.paymentRequestedBy || '—'}
                       </div>
-                    </td> */}
+                    </td>
                     
                     {/* <td className="px-6 py-4">
                       <div className="text-sm text-ink-900">
@@ -1111,8 +1159,8 @@ const AdminDashboard = () => {
                     </td>
                     
                     <td className="px-6 py-4">
-                      <div className="flex space-x-2">
-                        <button 
+                      <div className="flex space-x-2 whitespace-nowrap">
+                        <button
                           onClick={() => handleSingleActionClick(request, 'APPROVE')}
                           disabled={updateLoading || request.status === 'APPROVED'}
                           className={`
@@ -1126,15 +1174,17 @@ const AdminDashboard = () => {
                         >
                           {request.status === 'APPROVED' ? (
                             <>
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-4 h-4 mr-1.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
+                              Approved
                             </>
                           ) : (
                             <>
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
+                              Approve
                             </>
                           )}
                         </button>
@@ -1153,15 +1203,17 @@ const AdminDashboard = () => {
                         >
                           {request.status === 'REJECTED' ? (
                             <>
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-4 h-4 mr-1.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                               </svg>
+                              Declined
                             </>
                           ) : (
                             <>
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                               </svg>
+                              Decline
                             </>
                           )}
                         </button>

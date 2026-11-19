@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Api from "../../auth/Api";
+
+const getCreatorId = (po) => po?.createdBy?.id || po?.createdBy?.name || "";
+const getCreatorName = (po) => po?.createdBy?.name || "—";
 
 const ApprovalPOInvoice = () => {
   const [approvalData, setApprovalData] = useState([]);
+  const [createdByFilter, setCreatedByFilter] = useState("all");
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState({});
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
@@ -16,6 +20,39 @@ const ApprovalPOInvoice = () => {
   useEffect(() => {
     fetchApprovalData();
   }, []);
+
+  // Unique creators (id -> name, count) for the filter dropdown
+  const creators = useMemo(() => {
+    const map = new Map();
+    approvalData.forEach((po) => {
+      const id = getCreatorId(po);
+      if (!id) return;
+      const entry = map.get(id) || { id, name: getCreatorName(po), count: 0 };
+      entry.count += 1;
+      map.set(id, entry);
+    });
+    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [approvalData]);
+
+  // Reset filter if the selected creator no longer has POs (e.g. after approve/refresh)
+  useEffect(() => {
+    if (createdByFilter !== "all" && !creators.some((c) => c.id === createdByFilter)) {
+      setCreatedByFilter("all");
+    }
+  }, [creators, createdByFilter]);
+
+  const visibleData = useMemo(
+    () =>
+      createdByFilter === "all"
+        ? approvalData
+        : approvalData.filter((po) => getCreatorId(po) === createdByFilter),
+    [approvalData, createdByFilter],
+  );
+
+  const handleCreatedByChange = (value) => {
+    setCreatedByFilter(value);
+    setSelectedPOs(new Set()); // avoid bulk actions on hidden rows
+  };
 
   const fetchApprovalData = async () => {
     setLoading(true);
@@ -167,10 +204,10 @@ const ApprovalPOInvoice = () => {
 
   // Handle select all/none
   const handleSelectAll = () => {
-    if (selectedPOs.size === approvalData.length) {
+    if (selectedPOs.size === visibleData.length) {
       setSelectedPOs(new Set());
     } else {
-      setSelectedPOs(new Set(approvalData.map((po) => po.poId)));
+      setSelectedPOs(new Set(visibleData.map((po) => po.poId)));
     }
   };
 
@@ -390,7 +427,33 @@ const ApprovalPOInvoice = () => {
         </div>
       )}
 
-      <div className="flex justify-end items-center mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-6">
+        <div className="flex items-center gap-2">
+          <label htmlFor="created-by-filter" className="text-sm font-medium text-ink-700 whitespace-nowrap">
+            Created By
+          </label>
+          <select
+            id="created-by-filter"
+            value={createdByFilter}
+            onChange={(e) => handleCreatedByChange(e.target.value)}
+            className="w-full sm:w-64 px-3 py-2 border border-ink-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-400/40 focus:border-transparent"
+          >
+            <option value="all">All Users ({approvalData.length})</option>
+            {creators.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} ({c.count})
+              </option>
+            ))}
+          </select>
+          {createdByFilter !== "all" && (
+            <button
+              onClick={() => handleCreatedByChange("all")}
+              className="px-3 py-2 text-sm font-medium text-ink-700 bg-ink-100 hover:bg-ink-200 rounded-lg transition-colors"
+            >
+              Clear
+            </button>
+          )}
+        </div>
         <div className="flex space-x-3">
           <button
             onClick={fetchApprovalData}
@@ -415,7 +478,19 @@ const ApprovalPOInvoice = () => {
         </div>
       </div>
 
-      {approvalData.length === 0 ? (
+      {approvalData.length > 0 && visibleData.length === 0 ? (
+        <div className="text-center p-8 bg-white rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-ink-600 mb-2">
+            No POs for this user
+          </h3>
+          <button
+            onClick={() => handleCreatedByChange("all")}
+            className="text-brand-700 hover:text-ink-950 font-medium"
+          >
+            Show all users
+          </button>
+        </div>
+      ) : approvalData.length === 0 ? (
         <div className="text-center p-8 bg-white rounded-lg shadow">
           <div className="text-ink-400 text-6xl mb-4">📋</div>
           <h3 className="text-lg font-semibold text-ink-600 mb-2">
@@ -435,8 +510,8 @@ const ApprovalPOInvoice = () => {
                     <input
                       type="checkbox"
                       checked={
-                        selectedPOs.size === approvalData.length &&
-                        approvalData.length > 0
+                        selectedPOs.size === visibleData.length &&
+                        visibleData.length > 0
                       }
                       onChange={handleSelectAll}
                       className="rounded border-ink-300 text-brand-700 focus:ring-brand-400/40"
@@ -447,6 +522,9 @@ const ApprovalPOInvoice = () => {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Vendor
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
+                    Created By
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-ink-500 uppercase tracking-wider">
                     Amount
@@ -463,7 +541,7 @@ const ApprovalPOInvoice = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-ink-200">
-                {approvalData.map((po) => {
+                {visibleData.map((po) => {
                   const isSelected = isRowSelected(po.poId);
                   return (
                     <tr
@@ -567,6 +645,11 @@ const ApprovalPOInvoice = () => {
                       <td className="px-6 py-4">
                         <div className="text-sm text-ink-900">
                           {po.vendorName}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-ink-900">
+                          {getCreatorName(po)}
                         </div>
                       </td>
                       <td className="px-6 py-4">

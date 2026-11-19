@@ -2,6 +2,10 @@ import React, { useEffect, useState, useRef } from "react";
 import Api from "../../../../auth/Api";
 import { ArchiveBoxIcon, ArrowUturnLeftIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import ContainerMultiSelect from "../../../../components/dropdown/ContainerMultiSelect";
+import { compressVideo, MAX_VIDEO_BYTES } from "../../../../utils/compressVideo";
+
+const formatSize = (bytes) =>
+  bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(2)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
 
 const ISSUE_TYPES = ["PERMANENT", "RETURNABLE"];
 
@@ -46,6 +50,15 @@ const SingleOut = () => {
   const [file, setFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const fileInputRef = useRef(null);
+
+  // --- VIDEO UPLOAD STATE (optional, compressed to <= 5 MB) ---
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoPreview, setVideoPreview] = useState(null);
+  const [videoOriginalSize, setVideoOriginalSize] = useState(0);
+  const [videoCompressing, setVideoCompressing] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const videoInputRef = useRef(null);
+  const videoJobRef = useRef(0);
 
   const dropdownRef = useRef(null);
 
@@ -141,6 +154,16 @@ const SingleOut = () => {
     setFilePreview(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);
+
+  useEffect(() => {
+    if (!videoFile) {
+      setVideoPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(videoFile);
+    setVideoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [videoFile]);
 
   const filteredItems = uniqueItemList.filter(item => {
     if (!searchTerm) return true;
@@ -287,6 +310,51 @@ const SingleOut = () => {
     }
   };
 
+  const handleVideoChange = async (e) => {
+    const selected = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!selected) return;
+
+    if (!selected.type.startsWith("video/")) {
+      setErrors(prev => ({ ...prev, video: "Only video files are allowed" }));
+      return;
+    }
+
+    const jobId = ++videoJobRef.current;
+    setVideoFile(null);
+    setVideoOriginalSize(selected.size);
+    setErrors(prev => ({ ...prev, video: undefined }));
+
+    if (selected.size <= MAX_VIDEO_BYTES) {
+      setVideoFile(selected);
+      return;
+    }
+
+    setVideoCompressing(true);
+    setVideoProgress(0);
+    try {
+      const compressed = await compressVideo(selected, {
+        onProgress: (p) => jobId === videoJobRef.current && setVideoProgress(p),
+      });
+      if (jobId !== videoJobRef.current) return; // cancelled / replaced
+      setVideoFile(compressed);
+    } catch (err) {
+      if (jobId !== videoJobRef.current) return;
+      setErrors(prev => ({ ...prev, video: err.message || "Video compression failed" }));
+    } finally {
+      if (jobId === videoJobRef.current) setVideoCompressing(false);
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    videoJobRef.current++; // ignore any compression still running
+    setVideoFile(null);
+    setVideoCompressing(false);
+    setVideoProgress(0);
+    setVideoOriginalSize(0);
+    setErrors(prev => ({ ...prev, video: undefined }));
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -342,6 +410,10 @@ const SingleOut = () => {
       newErrors.file = "Image is required";
     }
 
+    if (videoFile && videoFile.size > MAX_VIDEO_BYTES) {
+      newErrors.video = "Video must be 5 MB or smaller";
+    }
+
     return newErrors;
   };
 
@@ -373,6 +445,21 @@ const SingleOut = () => {
         uploadedFileUrl = uploadRes?.data?.data?.fileUrl;
       }
 
+      // 1b. Upload video (already compressed to <= 5 MB)
+      let uploadedVideoUrl = null;
+      if (videoFile) {
+        const videoForm = new FormData();
+        videoForm.append("file", videoFile);
+
+        const videoRes = await Api.post("/common/uploadFile", videoForm, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        uploadedVideoUrl = videoRes?.data?.data?.fileUrl;
+      }
+
       // 2. Build Final Payload
       const payload = {
         issuedTo: selectedWorker,
@@ -397,7 +484,11 @@ const SingleOut = () => {
 
       // ---> UPDATED KEY HERE <---
       if (uploadedFileUrl) {
-        payload.proof_images = uploadedFileUrl; 
+        payload.proof_images = uploadedFileUrl;
+      }
+
+      if (uploadedVideoUrl) {
+        payload.proof_video = uploadedVideoUrl;
       }
 
       console.log("FINAL PAYLOAD 👉", payload);
@@ -432,6 +523,7 @@ const SingleOut = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    handleRemoveVideo();
   };
 
   const renderSelectedBadges = () => {
@@ -993,8 +1085,128 @@ const SingleOut = () => {
             )}
           </div>
 
-          {/* REMARKS */}
+          {/* VIDEO UPLOAD UI (optional, auto-compressed to <= 5 MB) */}
           <div className="flex flex-col">
+            <label className="flex items-center gap-2 mb-1 font-medium text-ink-700">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-brand-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Attach Video <span className="text-xs font-normal text-ink-500"></span>
+            </label>
+            <p className="mb-3 text-xs sm:text-sm text-ink-500">
+              Max 5 MB. Larger videos are compressed automatically.
+            </p>
+
+            <input
+              id="proof-video"
+              type="file"
+              accept="video/*"
+              onChange={handleVideoChange}
+              ref={videoInputRef}
+              className="hidden"
+            />
+
+            {videoCompressing ? (
+              <div className="p-4 border border-brand-300 bg-brand-50 rounded-lg">
+                <div className="flex items-center justify-between gap-3 text-sm font-medium text-ink-700">
+                  <span className="flex items-center gap-2">
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+                    Compressing video ({formatSize(videoOriginalSize)})…
+                  </span>
+                  <span className="tabular-nums">{videoProgress}%</span>
+                </div>
+                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-ink-200">
+                  <div
+                    className="h-full rounded-full bg-brand-500 transition-[width] duration-300"
+                    style={{ width: `${videoProgress}%` }}
+                  />
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <p className="text-xs text-ink-500">
+                    Keep this page open. Takes about as long as the video plays.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleRemoveVideo}
+                    className="shrink-0 px-3 py-1.5 text-xs bg-white border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : !videoFile ? (
+              <label
+                htmlFor="proof-video"
+                className={`flex flex-col items-center justify-center w-full px-4 py-6 sm:py-8 border-2 border-dashed rounded-lg cursor-pointer transition text-center ${
+                  errors.video
+                    ? 'border-red-400 bg-red-50 hover:bg-red-100'
+                    : 'border-ink-300 bg-ink-50 hover:border-brand-400 hover:bg-brand-50'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-10 w-10 mb-2 ${errors.video ? 'text-red-400' : 'text-ink-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span className="text-sm sm:text-base font-medium text-brand-700">
+                  Tap to upload video
+                </span>
+                <span className="mt-1 text-xs text-ink-500">MP4, MOV, WEBM</span>
+              </label>
+            ) : (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border border-green-300 bg-green-50 rounded-lg">
+                {videoPreview && (
+                  <video
+                    src={videoPreview}
+                    controls
+                    playsInline
+                    className="w-full sm:w-40 h-48 sm:h-24 object-cover rounded-lg border border-ink-200 bg-ink-950"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 text-sm font-medium text-green-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Video ready
+                  </div>
+                  <p className="text-sm text-ink-700 truncate mt-0.5" title={videoFile.name}>
+                    {videoFile.name}
+                  </p>
+                  <p className="text-xs text-ink-500">
+                    {videoOriginalSize > videoFile.size
+                      ? `${formatSize(videoOriginalSize)} → ${formatSize(videoFile.size)}`
+                      : formatSize(videoFile.size)}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <label
+                    htmlFor="proof-video"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-white border border-ink-300 text-ink-700 rounded-lg cursor-pointer hover:bg-ink-100 transition"
+                  >
+                    Change
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleRemoveVideo}
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-white border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {errors.video && (
+              <p className="flex items-center gap-1 text-red-500 text-sm mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.video}
+              </p>
+            )}
+          </div>
+
+          {/* REMARKS */}
+          <div className="flex flex-col md:col-span-2">
             <label className="flex items-center gap-2 mb-1 font-medium text-ink-700">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-brand-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -1015,13 +1227,15 @@ const SingleOut = () => {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <button
               type="submit"
-              disabled={submitting || selectedItems.length === 0}
+              disabled={submitting || videoCompressing || selectedItems.length === 0}
               className="flex-1 bg-brand-600 to-emerald-600 
  text-ink-950 rounded-lg px-4 py-3 font-medium hover:from-brand-700 
  hover:to-emerald-700 disabled:from-ink-400 disabled:to-ink-500 
  disabled:cursor-not-allowed transition shadow-card hover:shadow-lg"
             >
-              {submitting ? (
+              {videoCompressing && !submitting ? (
+                `Compressing video... ${videoProgress}%`
+              ) : submitting ? (
                 <span className="flex items-center justify-center">
                   <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

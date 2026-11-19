@@ -95,6 +95,7 @@ const ShowPurchaseOrder = () => {
   // Search states
   const [vendor, setVendor] = useState("");
   const [poNumber, setPoNumber] = useState("");
+  const [itemNameSearch, setItemNameSearch] = useState("");
   const [srcBtnDisabled, setSrcBtnDisabled] = useState(false);
   const [poListing, setPoListing] = useState([]);
   const [actionMenu, setActionMenu] = useState(null);
@@ -1331,6 +1332,8 @@ const ShowPurchaseOrder = () => {
     if (selectedCompany)
       queryParams.push(`company=${encodeURIComponent(selectedCompany)}`);
     if (vendor) queryParams.push(`vendor=${encodeURIComponent(vendor)}`);
+    const itemTerm = itemNameSearch.trim();
+    if (itemTerm) queryParams.push(`itemName=${encodeURIComponent(itemTerm)}`);
 
     queryParams.push(`page=${page}`);
     queryParams.push(`limit=${limit}`);
@@ -1358,7 +1361,20 @@ const ShowPurchaseOrder = () => {
           source_po_id: po.source_po_id ?? po.sourcePoId ?? null,
         }));
 
-        setPoListing(mappedData);
+        // Fallback: also filter by item name on the client, in case the
+        // backend ignores the itemName param.
+        const term = itemTerm.toLowerCase();
+        const finalData = term
+          ? mappedData.filter((po) =>
+              po.items.some((it) =>
+                [it?.name, it?.itemName, it?.item_name]
+                  .filter(Boolean)
+                  .some((n) => String(n).toLowerCase().includes(term)),
+              ),
+            )
+          : mappedData;
+
+        setPoListing(finalData);
         setTotalItems(response.data.pagination?.total || 0);
         setTotalPages(response.data.pagination?.totalPages || 1);
         setCurrentPage(page);
@@ -1423,12 +1439,13 @@ const ShowPurchaseOrder = () => {
       selectedOrderDetails.currency === "CNY" ||
       selectedOrderDetails.currency === "AED");
 
-  const hasFilters = poNumber || selectedCompany || vendor;
+  const hasFilters = poNumber || selectedCompany || vendor || itemNameSearch;
 
   const clearFilters = () => {
     setPoNumber("");
     setSelectedCompany("");
     setVendor("");
+    setItemNameSearch("");
   };
 
   const poAmount = (po) => {
@@ -1530,7 +1547,7 @@ const ShowPurchaseOrder = () => {
             poSearch(1);
           }}
         >
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-end">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto] lg:items-end">
             <div>
               <label className="label">PO Number</label>
               <div className="relative">
@@ -1576,7 +1593,20 @@ const ShowPurchaseOrder = () => {
                 />
               </div>
             </div>
-            <div className="flex gap-2 sm:col-span-3 lg:col-span-1">
+            <div>
+              <label className="label">Item Name</label>
+              <div className="relative">
+                <HiSearch className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
+                <input
+                  value={itemNameSearch}
+                  onChange={(e) => setItemNameSearch(e.target.value)}
+                  placeholder="e.g. 10 Panel Pillar"
+                  className="input pl-9"
+                  name="itemName"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 sm:col-span-2 lg:col-span-1">
               <button type="submit" disabled={srcBtnDisabled} className="btn-primary flex-1 px-5 lg:flex-none">
                 {srcBtnDisabled ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink-950/30 border-t-ink-950" />
