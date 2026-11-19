@@ -107,7 +107,7 @@ const PoStockReceiving = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await Api.get("/store-keeper/getPendingPOsForReceiving");
+      const response = await Api.get("/v2/store-keeper/getPendingPOsForReceiving");
       if (response.data.success) {
         setStockReceived(response.data.data || []);
       } else {
@@ -145,6 +145,7 @@ const PoStockReceiving = () => {
           return (po.items || []).some(
             (item) =>
               toText(item.itemName).includes(term) ||
+              toText(item.description).includes(term) ||
               toText(item.modelNumber).includes(term) ||
               toText(item.hsnCode).includes(term)
           );
@@ -158,6 +159,7 @@ const PoStockReceiving = () => {
             (po.items || []).some(
               (item) =>
                 toText(item.itemName).includes(term) ||
+                toText(item.description).includes(term) ||
                 toText(item.modelNumber).includes(term) ||
                 toText(item.hsnCode).includes(term)
             )
@@ -282,7 +284,14 @@ const PoStockReceiving = () => {
         <tbody>
           {items.map((item) => (
             <tr key={item.id} className="border-t border-ink-100">
-              <td className="px-4 py-2 font-medium text-ink-900">{item.itemName}</td>
+              <td className="px-4 py-2 align-top min-w-[16rem] max-w-md">
+                <div className="font-medium text-ink-900">{item.itemName}</div>
+                {item.description && (
+                  <div className="mt-0.5 whitespace-pre-line break-words text-xs leading-relaxed text-ink-500">
+                    {item.description}
+                  </div>
+                )}
+              </td>
               <td className="px-4 py-2 text-ink-600">{item.hsnCode || "—"}</td>
               <td className="px-4 py-2 text-ink-600">{item.modelNumber || "—"}</td>
               <td className="px-4 py-2 text-ink-600">{item.unit || "—"}</td>
@@ -586,6 +595,11 @@ const PoStockReceiving = () => {
                           {(po.items || []).map((item) => (
                             <div key={item.id} className="rounded-lg border border-ink-200 px-3 py-2 text-xs">
                               <div className="font-semibold text-ink-900">{item.itemName}</div>
+                              {item.description && (
+                                <div className="mt-0.5 whitespace-pre-line break-words leading-relaxed text-ink-600">
+                                  {item.description}
+                                </div>
+                              )}
                               <div className="text-ink-500">
                                 {[item.modelNumber, item.hsnCode && `HSN ${item.hsnCode}`, item.unit]
                                   .filter(Boolean)

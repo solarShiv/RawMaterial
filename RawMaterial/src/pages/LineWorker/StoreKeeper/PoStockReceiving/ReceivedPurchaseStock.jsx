@@ -762,8 +762,10 @@ const ReceivedPurchaseStock = () => {
                             {renderItemMeta(item) && (
                               <div className="text-xs font-medium text-ink-600">{renderItemMeta(item)}</div>
                             )}
-                            {item.itemDetail && (
-                              <div className="mt-1 break-words text-xs text-ink-500">{item.itemDetail}</div>
+                            {(item.description || item.itemDetail) && (
+                              <div className="mt-1 whitespace-pre-line break-words text-xs leading-relaxed text-ink-500">
+                                {item.description || item.itemDetail}
+                              </div>
                             )}
                           </div>
                         </div>
