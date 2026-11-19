@@ -286,10 +286,12 @@ const PoStockReceiving = () => {
             <tr key={item.id} className="border-t border-ink-100">
               <td className="px-4 py-2 align-top min-w-[16rem] max-w-md">
                 <div className="font-medium text-ink-900">{item.itemName}</div>
-                {item.description && (
+                {item.description?.trim() ? (
                   <div className="mt-0.5 whitespace-pre-line break-words text-xs leading-relaxed text-ink-500">
                     {item.description}
                   </div>
+                ) : (
+                  <div className="mt-0.5 text-xs italic text-ink-400">Description not available</div>
                 )}
               </td>
               <td className="px-4 py-2 text-ink-600">{item.hsnCode || "—"}</td>
@@ -595,10 +597,12 @@ const PoStockReceiving = () => {
                           {(po.items || []).map((item) => (
                             <div key={item.id} className="rounded-lg border border-ink-200 px-3 py-2 text-xs">
                               <div className="font-semibold text-ink-900">{item.itemName}</div>
-                              {item.description && (
+                              {item.description?.trim() ? (
                                 <div className="mt-0.5 whitespace-pre-line break-words leading-relaxed text-ink-600">
                                   {item.description}
                                 </div>
+                              ) : (
+                                <div className="mt-0.5 italic text-ink-400">Description not available</div>
                               )}
                               <div className="text-ink-500">
                                 {[item.modelNumber, item.hsnCode && `HSN ${item.hsnCode}`, item.unit]

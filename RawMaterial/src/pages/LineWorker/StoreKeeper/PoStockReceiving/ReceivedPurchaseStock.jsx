@@ -762,10 +762,12 @@ const ReceivedPurchaseStock = () => {
                             {renderItemMeta(item) && (
                               <div className="text-xs font-medium text-ink-600">{renderItemMeta(item)}</div>
                             )}
-                            {(item.description || item.itemDetail) && (
+                            {(item.description?.trim() || item.itemDetail?.trim()) ? (
                               <div className="mt-1 whitespace-pre-line break-words text-xs leading-relaxed text-ink-500">
-                                {item.description || item.itemDetail}
+                                {item.description?.trim() || item.itemDetail}
                               </div>
+                            ) : (
+                              <div className="mt-1 text-xs italic text-ink-400">Description not available</div>
                             )}
                           </div>
                         </div>
