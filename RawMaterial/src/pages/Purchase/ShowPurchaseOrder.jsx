@@ -12,6 +12,7 @@ import {
   HiOfficeBuilding,
   HiUserGroup,
   HiSwitchHorizontal,
+  HiEye,
 } from "react-icons/hi";
 import {
   MdCancelPresentation,
@@ -21,6 +22,7 @@ import {
 import { AiOutlineSync } from "react-icons/ai";
 import { FaCloudDownloadAlt } from "react-icons/fa";
 import { FiSend } from "react-icons/fi";
+import PoItemsModal from "./PoItemsModal";
 
 const ShowPurchaseOrder = () => {
   // State variables
@@ -49,6 +51,8 @@ const ShowPurchaseOrder = () => {
   const [vendorsList, setVendorsList] = useState([]);
   const [vendorsLoading, setVendorsLoading] = useState(false);
   const [loadingItems, setLoadingItems] = useState({});
+  // PO whose items popup is open (from the list's Items button)
+  const [itemsPopupPo, setItemsPopupPo] = useState(null);
   const [invoiceData, setInvoiceData] = useState({
     invoiceNumber: "",
     invoiceFile: null,
@@ -1323,6 +1327,34 @@ const ShowPurchaseOrder = () => {
     return statusOption ? statusOption.label : status;
   };
 
+  // Items popup rows: each PO item joined with its receipts (matched on purchaseOrderItemId).
+  // An item received in several lots sums good/damaged qty and shows the latest received date.
+  const getItemReceiptRows = (po) =>
+    (po?.items || []).map((item) => {
+      const lots = (po?.receipts || []).filter((r) => r.purchaseOrderItemId === item.id);
+      const sum = (key) => lots.reduce((acc, r) => acc + (Number(r[key]) || 0), 0);
+      const latestDate = lots
+        .map((r) => r.receivedDate)
+        .filter(Boolean)
+        .sort()
+        .pop();
+      return {
+        id: item.id,
+        itemName: item.itemName || item.name || "N/A",
+        unit: item.unit || "",
+        quantity: Number(item.quantity) || 0,
+        receivedQty: Number(item.receivedQty) || 0,
+        goodQty: lots.length ? sum("goodQty") : null,
+        damagedQty: lots.length ? sum("damagedQty") : null,
+        receivedDate: latestDate || null,
+        // Lots may arrive on different vehicles — list each one once
+        vehicleNumber:
+          [...new Set(lots.map((r) => r.vehicleNumber).filter(Boolean))].join(", ") || null,
+        receivedBy:
+          [...new Set(lots.map((r) => r.receivedBy).filter(Boolean))].join(", ") || null,
+      };
+    });
+
   const poSearch = async (page = 1, limit = itemsPerPage) => {
     setSrcBtnDisabled(true);
     const API_URL = "/purchase/purchase-orders/show?";
@@ -1351,6 +1383,7 @@ const ShowPurchaseOrder = () => {
           companyName: po.companyName,
           vendorName: po.vendorName,
           items: po.items || [],
+          receipts: po.receipts || [],
           status: po.status,
           expectedDeliveryDate: po.expectedDeliveryDate,
           currency: po.currency,
@@ -1688,7 +1721,17 @@ const ShowPurchaseOrder = () => {
                         <td className="min-w-[160px] max-w-[260px] break-words text-ink-700">{po?.companyName || "N/A"}</td>
                         <td className="min-w-[160px] max-w-[260px] break-words font-medium text-ink-900">{po?.vendorName || "N/A"}</td>
                         <td className="text-center">
-                          <span className="badge-gray tabular-nums">{po?.items?.length ?? 0}</span>
+                          <button
+                            type="button"
+                            onClick={() => setItemsPopupPo(po)}
+                            disabled={!po?.items?.length}
+                            title="View items"
+                            className="group inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-brand-400 bg-brand-50 py-1 pl-2.5 pr-1.5 text-xs font-semibold text-ink-950 shadow-sm transition hover:border-ink-950 hover:bg-ink-950 hover:text-white disabled:cursor-default disabled:border-ink-200 disabled:bg-ink-50 disabled:text-ink-400 disabled:shadow-none"
+                          >
+                            <HiEye className="h-3.5 w-3.5" />
+                            <span className="tabular-nums">{po?.items?.length ?? 0}</span>
+                            <HiChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                          </button>
                         </td>
                         <td className="text-right font-semibold tabular-nums whitespace-nowrap text-ink-950">{poAmount(po)}</td>
                         <td>
@@ -1724,7 +1767,16 @@ const ShowPurchaseOrder = () => {
                     </div>
 
                     <div className="mt-3 flex items-center justify-between rounded-lg bg-ink-50 px-3 py-2">
-                      <span className="text-xs text-ink-500">{po?.items?.length ?? 0} item(s)</span>
+                      <button
+                        type="button"
+                        onClick={() => setItemsPopupPo(po)}
+                        disabled={!po?.items?.length}
+                        className="inline-flex items-center gap-1 rounded-full border border-brand-400 bg-brand-50 py-1 pl-2.5 pr-1.5 text-xs font-semibold text-ink-950 transition hover:border-ink-950 hover:bg-ink-950 hover:text-white disabled:border-ink-200 disabled:bg-ink-50 disabled:text-ink-400"
+                      >
+                        <HiEye className="h-3.5 w-3.5" />
+                        {po?.items?.length ?? 0} item(s)
+                        <HiChevronRight className="h-3.5 w-3.5" />
+                      </button>
                       <span className="font-bold tabular-nums text-ink-950">{poAmount(po)}</span>
                     </div>
 
@@ -3556,6 +3608,18 @@ const ShowPurchaseOrder = () => {
               </form>
             </div>
           </div>
+        )}
+
+        {/* Items popup (opened from the Items count in the list) */}
+        {itemsPopupPo && (
+          <PoItemsModal
+            po={itemsPopupPo}
+            rows={getItemReceiptRows(itemsPopupPo)}
+            onClose={() => setItemsPopupPo(null)}
+            formatDate={formatDate}
+            statusClass={getStatusColor(itemsPopupPo.status)}
+            statusLabel={getStatusLabel(itemsPopupPo.status)}
+          />
         )}
       </div>
     </div>

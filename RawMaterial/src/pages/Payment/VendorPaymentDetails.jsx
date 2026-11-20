@@ -4,6 +4,7 @@ import Api from "../../auth/Api";
 import SearchableSelect from "../../components/dropdown/SearchableSelect";
 
 const VENDOR_PAYMENTS_API = "/vendor/payments";
+// Stage filter is no longer shown; all stages are always requested
 const STAGES = ["PENDING", "PAID"];
 const PAGE_SIZES = [20, 50, 100];
 
@@ -17,7 +18,6 @@ const defaultFilters = () => {
   const today = new Date();
   return {
     vendorId: "",
-    stages: [...STAGES],
     fromDate: toInputDate(new Date(today.getFullYear(), today.getMonth() - 1, 1)),
     toDate: toInputDate(today),
     sortOrder: "desc",
@@ -38,22 +38,82 @@ const formatDate = (d) => {
     : date.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
 };
 
-// "pendingAmount" → "Pending Amount"
+// "pendingAmount" → "Pending Amount", "PartiallyReceived" → "Partially Received"
 const toLabel = (key) =>
-  key
+  String(key)
     .replace(/_/g, " ")
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .replace(/^./, (c) => c.toUpperCase());
 
-const isHiddenKey = (key) => /^(_?id|__v|createdBy|updatedBy)$/.test(key) || /(Id|_id)$/.test(key);
+// "company_name" / "companyName" → "companyname"
+const normKey = (key) => String(key).toLowerCase().replace(/[_\s-]/g, "");
+
+// Columns not shown in the table (currency is shown with the amounts instead)
+const HIDDEN_COLUMNS = new Set([
+  "company",
+  "companyname",
+  "warehouse",
+  "warehousename",
+  "currency",
+  "currencycode",
+  "payments",
+  "paymentcount",
+  "stage",
+]);
+
+const isHiddenKey = (key) =>
+  /^(_?id|__v|createdBy|updatedBy)$/.test(key) ||
+  /(Id|_id)$/.test(key) ||
+  HIDDEN_COLUMNS.has(normKey(key));
+
 const isAmountKey = (key) => /amount|total|paid|pending|balance|advance|rate|value/i.test(key);
 const isDateKey = (key) => /date|(At|On)$/i.test(key);
 const isStatusKey = (key) => /stage|status/i.test(key);
+const isPoNumberKey = (key) => ["ponumber", "pono"].includes(normKey(key));
+const isPoDateKey = (key) => normKey(key) === "podate";
+const isPoStatusKey = (key) => normKey(key) === "postatus";
+const isVendorKey = (key) => /vendor/i.test(key);
+const isPendingKey = (key) => /pending/i.test(key);
+const isPaidKey = (key) => /paid/i.test(key);
 
+// "INR" → "₹", "USD" → "$", "EUR" → "€"; unknown codes are shown as-is
+const toCurrencySymbol = (code) => {
+  const upper = code.trim().toUpperCase();
+  if (!/^[A-Z]{3}$/.test(upper)) return code;
+  try {
+    const part = new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: upper,
+      currencyDisplay: "narrowSymbol",
+    })
+      .formatToParts(0)
+      .find((p) => p.type === "currency");
+    return part?.value || code;
+  } catch {
+    return code;
+  }
+};
+
+// Currency of a row, whatever the API calls it: "INR", or { code: "INR", symbol: "₹" }
+const getRowCurrency = (row) => {
+  const key = Object.keys(row || {}).find((k) => ["currency", "currencycode"].includes(normKey(k)));
+  const c = key ? row[key] : null;
+  if (!c) return "₹";
+  if (typeof c === "object") return c.symbol || toCurrencySymbol(c.code || c.name || "") || "₹";
+  return toCurrencySymbol(String(c));
+};
+
+// Badge colour by status, ignoring case/spaces: "PartiallyReceived", "partially_received"…
 const STATUS_BADGE = {
   PAID: "badge-green",
+  RECEIVED: "badge-green",
+  COMPLETED: "badge-green",
   PENDING: "badge-orange",
+  INPROCESS: "badge-blue",
   PARTIAL: "badge-blue",
+  PARTIALLYPAID: "badge-blue",
+  PARTIALLYRECEIVED: "badge-blue",
+  DRAFT: "badge-gray",
   REJECTED: "badge-red",
   CANCELLED: "badge-red",
 };
@@ -95,11 +155,22 @@ const extractSummary = (body) => {
   const d = body?.data && !Array.isArray(body.data) ? body.data : {};
   const s = body?.summary || d.summary || body?.totals || d.totals;
   if (!s || typeof s !== "object") return [];
-  return Object.entries(s).filter(([, v]) => v !== null && typeof v !== "object");
+  return Object.entries(s).filter(
+    ([k, v]) => v !== null && typeof v !== "object" && !HIDDEN_COLUMNS.has(normKey(k))
+  );
 };
 
-const renderCell = (key, value) => {
-  if (value === null || value === undefined || value === "") return "—";
+const isNumeric = (v) => v !== null && v !== undefined && v !== "" && !isNaN(Number(v));
+
+const Amount = ({ value, symbol, className = "" }) => (
+  <span className={`whitespace-nowrap tabular-nums ${className}`}>
+    <span className="mr-0.5 text-ink-400">{symbol}</span>
+    {formatAmount(value)}
+  </span>
+);
+
+const renderCell = (key, value, row) => {
+  if (value === null || value === undefined || value === "") return <span className="text-ink-300">—</span>;
   if (Array.isArray(value)) return value.length ? `${value.length} item(s)` : "—";
   if (typeof value === "object") {
     return (
@@ -109,10 +180,18 @@ const renderCell = (key, value) => {
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (isStatusKey(key)) {
     const text = String(value);
-    return <span className={STATUS_BADGE[text.toUpperCase()] || "badge-gray"}>{text}</span>;
+    const badge = STATUS_BADGE[normKey(text).toUpperCase()] || "badge-gray";
+    return <span className={`${badge} whitespace-nowrap`}>{toLabel(text)}</span>;
   }
-  if (isDateKey(key)) return formatDate(value);
-  if (isAmountKey(key) && !isNaN(Number(value))) return formatAmount(value);
+  if (isDateKey(key)) return <span className="whitespace-nowrap">{formatDate(value)}</span>;
+  if (isAmountKey(key) && isNumeric(value)) {
+    const n = Number(value);
+    let tone = "text-ink-800";
+    if (isPendingKey(key) && n > 0) tone = "font-semibold text-orange-700";
+    else if (isPaidKey(key) && n > 0) tone = "font-medium text-green-700";
+    else if (n === 0) tone = "text-ink-400";
+    return <Amount value={n} symbol={getRowCurrency(row)} className={tone} />;
+  }
   return String(value);
 };
 
@@ -136,13 +215,6 @@ const VendorPaymentDetails = () => {
   }, []);
 
   const fetchPayments = useCallback(async () => {
-    if (filters.stages.length === 0) {
-      setRows([]);
-      setSummary([]);
-      setPagination({ total: 0, totalPages: 0 });
-      setError("Select at least one stage.");
-      return;
-    }
     if (filters.fromDate && filters.toDate && filters.fromDate > filters.toDate) {
       setError("From date cannot be after To date.");
       return;
@@ -152,7 +224,7 @@ const VendorPaymentDetails = () => {
     setError("");
     try {
       const params = {
-        stage: filters.stages.join(","),
+        stage: STAGES.join(","),
         sortBy: "pendingAmount",
         sortOrder: filters.sortOrder,
         page,
@@ -186,13 +258,6 @@ const VendorPaymentDetails = () => {
     setPage(1);
   };
 
-  const toggleStage = (stage) =>
-    updateFilter({
-      stages: filters.stages.includes(stage)
-        ? filters.stages.filter((s) => s !== stage)
-        : [...filters.stages, stage],
-    });
-
   const columns = useMemo(() => {
     const keys = [];
     rows.forEach((row) => {
@@ -203,11 +268,19 @@ const VendorPaymentDetails = () => {
     return keys;
   }, [rows]);
 
+  // PO date and PO status are shown under the PO number, so the table fits without side-scrolling
+  const poNumberKey = columns.find(isPoNumberKey);
+  const poDateKey = poNumberKey ? columns.find(isPoDateKey) : undefined;
+  const poStatusKey = poNumberKey ? columns.find(isPoStatusKey) : undefined;
+  const visibleColumns = columns.filter((k) => k !== poDateKey && k !== poStatusKey);
+
   const totalPages =
     pagination.totalPages ??
     (pagination.total !== null ? Math.max(1, Math.ceil(pagination.total / filters.limit)) : null);
   // Without a total from the API, a full page means there may be more
   const hasNext = totalPages !== null ? page < totalPages : rows.length >= filters.limit;
+
+  const headerLabel = (key) => (key === poNumberKey ? "PO Details" : toLabel(key));
 
   return (
     <div className="p-4 sm:p-6">
@@ -237,8 +310,8 @@ const VendorPaymentDetails = () => {
 
         {/* Filters */}
         <section className="card">
-          <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-5">
-            <div className="lg:col-span-2">
+          <div className="grid items-end gap-4 p-5 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="sm:col-span-2">
               <label className="label">Vendor</label>
               <SearchableSelect
                 options={[
@@ -295,30 +368,6 @@ const VendorPaymentDetails = () => {
                 )}
               </button>
             </div>
-
-            <div className="sm:col-span-2 lg:col-span-5">
-              <label className="label">Stage</label>
-              <div className="flex flex-wrap gap-2">
-                {STAGES.map((stage) => {
-                  const active = filters.stages.includes(stage);
-                  return (
-                    <button
-                      key={stage}
-                      type="button"
-                      onClick={() => toggleStage(stage)}
-                      aria-pressed={active}
-                      className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
-                        active
-                          ? "border-ink-950 bg-ink-950 text-brand-400"
-                          : "border-ink-200 bg-white text-ink-600 hover:bg-ink-50"
-                      }`}
-                    >
-                      {stage}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         </section>
 
@@ -327,9 +376,9 @@ const VendorPaymentDetails = () => {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {summary.map(([key, value]) => (
               <div key={key} className="card px-4 py-3">
-                <p className="text-xs text-ink-500">{toLabel(key)}</p>
-                <p className="text-lg font-bold text-ink-950 tabular-nums">
-                  {isAmountKey(key) && !isNaN(Number(value)) ? `₹ ${formatAmount(value)}` : String(value)}
+                <p className="text-xs font-medium uppercase tracking-wide text-ink-500">{toLabel(key)}</p>
+                <p className="mt-1 text-lg font-bold text-ink-950 tabular-nums">
+                  {isAmountKey(key) && isNumeric(value) ? `₹ ${formatAmount(value)}` : String(value)}
                 </p>
               </div>
             ))}
@@ -337,7 +386,7 @@ const VendorPaymentDetails = () => {
         )}
 
         {/* Table */}
-        <section className="card">
+        <section className="card overflow-hidden">
           {error && (
             <div className="border-b border-red-200 bg-red-50 px-5 py-3 text-sm text-red-800">{error}</div>
           )}
@@ -355,13 +404,16 @@ const VendorPaymentDetails = () => {
             )
           ) : (
             <div className="table-wrap">
-              <table className="table">
+              <table className="table table-compact w-full text-[13px]">
                 <thead>
                   <tr>
-                    <th>#</th>
-                    {columns.map((key) => (
-                      <th key={key} className={isAmountKey(key) ? "text-right" : ""}>
-                        {toLabel(key)}
+                    <th className="w-8">#</th>
+                    {visibleColumns.map((key) => (
+                      <th
+                        key={key}
+                        className={`whitespace-normal leading-tight ${isAmountKey(key) ? "text-right" : ""}`}
+                      >
+                        {headerLabel(key)}
                       </th>
                     ))}
                   </tr>
@@ -369,19 +421,37 @@ const VendorPaymentDetails = () => {
                 <tbody>
                   {rows.map((row, index) => (
                     <tr key={row.id || row._id || index}>
-                      <td className="text-ink-500">{(page - 1) * filters.limit + index + 1}</td>
-                      {columns.map((key) => (
-                        <td
-                          key={key}
-                          className={
-                            isAmountKey(key) && typeof row[key] !== "object"
-                              ? "text-right tabular-nums"
-                              : ""
-                          }
-                        >
-                          {renderCell(key, row[key])}
-                        </td>
-                      ))}
+                      <td className="text-ink-400">{(page - 1) * filters.limit + index + 1}</td>
+                      {visibleColumns.map((key) => {
+                        if (key === poNumberKey) {
+                          return (
+                            <td key={key} className="whitespace-nowrap">
+                              <div className="font-semibold text-ink-950">{renderCell(key, row[key], row)}</div>
+                              {poDateKey && row[poDateKey] && (
+                                <div className="text-xs text-ink-500">{formatDate(row[poDateKey])}</div>
+                              )}
+                              {poStatusKey && row[poStatusKey] && (
+                                <div className="mt-1 text-[11px]">{renderCell(poStatusKey, row[poStatusKey], row)}</div>
+                              )}
+                            </td>
+                          );
+                        }
+                        if (isVendorKey(key)) {
+                          return (
+                            <td key={key} className="min-w-[140px] font-medium leading-snug text-ink-900">
+                              {renderCell(key, row[key], row)}
+                            </td>
+                          );
+                        }
+                        return (
+                          <td
+                            key={key}
+                            className={isAmountKey(key) && typeof row[key] !== "object" ? "text-right" : ""}
+                          >
+                            {renderCell(key, row[key], row)}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>
