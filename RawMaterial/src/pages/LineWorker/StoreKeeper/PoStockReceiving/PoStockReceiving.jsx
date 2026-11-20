@@ -53,6 +53,11 @@ const getApprovalBadgeClass = (status) => {
 
 const toText = (value) => (value == null ? "" : String(value)).toLowerCase();
 
+// Item description: itemDetail when present, otherwise description
+const getItemDescription = (item) =>
+  (item?.itemDetail == null ? "" : String(item.itemDetail).trim()) ||
+  (item?.description == null ? "" : String(item.description).trim());
+
 // Ordered / received / pending totals across every item in a PO
 const getPoTotals = (po) =>
   (po.items || []).reduce(
@@ -145,7 +150,7 @@ const PoStockReceiving = () => {
           return (po.items || []).some(
             (item) =>
               toText(item.itemName).includes(term) ||
-              toText(item.description).includes(term) ||
+              toText(getItemDescription(item)).includes(term) ||
               toText(item.modelNumber).includes(term) ||
               toText(item.hsnCode).includes(term)
           );
@@ -159,7 +164,7 @@ const PoStockReceiving = () => {
             (po.items || []).some(
               (item) =>
                 toText(item.itemName).includes(term) ||
-                toText(item.description).includes(term) ||
+                toText(getItemDescription(item)).includes(term) ||
                 toText(item.modelNumber).includes(term) ||
                 toText(item.hsnCode).includes(term)
             )
@@ -286,9 +291,9 @@ const PoStockReceiving = () => {
             <tr key={item.id} className="border-t border-ink-100">
               <td className="px-4 py-2 align-top min-w-[16rem] max-w-md">
                 <div className="font-medium text-ink-900">{item.itemName}</div>
-                {item.description?.trim() ? (
+                {getItemDescription(item) ? (
                   <div className="mt-0.5 whitespace-pre-line break-words text-xs leading-relaxed text-ink-500">
-                    {item.description}
+                    {getItemDescription(item)}
                   </div>
                 ) : (
                   <div className="mt-0.5 text-xs italic text-ink-400">Description not available</div>
@@ -597,9 +602,9 @@ const PoStockReceiving = () => {
                           {(po.items || []).map((item) => (
                             <div key={item.id} className="rounded-lg border border-ink-200 px-3 py-2 text-xs">
                               <div className="font-semibold text-ink-900">{item.itemName}</div>
-                              {item.description?.trim() ? (
+                              {getItemDescription(item) ? (
                                 <div className="mt-0.5 whitespace-pre-line break-words leading-relaxed text-ink-600">
-                                  {item.description}
+                                  {getItemDescription(item)}
                                 </div>
                               ) : (
                                 <div className="mt-0.5 italic text-ink-400">Description not available</div>
