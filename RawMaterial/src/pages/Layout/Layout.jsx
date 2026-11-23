@@ -1,4 +1,11 @@
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import ErrorBoundary from "../../components/ErrorBoundary/ErrorBoundary";
+
+const PageLoader = () => (
+  <div className="flex min-h-[60vh] items-center justify-center">
+    <div className="h-10 w-10 rounded-full border-4 border-ink-200 border-t-brand-400 animate-spin" />
+  </div>
+);
 import { Outlet, useLocation } from "react-router-dom";
 import { FaBars } from "react-icons/fa";
 import SideMenubar from "../../components/SidebarMenu/SideMenubar";
@@ -76,7 +83,11 @@ const Layout = () => {
         </header>
 
         <main className="flex-1 min-w-0">
-          <Outlet />
+          <ErrorBoundary key={pathname}>
+            <Suspense fallback={<PageLoader />}>
+              <Outlet />
+            </Suspense>
+          </ErrorBoundary>
         </main>
       </div>
     </div>
