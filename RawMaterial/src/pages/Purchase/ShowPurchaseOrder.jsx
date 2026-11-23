@@ -24,6 +24,16 @@ import { FaCloudDownloadAlt } from "react-icons/fa";
 import { FiSend } from "react-icons/fi";
 import PoItemsModal from "./PoItemsModal";
 
+// Order PO items by their saved serial number so the edit form shows them in PO order.
+// Items without a serial number keep their original API order (stable sort).
+const sortBySerialNo = (items = []) => {
+  const serialOf = (item) => {
+    const n = Number(item?.serial_no ?? item?.serialNo);
+    return Number.isFinite(n) && n > 0 ? n : Infinity;
+  };
+  return [...items].sort((a, b) => serialOf(a) - serialOf(b));
+};
+
 const ShowPurchaseOrder = () => {
   // State variables
   const [companies, setCompanies] = useState([]);
@@ -704,7 +714,7 @@ const ShowPurchaseOrder = () => {
         vendorName: orderDetails.vendorName || "",
         gstType: orderDetails?.gstType || "",
         items: orderDetails?.items
-          ? orderDetails?.items?.map((item) => ({
+          ? sortBySerialNo(orderDetails.items).map((item) => ({
               id: item?.itemId || "",
               source: item?.itemSource || "mysql", // preserve source from API
               name: item?.itemName || "",
@@ -766,7 +776,7 @@ const ShowPurchaseOrder = () => {
       vendorName: orderDetails.vendorName || "",
       gstType: orderDetails.gstType || "",
       items: orderDetails.items
-        ? orderDetails.items.map((item) => ({
+        ? sortBySerialNo(orderDetails.items).map((item) => ({
             id: item.itemId || "",
             source: item.itemSource || "mysql",
             name: item.itemName || "",
@@ -1013,7 +1023,13 @@ const ShowPurchaseOrder = () => {
       vendorName: formData.vendorName || "",
       warehouseId: formData.warehouseId,
       warehouseName: formData.warehouseName,
-      // items already have id (master ID) and source
+      // items already have id (master ID) and source.
+      // serial_no follows the current row order: unchanged items keep their number,
+      // and removing a row closes the gap (1,2,3 -> remove 2 -> 1,2).
+      items: formData.items.map((item, index) => ({
+        ...item,
+        serial_no: index + 1,
+      })),
     };
 
     setUpdateLoading(true);
