@@ -11,6 +11,12 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
+  Play,
+  ImageOff,
+  Image as ImageIcon,
+  Video,
+  Maximize2,
+  ExternalLink,
 } from 'lucide-react';
 import Api from '../../../../auth/Api';
 import { getInitials } from '../../../../components/SidebarMenu/menuConfig';
@@ -23,6 +29,244 @@ const EMPTY_FILTERS = {
 };
 
 const MAX_VISIBLE_ITEMS = 3;
+
+// Turn a stored upload path into a full URL: VITE_API_URL + /uploads + path.
+// e.g. "/directIssueItem/a.png" -> "http://host:5000/uploads/directIssueItem/a.png".
+// Absolute URLs are kept as they are.
+const toFileUrl = (path) => {
+  if (!path || typeof path !== 'string') return null;
+  const trimmed = path.trim();
+  if (!trimmed) return null;
+  if (/^(https?:|blob:|data:)/i.test(trimmed)) return trimmed;
+  const base = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+  const clean = `/${trimmed.replace(/^\/+/, '')}`;
+  const withUploads = clean.startsWith('/uploads/') ? clean : `/uploads${clean}`;
+  return `${base}${withUploads}`;
+};
+
+// proof_images may arrive as one path, a comma-separated string or an array.
+const toFileUrls = (value) => {
+  const list = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : [];
+  return list.map(toFileUrl).filter(Boolean);
+};
+
+// One square proof tile: a photo thumbnail, a video preview, or a dashed "NA" placeholder.
+const TILE = 'relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg sm:h-14 sm:w-14';
+
+const MissingTile = ({ icon: Icon, label }) => (
+  <div
+    className={`${TILE} flex-col gap-0.5 border border-dashed border-ink-300 bg-ink-50 text-ink-400`}
+    title={`No ${label.toLowerCase()}`}
+  >
+    <Icon className="h-4 w-4" />
+    <span className="text-[10px] font-bold leading-none">NA</span>
+  </div>
+);
+
+const TileCaption = ({ children }) => (
+  <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-500">{children}</span>
+);
+
+const ProofCell = ({ transaction, onPreview }) => {
+  const images = toFileUrls(transaction.proof_images);
+  const video = toFileUrl(transaction.proof_video);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  return (
+    <div className="flex items-start gap-2.5">
+      {/* Photo */}
+      <div className="flex flex-col items-center gap-1">
+        {images.length === 0 ? (
+          <MissingTile icon={ImageIcon} label="Photo" />
+        ) : (
+          <button
+            type="button"
+            onClick={() => onPreview({ type: 'image', src: images[0], images, index: 0 })}
+            aria-label="View proof photo"
+            title="View photo"
+            className={`${TILE} group border border-ink-200 bg-ink-100 ring-brand-400 transition hover:ring-2 focus-visible:outline-none focus-visible:ring-2`}
+          >
+            {imgFailed ? (
+              <ImageOff className="h-5 w-5 text-ink-400" />
+            ) : (
+              <img
+                src={images[0]}
+                alt="Proof"
+                loading="lazy"
+                className="h-full w-full object-cover transition group-hover:scale-105"
+                onError={() => setImgFailed(true)}
+              />
+            )}
+            <span className="absolute inset-0 flex items-center justify-center bg-ink-950/0 text-white opacity-0 transition group-hover:bg-ink-950/40 group-hover:opacity-100">
+              <Maximize2 className="h-4 w-4" />
+            </span>
+            {images.length > 1 && (
+              <span className="absolute right-0.5 top-0.5 rounded bg-ink-950/80 px-1 text-[10px] font-bold leading-4 text-brand-400">
+                {images.length}
+              </span>
+            )}
+          </button>
+        )}
+        <TileCaption>Photo</TileCaption>
+      </div>
+
+      {/* Video */}
+      <div className="flex flex-col items-center gap-1">
+        {video ? (
+          <button
+            type="button"
+            onClick={() => onPreview({ type: 'video', src: video })}
+            aria-label="Play proof video"
+            title="Play video"
+            className={`${TILE} group border border-ink-800 bg-ink-950 ring-brand-400 transition hover:ring-2 focus-visible:outline-none focus-visible:ring-2`}
+          >
+            <video
+              src={`${video}#t=0.1`}
+              muted
+              playsInline
+              preload="metadata"
+              className="pointer-events-none h-full w-full object-cover opacity-70"
+            />
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-400 text-ink-950 shadow transition group-hover:scale-110">
+                <Play className="ml-0.5 h-3 w-3 fill-current" />
+              </span>
+            </span>
+          </button>
+        ) : (
+          <MissingTile icon={Video} label="Video" />
+        )}
+        <TileCaption>Video</TileCaption>
+      </div>
+    </div>
+  );
+};
+
+const ProofPreviewModal = ({ preview, onClose }) => {
+  const images = preview?.images || [];
+  const [index, setIndex] = useState(0);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setIndex(preview?.index || 0);
+    setFailed(false);
+  }, [preview]);
+  useEffect(() => setFailed(false), [index]);
+
+  const isVideo = preview?.type === 'video';
+  const hasMany = !isVideo && images.length > 1;
+  const src = isVideo ? preview?.src : images[index] || preview?.src;
+  const go = (step) => setIndex((i) => (i + step + images.length) % images.length);
+
+  useEffect(() => {
+    if (!preview) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+      if (hasMany && e.key === 'ArrowRight') go(1);
+      if (hasMany && e.key === 'ArrowLeft') go(-1);
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  });
+
+  if (!preview) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-ink-950/80 backdrop-blur-sm sm:items-center sm:p-6"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={isVideo ? 'Proof video' : 'Proof photo'}
+    >
+      <div
+        className="flex max-h-[100dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-pop sm:max-w-4xl sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between gap-3 border-b border-ink-200 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-2">
+            {isVideo ? <Video className="h-4 w-4 text-ink-500" /> : <ImageIcon className="h-4 w-4 text-ink-500" />}
+            <h3 className="truncate text-sm font-bold text-ink-950">
+              {isVideo ? 'Proof video' : 'Proof photo'}
+              {hasMany && <span className="ml-1 font-medium text-ink-500">({index + 1} of {images.length})</span>}
+            </h3>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <a
+              href={src}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-ink-700 hover:bg-ink-100"
+            >
+              <ExternalLink className="h-4 w-4" />
+              <span className="hidden sm:inline">Open in new tab</span>
+            </a>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close preview"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-700 hover:bg-ink-100"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="relative flex min-h-[40vh] flex-1 items-center justify-center bg-ink-950">
+          {failed ? (
+            <div className="flex flex-col items-center gap-2 py-16 text-sm text-ink-300">
+              <ImageOff className="h-8 w-8" />
+              Could not load this file.
+            </div>
+          ) : isVideo ? (
+            <video
+              key={src}
+              src={src}
+              controls
+              autoPlay
+              playsInline
+              className="max-h-[75dvh] w-full"
+              onError={() => setFailed(true)}
+            />
+          ) : (
+            <img
+              key={src}
+              src={src}
+              alt="Proof"
+              className="max-h-[75dvh] w-auto max-w-full object-contain"
+              onError={() => setFailed(true)}
+            />
+          )}
+
+          {hasMany && (
+            <>
+              <button
+                type="button"
+                onClick={() => go(-1)}
+                aria-label="Previous photo"
+                className="absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink-950 shadow hover:bg-white"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => go(1)}
+                aria-label="Next photo"
+                className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink-950 shadow hover:bg-white"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
@@ -107,6 +351,7 @@ const DirectItemIssueHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [expandedRows, setExpandedRows] = useState(new Set());
+  const [preview, setPreview] = useState(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -429,6 +674,7 @@ const DirectItemIssueHistory = () => {
                       <th>Issued by</th>
                       <th>Items issued</th>
                       <th>Remarks</th>
+                      <th>Proof</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -458,6 +704,9 @@ const DirectItemIssueHistory = () => {
                         </td>
                         <td className="min-w-[160px] max-w-[260px] break-words text-ink-700">
                           {transaction.remarks || <span className="text-ink-400">—</span>}
+                        </td>
+                        <td className="w-[140px]">
+                          <ProofCell transaction={transaction} onPreview={setPreview} />
                         </td>
                       </tr>
                     ))}
@@ -496,6 +745,11 @@ const DirectItemIssueHistory = () => {
                     {transaction.remarks && (
                       <p className="mt-3 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-700">{transaction.remarks}</p>
                     )}
+
+                    <div className="mt-3 flex items-center justify-between gap-3 border-t border-ink-100 pt-3">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-ink-500">Proof</span>
+                      <ProofCell transaction={transaction} onPreview={setPreview} />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -543,6 +797,7 @@ const DirectItemIssueHistory = () => {
           )}
         </div>
       </div>
+      <ProofPreviewModal preview={preview} onClose={() => setPreview(null)} />
     </div>
   );
 };

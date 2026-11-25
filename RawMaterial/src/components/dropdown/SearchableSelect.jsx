@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 
 // Searchable single-select whose menu is fixed-positioned so a scroll area can't clip it.
-// options: [{ id, name, hint? }]
+// options: [{ id, name, hint?, swatch?, badge? }]
+//   swatch: classes for a small colour dot shown before the name
+//   badge:  { label, className } shown after the name (e.g. a status)
 const SearchableSelect = ({
   options,
   value,
@@ -12,6 +14,7 @@ const SearchableSelect = ({
   invalid = false,
   placeholder = "Select an option",
   searchPlaceholder = "Search…",
+  wrapText = false, // show full names (wrap onto multiple lines) instead of truncating
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -45,9 +48,12 @@ const SearchableSelect = ({
     }
     const rect = triggerRef.current.getBoundingClientRect();
     const openUp = window.innerHeight - rect.bottom < 300;
+    // Keep the menu fully inside the viewport on every screen size.
+    const width = Math.min(Math.max(rect.width, 240), window.innerWidth - 16);
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
     setPos({
-      left: Math.min(rect.left, window.innerWidth - 256),
-      width: Math.max(rect.width, 240),
+      left,
+      width,
       ...(openUp ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }),
     });
     setSearch("");
@@ -77,7 +83,22 @@ const SearchableSelect = ({
         }`}
       >
         {selected ? (
-          <span className="min-w-0 truncate text-ink-950">{selected.name}</span>
+          <span className="flex min-w-0 flex-1 items-center gap-2">
+          {selected.swatch && (
+            <span className={`h-2.5 w-2.5 shrink-0 rounded-full border ${selected.swatch}`} />
+          )}
+          <span
+            title={selected.name}
+            className={`min-w-0 text-ink-950 ${wrapText ? "whitespace-normal break-words py-0.5" : "truncate"}`}
+          >
+            {selected.name}
+          </span>
+          {selected.badge && (
+            <span className={`shrink-0 rounded border px-1.5 py-px text-[10px] font-semibold ${selected.badge.className || ""}`}>
+              {selected.badge.label}
+            </span>
+          )}
+          </span>
         ) : (
           <span className="text-ink-400">{loading ? "Loading…" : placeholder}</span>
         )}
@@ -129,7 +150,20 @@ const SearchableSelect = ({
                       isSelected ? "font-semibold text-ink-950" : "text-ink-800"
                     }`}
                   >
-                    <span className="min-w-0 flex-1 truncate">{o.name}</span>
+                    {o.swatch && (
+                      <span className={`h-2.5 w-2.5 shrink-0 rounded-full border ${o.swatch}`} />
+                    )}
+                    <span
+                      title={o.name}
+                      className={`min-w-0 flex-1 ${wrapText ? "whitespace-normal break-words" : "truncate"}`}
+                    >
+                      {o.name}
+                    </span>
+                    {o.badge && (
+                      <span className={`shrink-0 rounded border px-1.5 py-px text-[10px] font-semibold ${o.badge.className || ""}`}>
+                        {o.badge.label}
+                      </span>
+                    )}
                     {o.hint && <span className="shrink-0 text-xs font-normal text-ink-500">{o.hint}</span>}
                     {isSelected && <Check className="h-4 w-4 shrink-0 text-brand-600" />}
                   </button>

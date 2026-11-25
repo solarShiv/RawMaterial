@@ -5,6 +5,7 @@ import { usePODraft } from "../../hooks/usePODraft";
 import AddRawMaterial from "../Purchase/AddRawMaterial";
 import ExcelPurchaseOrderUpload from "./ExcelPurchaseOrderUpload";
 import SearchableSelect from "../../components/dropdown/SearchableSelect";
+import { AUTH_STATUS_SWATCH, AUTH_STATUS_BADGE, normalizeAuthStatus } from "../../utils/vendorAuthStatus";
 import {
   ChevronDown,
   FileSpreadsheet,
@@ -1570,7 +1571,7 @@ const CreatePurchaseOrder = () => {
               </SectionHeader>
 
               <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
-                <Field label="Company" required>
+                <Field label="Company" required className="min-w-0 sm:col-span-2">
                   <SearchableSelect
                     options={companies.map((c) => ({ id: c.id, name: c.companyName }))}
                     value={selectedCompany}
@@ -1578,12 +1579,22 @@ const CreatePurchaseOrder = () => {
                     loading={loading && companies.length === 0}
                     placeholder="Select company"
                     searchPlaceholder="Search company…"
+                    wrapText
                   />
                 </Field>
 
-                <Field label="Vendor" required>
+                <Field label="Vendor" required className="min-w-0 sm:col-span-2">
                   <SearchableSelect
-                    options={vendorsList.map((v) => ({ id: v.id, name: v.displayName }))}
+                    wrapText
+                    options={vendorsList.map((v) => {
+                      const status = normalizeAuthStatus(v.authorization_status);
+                      return {
+                        id: v.id,
+                        name: v.displayName,
+                        swatch: status ? AUTH_STATUS_SWATCH[status] : undefined,
+                        badge: status ? { label: status, className: AUTH_STATUS_BADGE[status] } : undefined,
+                      };
+                    })}
                     value={selectedVendor}
                     onChange={(id) => setSelectedVendor(String(id))}
                     loading={loading && vendorsList.length === 0}
