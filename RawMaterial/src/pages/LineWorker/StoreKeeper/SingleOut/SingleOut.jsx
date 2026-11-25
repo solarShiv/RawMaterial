@@ -410,7 +410,11 @@ const SingleOut = () => {
       newErrors.file = "Image is required";
     }
 
-    if (videoFile && videoFile.size > MAX_VIDEO_BYTES) {
+    if (videoCompressing) {
+      newErrors.video = "Please wait, video is still compressing";
+    } else if (!videoFile) {
+      newErrors.video = "Video is required";
+    } else if (videoFile.size > MAX_VIDEO_BYTES) {
       newErrors.video = "Video must be 5 MB or smaller";
     }
 
@@ -560,7 +564,7 @@ const SingleOut = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-3 sm:p-4 md:p-6 bg-white rounded-lg shadow-card">
+    <div className="max-w-6xl mx-auto p-3 sm:p-4 bg-white rounded-lg shadow-card">
 
       {loading ? (
         <div className="text-center py-8">
@@ -570,7 +574,7 @@ const SingleOut = () => {
       ) : (
         <form onSubmit={handleSubmit}>
           {/* MULTI-SELECT DROPDOWN SECTION */}
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block mb-2 font-medium text-ink-700">
               Select Items <span className="text-red-500">*</span>
             </label>
@@ -578,7 +582,7 @@ const SingleOut = () => {
             <div className="relative" ref={dropdownRef}>
               {/* DROPDOWN TRIGGER */}
               <div
-                className="border border-ink-300 rounded-lg px-3 py-2.5 cursor-pointer bg-white flex justify-between items-center hover:border-brand-500 transition"
+                className="border border-ink-300 rounded-lg px-3 py-2 cursor-pointer bg-white flex justify-between items-center hover:border-brand-500 transition"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
                 <div className="flex-1">
@@ -731,21 +735,21 @@ const SingleOut = () => {
 
           {/* SELECTED ITEMS QUANTITY MANAGEMENT */}
           {selectedItems.length > 0 && (
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-ink-700">
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-base font-semibold text-ink-700">
                   Set Quantities ({selectedItems.length} items)
                 </h3>
               </div>
 
               {/* QUANTITY INPUTS */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {selectedItems.map((item) => (
                   <div
                     key={item.id}
-                    className="p-4 border border-ink-200 rounded-lg hover:border-brand-400 transition"
+                    className="p-3 border border-ink-200 rounded-lg hover:border-brand-400 transition"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                       {/* ITEM INFO */}
                       <div className="md:col-span-3">
                         <div className="font-medium text-ink-900">{item.name}</div>
@@ -853,7 +857,7 @@ const SingleOut = () => {
                     </div>
 
                     {/* CONTAINERS: pick one or more, then how much to take from each */}
-                    <div className="mt-3 pt-3 border-t border-ink-100">
+                    <div className="mt-2 pt-2 border-t border-ink-100">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                         <div className="sm:w-72 shrink-0">
                           <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-ink-500">
@@ -916,14 +920,14 @@ const SingleOut = () => {
           )}
 
           {/* LINE WORKER SELECTION */}
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block mb-2 font-medium text-ink-700">
               Issued To <span className="text-red-500">*</span>
             </label>
             <select
               value={selectedWorker}
               onChange={handleWorkerChange}
-              className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
+              className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
                 errors.selectedWorker ? 'border-red-500' : 'border-ink-300'
               }`}
             >
@@ -940,7 +944,7 @@ const SingleOut = () => {
 
             {/* OTHER NAME AND DEPARTMENT FIELDS */}
             {selectedWorker === OTHERS_ID && othersWorker && (
-              <div className="mt-4 p-4 border border-ink-300 rounded-lg bg-brand-50">
+              <div className="mt-3 p-3 border border-ink-300 rounded-lg bg-brand-50">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* OTHER NAME */}
                   <div>
@@ -952,7 +956,7 @@ const SingleOut = () => {
                       value={otherName}
                       onChange={(e) => setOtherName(e.target.value)}
                       placeholder="Enter person's name"
-                      className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
+                      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
                         errors.otherName ? 'border-red-500' : 'border-ink-300'
                       }`}
                     />
@@ -971,7 +975,7 @@ const SingleOut = () => {
                       value={otherDepartment}
                       onChange={(e) => setOtherDepartment(e.target.value)}
                       placeholder="Enter department name"
-                      className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
+                      className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition ${
                         errors.otherDepartment ? 'border-red-500' : 'border-ink-300'
                       }`}
                     />
@@ -985,7 +989,7 @@ const SingleOut = () => {
           </div>
 
           {/* IMAGE UPLOAD + REMARKS (2 per row on md+) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           {/* IMAGE UPLOAD UI */}
           <div className="flex flex-col">
             <label className="flex items-center gap-2 mb-1 font-medium text-ink-700">
@@ -995,12 +999,7 @@ const SingleOut = () => {
               </svg>
               Attach Image <span className="text-red-500">*</span>
             </label>
-            <p className="flex items-start gap-1.5 mb-3 text-xs sm:text-sm font-medium text-red-600">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mt-0.5 text-red-600 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-              </svg>
-              Upload images via NoteCam with Lat, Long, Date, and Time visible
-            </p>
+            <p className="mb-2 text-xs text-ink-500">PNG, JPG or JPEG image.</p>
 
             <input
               id="proof-image"
@@ -1014,19 +1013,19 @@ const SingleOut = () => {
             {!file ? (
               <label
                 htmlFor="proof-image"
-                className={`flex flex-col items-center justify-center w-full px-4 py-6 sm:py-8 border-2 border-dashed rounded-lg cursor-pointer transition text-center ${
+                className={`flex flex-col items-center justify-center w-full px-4 py-4 border-2 border-dashed rounded-lg cursor-pointer transition text-center ${
                   errors.file
                     ? 'border-red-400 bg-red-50 hover:bg-red-100'
                     : 'border-ink-300 bg-ink-50 hover:border-brand-400 hover:bg-brand-50'
                 }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className={`h-10 w-10 mb-2 ${errors.file ? 'text-red-400' : 'text-ink-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-7 w-7 mb-1 ${errors.file ? 'text-red-400' : 'text-ink-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                <span className="text-sm sm:text-base font-medium text-brand-700">
+                <span className="text-sm font-medium text-brand-700">
                   Tap to upload image
                 </span>
-                <span className="mt-1 text-xs text-ink-500">PNG, JPG, JPEG</span>
+                <span className="mt-0.5 text-xs text-ink-500">PNG, JPG, JPEG</span>
               </label>
             ) : (
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border border-green-300 bg-green-50 rounded-lg">
@@ -1034,7 +1033,7 @@ const SingleOut = () => {
                   <img
                     src={filePreview}
                     alt="Selected proof"
-                    className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg border border-ink-200"
+                    className="w-full sm:w-20 h-36 sm:h-20 object-cover rounded-lg border border-ink-200"
                   />
                 )}
                 <div className="flex-1 min-w-0">
@@ -1085,15 +1084,15 @@ const SingleOut = () => {
             )}
           </div>
 
-          {/* VIDEO UPLOAD UI (optional, auto-compressed to <= 5 MB) */}
+          {/* VIDEO UPLOAD UI (required, auto-compressed to <= 5 MB) */}
           <div className="flex flex-col">
             <label className="flex items-center gap-2 mb-1 font-medium text-ink-700">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-brand-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
-              Attach Video <span className="text-xs font-normal text-ink-500"></span>
+              Attach Video <span className="text-red-500">*</span>
             </label>
-            <p className="mb-3 text-xs sm:text-sm text-ink-500">
+            <p className="mb-2 text-xs text-ink-500">
               Max 5 MB. Larger videos are compressed automatically.
             </p>
 
@@ -1137,19 +1136,19 @@ const SingleOut = () => {
             ) : !videoFile ? (
               <label
                 htmlFor="proof-video"
-                className={`flex flex-col items-center justify-center w-full px-4 py-6 sm:py-8 border-2 border-dashed rounded-lg cursor-pointer transition text-center ${
+                className={`flex flex-col items-center justify-center w-full px-4 py-4 border-2 border-dashed rounded-lg cursor-pointer transition text-center ${
                   errors.video
                     ? 'border-red-400 bg-red-50 hover:bg-red-100'
                     : 'border-ink-300 bg-ink-50 hover:border-brand-400 hover:bg-brand-50'
                 }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className={`h-10 w-10 mb-2 ${errors.video ? 'text-red-400' : 'text-ink-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-7 w-7 mb-1 ${errors.video ? 'text-red-400' : 'text-ink-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
-                <span className="text-sm sm:text-base font-medium text-brand-700">
+                <span className="text-sm font-medium text-brand-700">
                   Tap to upload video
                 </span>
-                <span className="mt-1 text-xs text-ink-500">MP4, MOV, WEBM</span>
+                <span className="mt-0.5 text-xs text-ink-500">MP4, MOV, WEBM</span>
               </label>
             ) : (
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border border-green-300 bg-green-50 rounded-lg">
@@ -1158,7 +1157,7 @@ const SingleOut = () => {
                     src={videoPreview}
                     controls
                     playsInline
-                    className="w-full sm:w-40 h-48 sm:h-24 object-cover rounded-lg border border-ink-200 bg-ink-950"
+                    className="w-full sm:w-28 h-36 sm:h-20 object-cover rounded-lg border border-ink-200 bg-ink-950"
                   />
                 )}
                 <div className="flex-1 min-w-0">
@@ -1206,19 +1205,19 @@ const SingleOut = () => {
           </div>
 
           {/* REMARKS */}
-          <div className="flex flex-col md:col-span-2">
+          <div className="flex flex-col md:col-span-2 lg:col-span-1">
             <label className="flex items-center gap-2 mb-1 font-medium text-ink-700">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-brand-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               Remarks
             </label>
-            {/* <p className="mb-3 text-xs sm:text-sm text-ink-500">Optional notes about this transaction</p> */}
+            {/* <p className="mb-2 text-xs text-ink-500">Optional notes about this transaction</p> */}
             <textarea
-              rows={5}
+              rows={3}
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
-              className="w-full flex-1 min-h-[8rem] border border-ink-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition resize-none"
+              className="w-full flex-1 min-h-[5rem] border border-ink-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition resize-none"
               placeholder="Add any notes or remarks about this transaction..."
             />
           </div>
@@ -1229,7 +1228,7 @@ const SingleOut = () => {
               type="submit"
               disabled={submitting || videoCompressing || selectedItems.length === 0}
               className="flex-1 bg-brand-600 to-emerald-600 
- text-ink-950 rounded-lg px-4 py-3 font-medium hover:from-brand-700 
+ text-ink-950 rounded-lg px-4 py-2.5 font-medium hover:from-brand-700 
  hover:to-emerald-700 disabled:from-ink-400 disabled:to-ink-500 
  disabled:cursor-not-allowed transition shadow-card hover:shadow-lg"
             >

@@ -6,8 +6,6 @@ import {
   CheckIcon,
   XMarkIcon,
   ArrowPathIcon,
-  ChevronDownIcon,
-  MagnifyingGlassIcon,
   MapPinIcon,
   PhoneIcon,
   EnvelopeIcon,
@@ -19,8 +17,24 @@ import {
   DocumentArrowUpIcon,
   TrashIcon,
   EyeIcon,
-  
+  TagIcon,
+  ClipboardDocumentListIcon,
 } from "@heroicons/react/24/outline";
+import SearchableSelect from "../../components/dropdown/SearchableSelect";
+import { VENDOR_AUTHORIZATION_STATUSES, AUTH_STATUS_SWATCH } from "../../utils/vendorAuthStatus";
+import { compressDocument, ONE_MB } from "../../utils/compressDocument";
+
+const VENDOR_BUY_ITEM_CATEGORIES = ["Long", "Flat"];
+const VENDOR_CATEGORIES = ["Manufacture", "Trader"];
+
+
+// Business documents: existing file URL from the API, and the upload field name.
+const BUSINESS_DOCS = [
+  { key: "bgDocument", urlField: "bg_document", formField: "bgDocumentFile", label: "BG Document" },
+  { key: "balanceSheet", urlField: "balance_sheet", formField: "balanceSheetFile", label: "Balance Sheet" },
+];
+const MAX_RAW_DOC_BYTES = 25 * 1024 * 1024; // accept up to 25 MB, then compress to 1 MB
+const EMPTY_BUSINESS_DOCS = { bgDocument: null, balanceSheet: null };
 
 const UpdateVendor = () => {
   const [companies, setCompanies] = useState([]);
@@ -42,6 +56,64 @@ const UpdateVendor = () => {
   const aadhaarFileRef = useRef(null);
   const pancardFileRef = useRef(null);
 
+  // BG document / balance sheet uploads, compressed to <= 1 MB in the browser
+  const [businessDocs, setBusinessDocs] = useState(EMPTY_BUSINESS_DOCS);
+  const [businessDocCompressing, setBusinessDocCompressing] = useState({ bgDocument: false, balanceSheet: false });
+  const businessDocJobRef = useRef({ bgDocument: 0, balanceSheet: 0 });
+  const isCompressingDocs = Object.values(businessDocCompressing).some(Boolean);
+
+  const resetBusinessDocs = () => {
+    businessDocJobRef.current.bgDocument++;
+    businessDocJobRef.current.balanceSheet++;
+    setBusinessDocs(EMPTY_BUSINESS_DOCS);
+    setBusinessDocCompressing({ bgDocument: false, balanceSheet: false });
+  };
+
+  const handleBusinessDocSelect = async (e, key, label) => {
+    const file = e.target.files[0];
+    e.target.value = ""; // allow picking the same file again
+    if (!file) return;
+
+    const validImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+    if (!validImageTypes.includes(file.type) && file.type !== "application/pdf") {
+      alert(`${label}: Only JPG, PNG, GIF, WEBP images or PDF files are allowed`);
+      return;
+    }
+    if (file.size > MAX_RAW_DOC_BYTES) {
+      alert(`${label}: File is too large (max 25 MB before compression)`);
+      return;
+    }
+
+    const jobId = ++businessDocJobRef.current[key];
+    setBusinessDocs((prev) => ({ ...prev, [key]: null }));
+    setBusinessDocCompressing((prev) => ({ ...prev, [key]: true }));
+    try {
+      const compressed = await compressDocument(file, ONE_MB);
+      if (jobId !== businessDocJobRef.current[key]) return;
+      setBusinessDocs((prev) => ({ ...prev, [key]: compressed }));
+    } catch (err) {
+      if (jobId !== businessDocJobRef.current[key]) return;
+      alert(`${label}: ${err?.message || "Could not compress file to 1 MB. Please upload a smaller file."}`);
+    } finally {
+      if (jobId === businessDocJobRef.current[key]) {
+        setBusinessDocCompressing((prev) => ({ ...prev, [key]: false }));
+      }
+    }
+  };
+
+  const removeBusinessDoc = (key) => {
+    businessDocJobRef.current[key]++; // cancel any in-flight compression result
+    setBusinessDocs((prev) => ({ ...prev, [key]: null }));
+    setBusinessDocCompressing((prev) => ({ ...prev, [key]: false }));
+  };
+
+  const setDetailField = (name, value) =>
+    setCompanyDetails((prev) => ({ ...prev, [name]: value }));
+
+  const fieldCls = `w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors ${
+    !isEditable ? "bg-ink-50 text-ink-500 border-ink-300" : "bg-white text-ink-900 border-brand-400"
+  }`;
+
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
@@ -55,14 +127,14 @@ const UpdateVendor = () => {
     fetchCompanies();
   }, []);
 
-  const handleCompanyChange = async (e) => {
-    const companyId = e.target.value;
+  const handleCompanyChange = async (companyId) => {
     setSelectedCompany(companyId);
     setIsEditable(false);
     setAadhaarFile(null);
     setPancardFile(null);
     setAadhaarFileName("");
     setPancardFileName("");
+    resetBusinessDocs();
 
     if (!companyId) {
       setCompanyDetails(null);
@@ -134,6 +206,11 @@ const UpdateVendor = () => {
       return;
     }
 
+    if (isCompressingDocs) {
+      alert("Please wait, documents are still being compressed.");
+      return;
+    }
+
     try {
       setUploading(true);
 
@@ -154,6 +231,12 @@ const UpdateVendor = () => {
       formData.append("currency", companyDetails.currency || "");
       formData.append("exchangeRate", companyDetails.exchangeRate || "");
       formData.append("alternateNumber", companyDetails.alternateNumber || "");
+      formData.append("referenceBy", companyDetails.referenceBy || "");
+
+      // Classification
+      formData.append("category", companyDetails.category || "");
+      formData.append("buy_item_category", companyDetails.buy_item_category || "");
+      formData.append("authorization_status", companyDetails.authorization_status || "White");
 
       // KYC numbers
       formData.append("vendorAadhaar", companyDetails.vendorAadhaar || "");
@@ -178,6 +261,9 @@ const UpdateVendor = () => {
       if (pancardFile) {
         formData.append("pancardFile", pancardFile);
       }
+      BUSINESS_DOCS.forEach(({ key, formField }) => {
+        if (businessDocs[key]) formData.append(formField, businessDocs[key]);
+      });
 
       // Log FormData contents for debugging (optional)
       for (let pair of formData.entries()) {
@@ -208,6 +294,7 @@ const UpdateVendor = () => {
       setPancardFile(null);
       setAadhaarFileName("");
       setPancardFileName("");
+      resetBusinessDocs();
 
       // Clear file input refs
       if (aadhaarFileRef.current) aadhaarFileRef.current.value = "";
@@ -244,6 +331,7 @@ const UpdateVendor = () => {
     setPancardFile(null);
     setAadhaarFileName("");
     setPancardFileName("");
+    resetBusinessDocs();
 
     // Clear file input refs
     if (aadhaarFileRef.current) aadhaarFileRef.current.value = "";
@@ -270,27 +358,18 @@ const UpdateVendor = () => {
               <label className="block text-sm font-medium text-ink-700 mb-2">
                 Select Vendor <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-ink-400" />
-                </div>
-                <select
-                  value={selectedCompany}
-                  onChange={handleCompanyChange}
-                  className="w-full pl-10 pr-10 py-3 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 appearance-none bg-white cursor-pointer"
-                >
-                  <option value="">-- Select Vendor --</option>
-                  {companies.length > 0 &&
-                    companies?.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.displayName}
-                      </option>
-                    ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <ChevronDownIcon className="h-5 w-5 text-ink-400" />
-                </div>
-              </div>
+              <SearchableSelect
+                options={companies.map((c) => ({
+                  id: c.id,
+                  name: c.displayName || c.name || "",
+                }))}
+                value={selectedCompany}
+                onChange={handleCompanyChange}
+                disabled={uploading}
+                placeholder="-- Select Vendor --"
+                searchPlaceholder="Search vendor…"
+                wrapText
+              />
             </div>
           </div>
 
@@ -329,7 +408,7 @@ const UpdateVendor = () => {
                       </button>
                       <button
                         onClick={handleUpdateSubmit}
-                        disabled={uploading}
+                        disabled={uploading || isCompressingDocs}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                           uploading
                             ? "bg-brand-400 cursor-not-allowed"
@@ -384,7 +463,7 @@ const UpdateVendor = () => {
                     <input
                       type="text"
                       name="referenceBy"
-                      value={companyDetails?.referenceBy}
+                      value={companyDetails?.referenceBy || ""}
                       placeholder="NA"
                       onChange={handleInputChange}
                       disabled={!isEditable}
@@ -468,6 +547,100 @@ const UpdateVendor = () => {
                           : "bg-white text-ink-900"
                       } ${isEditable ? "border-brand-400" : "border-ink-300"}`}
                     />
+                  </div>
+                </div>
+              </div>
+
+              {/* Vendor Classification */}
+              <div className="border-b border-ink-200 pb-8">
+                <h3 className="text-lg font-medium text-ink-900 mb-6 flex items-center gap-2">
+                  <TagIcon className="h-5 w-5" />
+                  Vendor Classification
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
+                      Vendor Category
+                    </label>
+                    <select
+                      name="category"
+                      value={companyDetails?.category || ""}
+                      onChange={handleInputChange}
+                      disabled={!isEditable}
+                      className={fieldCls}
+                    >
+                      <option value="">Select category</option>
+                      {VENDOR_CATEGORIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
+                      Buy Item Category
+                    </label>
+                    <select
+                      name="buy_item_category"
+                      value={companyDetails?.buy_item_category || ""}
+                      onChange={handleInputChange}
+                      disabled={!isEditable}
+                      className={fieldCls}
+                    >
+                      <option value="">Select buy item category</option>
+                      {VENDOR_BUY_ITEM_CATEGORIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
+                      Authorization Status
+                    </label>
+                    <div
+                      role="radiogroup"
+                      aria-label="Authorization status"
+                      className="grid grid-cols-4 gap-1 rounded-lg border border-ink-300 bg-ink-50 p-1"
+                    >
+                      {VENDOR_AUTHORIZATION_STATUSES.map((s) => {
+                        const active = (companyDetails?.authorization_status || "White") === s;
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            role="radio"
+                            aria-checked={active}
+                            disabled={!isEditable}
+                            onClick={() => setDetailField("authorization_status", s)}
+                            className={`flex min-w-0 items-center justify-center gap-1.5 rounded-md px-1 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed ${
+                              active
+                                ? "bg-brand-400 text-ink-950 shadow-card ring-1 ring-brand-500"
+                                : "text-ink-600 enabled:hover:bg-ink-100 enabled:hover:text-ink-950"
+                            }`}
+                          >
+                            <span className={`h-3 w-3 shrink-0 rounded-full border ${AUTH_STATUS_SWATCH[s]}`} />
+                            <span className="truncate">{s}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-ink-700 mb-2">
+                      Vendor Status
+                    </label>
+                    <select
+                      name="isActive"
+                      value={companyDetails?.isActive === false || companyDetails?.isActive === "false" ? "false" : "true"}
+                      onChange={(e) => setDetailField("isActive", e.target.value === "true")}
+                      disabled={!isEditable}
+                      className={fieldCls}
+                    >
+                      <option value="true">Active</option>
+                      <option value="false">Inactive</option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -799,6 +972,89 @@ const UpdateVendor = () => {
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* Business Documents */}
+              <div className="border-b border-ink-200 pb-8">
+                <h3 className="text-lg font-medium text-ink-900 mb-6 flex items-center gap-2">
+                  <ClipboardDocumentListIcon className="h-5 w-5" />
+                  Business Documents
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {BUSINESS_DOCS.map(({ key, urlField, label }) => {
+                    const url = companyDetails?.[urlField];
+                    const newFile = businessDocs[key];
+                    const compressing = businessDocCompressing[key];
+                    const inputId = `${key}-upload`;
+                    return (
+                      <div key={key}>
+                        <label className="block text-sm font-medium text-ink-700 mb-2">
+                          {label}
+                        </label>
+                        {url ? (
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-sm text-brand-700 hover:text-ink-950"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                            View {label}
+                          </a>
+                        ) : (
+                          <p className="text-sm text-ink-500">No {label} uploaded</p>
+                        )}
+
+                        {isEditable && (
+                          <div className="mt-4">
+                            <label className="block text-sm font-medium text-ink-700 mb-2">
+                              {url ? `Replace ${label}` : `Upload ${label}`}
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="file"
+                                onChange={(e) => handleBusinessDocSelect(e, key, label)}
+                                accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
+                                className="hidden"
+                                id={inputId}
+                              />
+                              <label
+                                htmlFor={inputId}
+                                className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-brand-50 text-ink-950 rounded-lg border border-brand-300 hover:bg-brand-100 transition-colors"
+                              >
+                                <DocumentArrowUpIcon className="h-5 w-5" />
+                                Choose File
+                              </label>
+                              {compressing && (
+                                <span className="flex items-center gap-1 text-sm text-ink-600">
+                                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                  Compressing…
+                                </span>
+                              )}
+                              {newFile && !compressing && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-ink-700 truncate max-w-xs">
+                                    {newFile.name}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeBusinessDoc(key)}
+                                    className="text-red-600 hover:text-red-800"
+                                  >
+                                    <TrashIcon className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-xs text-ink-500 mt-1">
+                              Image or PDF, compressed to 1 MB automatically
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

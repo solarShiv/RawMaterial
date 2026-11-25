@@ -37,7 +37,8 @@ const getContainerStock = (item) => {
       }))
     : Object.entries(source).map(([name, qty]) => ({ name, qty: toNum(qty) }));
 
-  return rows.filter((c) => c.qty > 0).sort((a, b) => a.name.localeCompare(b.name));
+  // Keep containers with 0 qty too: the item is still assigned to them
+  return rows.filter((c) => c.name).sort((a, b) => a.name.localeCompare(b.name));
 };
 
 const getTotalStock = (item, containers) =>
@@ -46,6 +47,19 @@ const getTotalStock = (item, containers) =>
     : item.stock;
 
 const NO_CONTAINER = "__none__";
+
+// Warehouse assigned to the logged-in user (saved by Login); null when none is assigned
+const getUserWarehouseId = () => {
+  const id = (localStorage.getItem("warehouseId") || "").trim();
+  return id && id !== "null" && id !== "undefined" ? id : null;
+};
+const NO_CONTAINER_LABEL = "NA (No Container)";
+
+// /common/container returns { data: [...] } or a bare array of { id|_id, name }
+const getContainerNames = (payload) => {
+  const list = Array.isArray(payload) ? payload : payload?.data;
+  return (Array.isArray(list) ? list : []).map((c) => c?.name).filter(Boolean);
+};
 
 const RawMaterialStock = () => {
   const [rawMaterials, setRawMaterials] = useState([]);
@@ -57,9 +71,13 @@ const RawMaterialStock = () => {
   const [usageTab, setUsageTab] = useState("used");
   const [viewMode, setViewMode] = useState("grid");
   const [warehouseList, setWarehouseList] = useState([]);
-  const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+  // Users tied to a warehouse only ever see that warehouse's stock
+  const [userWarehouseId] = useState(getUserWarehouseId);
+  const [selectedWarehouse, setSelectedWarehouse] = useState(userWarehouseId);
   const [warehouseLoading, setWarehouseLoading] = useState(true);
   const [containerFilter, setContainerFilter] = useState("all");
+  const [apiContainers, setApiContainers] = useState([]);
+  const [containersLoading, setContainersLoading] = useState(true);
 
   const role = localStorage.getItem("roleName");
 
@@ -72,13 +90,22 @@ const RawMaterialStock = () => {
     try {
       setWarehouseLoading(true);
       const res = await Api.get("/purchase/warehouses");
-      const formatted = (res?.data?.data || []).map((w) => ({
+      const all = (res?.data?.data || []).map((w) => ({
         label: w.warehouseName,
-        value: w._id,
+        value: w._id ?? w.id,
       }));
-      setWarehouseList(formatted);
-      if (formatted.length > 0 && !selectedWarehouse) {
-        setSelectedWarehouse(formatted[0].value);
+
+      if (userWarehouseId) {
+        // Keep only the logged-in user's warehouse
+        const match = all.filter((w) => String(w.value) === String(userWarehouseId));
+        setWarehouseList(match.length > 0 ? match : [{ label: "Assigned Warehouse", value: userWarehouseId }]);
+        setSelectedWarehouse(userWarehouseId);
+        return;
+      }
+
+      setWarehouseList(all);
+      if (all.length > 0 && !selectedWarehouse) {
+        setSelectedWarehouse(all[0].value);
       }
     } catch (err) {
       console.error(err);
@@ -92,6 +119,21 @@ const RawMaterialStock = () => {
       fetchWarehouses();
     }
   }, [role]);
+
+  // Master container list for the Container filter
+  useEffect(() => {
+    const fetchContainers = async () => {
+      try {
+        const res = await Api.get("/common/container");
+        setApiContainers(getContainerNames(res?.data));
+      } catch (err) {
+        console.error("Error fetching containers:", err);
+      } finally {
+        setContainersLoading(false);
+      }
+    };
+    fetchContainers();
+  }, []);
 
   const fetchRawMaterials = async () => {
     try {
@@ -186,9 +228,10 @@ const RawMaterialStock = () => {
     inStock: rawMaterials.filter((item) => item.isUsed && !item.outOfStock).length,
   };
 
-  const containerNames = [...new Set(rawMaterials.flatMap((item) => item.containers.map((c) => c.name)))].sort(
-    (a, b) => a.localeCompare(b)
-  );
+  // Containers from the API, plus any name only found in item stock so no filter option is lost
+  const containerNames = [
+    ...new Set([...apiContainers, ...rawMaterials.flatMap((item) => item.containers.map((c) => c.name))]),
+  ].sort((a, b) => a.localeCompare(b));
 
   // Group the current list by container; a material kept in several containers appears under each
   const containerGroups = (() => {
@@ -267,21 +310,24 @@ const RawMaterialStock = () => {
 
   const ContainerBreakdown = ({ item }) =>
     item.containers.length === 0 ? (
-      <span className="text-xs text-ink-400">No container assigned</span>
+      <span className="text-xs font-semibold text-ink-400">NA</span>
     ) : (
       <div className="flex flex-wrap gap-1.5">
         {item.containers.map((c) => (
           <span
             key={c.name}
+            title={c.qty === 0 ? `${c.name} is empty` : undefined}
             className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-xs ${
               containerFilter === c.name
                 ? "border-brand-400 bg-brand-100 text-ink-950"
+                : c.qty === 0
+                ? "border-dashed border-ink-300 bg-ink-50 text-ink-500"
                 : "border-ink-200 bg-white text-ink-700"
             }`}
           >
             <ArchiveBoxIcon className="h-3 w-3 text-ink-400" />
             {c.name}
-            <span className="font-semibold tabular-nums">{c.qty}</span>
+            <span className={`font-semibold tabular-nums ${c.qty === 0 ? "text-red-600" : ""}`}>{c.qty}</span>
           </span>
         ))}
       </div>
@@ -388,8 +434,9 @@ const RawMaterialStock = () => {
               <select
                 value={selectedWarehouse ?? ""}
                 onChange={(e) => setSelectedWarehouse(e.target.value)}
-                disabled={warehouseLoading}
-                className="input pl-9"
+                disabled={warehouseLoading || !!userWarehouseId}
+                title={userWarehouseId ? "Showing stock for your assigned warehouse" : undefined}
+                className="input pl-9 disabled:cursor-not-allowed"
               >
                 {warehouseLoading ? (
                   <option>Loading warehouses...</option>
@@ -432,13 +479,13 @@ const RawMaterialStock = () => {
             <div className="relative">
               <ArchiveBoxIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
               <select value={containerFilter} onChange={(e) => setContainerFilter(e.target.value)} className="input pl-9">
-                <option value="all">All Containers</option>
+                <option value="all">{containersLoading ? "Loading containers..." : "All Containers"}</option>
                 {containerNames.map((name) => (
                   <option key={name} value={name}>
                     {name}
                   </option>
                 ))}
-                <option value={NO_CONTAINER}>No Container</option>
+                <option value={NO_CONTAINER}>{NO_CONTAINER_LABEL}</option>
               </select>
             </div>
           </div>
@@ -587,7 +634,7 @@ const RawMaterialStock = () => {
                           <ArchiveBoxIcon className="h-4 w-4" />
                         </div>
                         <h3 className="font-semibold text-ink-950 truncate">
-                          {isUnassigned ? "No Container" : group.name}
+                          {isUnassigned ? NO_CONTAINER_LABEL : group.name}
                         </h3>
                       </div>
                       <span className="badge-gray">

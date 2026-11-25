@@ -1,33 +1,145 @@
-import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Api from "../../auth/Api";
 import {
-  BuildingOffice2Icon,
-  DocumentTextIcon,
-  CurrencyDollarIcon,
-  MapPinIcon,
-  GlobeAltIcon,
-  PhoneIcon,
-  EnvelopeIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  TrashIcon,
-  ArrowPathIcon,
-  ChevronDownIcon,
-  MagnifyingGlassIcon,
-  InformationCircleIcon,
-  UserIcon,
-  PaperClipIcon,
-  XMarkIcon,
-  PhotoIcon,
-  DocumentIcon,
-} from "@heroicons/react/24/outline";
-import {
-  BuildingOffice2Icon as BuildingOffice2Solid,
-  CheckCircleIcon as CheckCircleSolid,
-  DocumentIcon as DocumentIconSolid,
-  PhotoIcon as PhotoIconSolid,
-} from "@heroicons/react/24/solid";
-import Button from "../../components/Button/Button";
+  Building2,
+  MapPin,
+  Phone,
+  Landmark,
+  Paperclip,
+  CheckCircle2,
+  Circle,
+  XCircle,
+  X,
+  Loader2,
+  Upload,
+  FileText,
+  Image as ImageIcon,
+  RotateCcw,
+  ShieldCheck,
+  AlertCircle,
+} from "lucide-react";
+import SearchableSelect from "../../components/dropdown/SearchableSelect";
+import { VENDOR_AUTHORIZATION_STATUSES, AUTH_STATUS_SWATCH } from "../../utils/vendorAuthStatus";
+import { compressDocument, ONE_MB } from "../../utils/compressDocument";
+
+const VENDOR_BUY_ITEM_CATEGORIES = ["Long", "Flat"];
+const VENDOR_CATEGORIES = ["Manufacture", "Trader"];
+
+// Business documents: compressed in the browser to <= 1 MB each before upload.
+const BUSINESS_DOCS = [
+  { key: "bgDocument", formField: "bgDocumentFile", label: "BG Document" },
+  { key: "balanceSheet", formField: "balanceSheetFile", label: "Balance Sheet" },
+];
+const MAX_RAW_DOC_BYTES = 25 * 1024 * 1024; // accept up to 25 MB, then compress to 1 MB
+
+
+const formatFileSize = (bytes) => {
+  if (!bytes) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
+
+const inputCls = (hasError, extra = "") => `input ${hasError ? "input-error" : ""} ${extra}`;
+
+// Layout helpers (module scope so inputs keep focus between renders)
+const SectionCard = ({ step, icon: Icon, title, subtitle, cols = "sm:grid-cols-2 lg:grid-cols-3", children }) => (
+  <section className="card">
+    <div className="flex items-center gap-3 border-b border-ink-200 px-4 py-3 sm:px-5 sm:py-4">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ink-950 text-sm font-bold text-brand-400">
+        {step}
+      </span>
+      <div className="min-w-0">
+        <h2 className="flex items-center gap-1.5 text-base font-semibold text-ink-950">
+          <Icon className="h-4 w-4 shrink-0 text-ink-500" />
+          {title}
+        </h2>
+        {subtitle && <p className="text-xs text-ink-500">{subtitle}</p>}
+      </div>
+    </div>
+    <div className={`grid grid-cols-1 gap-4 p-4 sm:p-5 ${cols}`}>{children}</div>
+  </section>
+);
+
+const Field = ({ label, htmlFor, required, error, success, hint, extra, className = "", children }) => (
+  <div className={`min-w-0 ${className}`}>
+    <label htmlFor={htmlFor} className="label flex items-center justify-between gap-2">
+      <span>
+        {label}
+        {required && <span className="ml-0.5 text-red-500">*</span>}
+      </span>
+      {extra}
+    </label>
+    {children}
+    {error ? (
+      <p className="mt-1 flex items-center gap-1 text-xs text-red-600">
+        <XCircle className="h-3.5 w-3.5 shrink-0" />
+        {error}
+      </p>
+    ) : success ? (
+      <p className="mt-1 flex items-center gap-1 text-xs text-green-700">
+        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+        {success}
+      </p>
+    ) : hint ? (
+      <p className="mt-1 text-xs text-ink-500">{hint}</p>
+    ) : null}
+  </div>
+);
+
+const FilePicker = ({ id, file, busy, busyText = "Compressing...", hasError, placeholder, onSelect, onRemove, inputRef }) => (
+  <>
+    <input
+      ref={inputRef}
+      id={id}
+      type="file"
+      accept=".jpg,.jpeg,.png,.gif,.webp,.pdf"
+      className="hidden"
+      onChange={onSelect}
+      disabled={busy}
+    />
+    {file ? (
+      <div className="flex items-center gap-2 rounded-lg border border-green-300 bg-green-50 px-3 py-2">
+        {file.type === "application/pdf" ? (
+          <FileText className="h-5 w-5 shrink-0 text-red-500" />
+        ) : (
+          <ImageIcon className="h-5 w-5 shrink-0 text-brand-700" />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-ink-900" title={file.name}>
+            {file.name}
+          </p>
+          <p className="text-xs text-ink-500">{formatFileSize(file.size)}</p>
+        </div>
+        <label htmlFor={id} className="btn-ghost btn-sm cursor-pointer">
+          Change
+        </label>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="rounded p-1 text-red-600 hover:bg-red-100"
+          aria-label="Remove file"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    ) : (
+      <label
+        htmlFor={id}
+        className={`flex items-center justify-center gap-2 rounded-lg border-2 border-dashed px-3 py-2 text-sm font-medium transition-colors ${
+          hasError
+            ? "border-red-400 bg-red-50 text-red-700"
+            : "border-ink-300 bg-ink-50 text-ink-700 hover:border-brand-500 hover:bg-brand-50"
+        } ${busy ? "cursor-wait opacity-60" : "cursor-pointer"}`}
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+        {busy ? busyText : placeholder}
+      </label>
+    )}
+  </>
+);
+
 
 const AddVendor = () => {
   const [companyData, setCompanyData] = useState({
@@ -50,15 +162,14 @@ const AddVendor = () => {
     accountNumber: "",
     ifscCode: "",
     referenceBy: "",
+    authorization_status: "White",
+    buy_item_category: "",
+    category: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
-  const [countrySearch, setCountrySearch] = useState("");
-  const [currencySearch, setCurrencySearch] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [detectingState, setDetectingState] = useState(false);
   const [countries, setCountries] = useState([]);
@@ -78,13 +189,69 @@ const AddVendor = () => {
     pancard: ""
   });
 
-  const dropdownRef = useRef(null);
-  const currencyDropdownRef = useRef(null);
-  const searchInputRef = useRef(null);
-  const currencySearchInputRef = useRef(null);
   const pincodeTimeoutRef = useRef(null);
   const aadhaarFileInputRef = useRef(null);
   const panCardFileInputRef = useRef(null);
+
+  // Business documents (BG document, balance sheet) – compressed to <= 1 MB
+  const [businessDocs, setBusinessDocs] = useState({ bgDocument: null, balanceSheet: null });
+  const [businessDocCompressing, setBusinessDocCompressing] = useState({ bgDocument: false, balanceSheet: false });
+  const [businessDocErrors, setBusinessDocErrors] = useState({ bgDocument: "", balanceSheet: "" });
+  const businessDocJobRef = useRef({ bgDocument: 0, balanceSheet: 0 });
+  const isCompressingDocs = Object.values(businessDocCompressing).some(Boolean);
+
+  // Show any problem as a browser alert, and keep the red banner on the page.
+  const showError = (msg, { banner = true } = {}) => {
+    if (!msg) return;
+    if (banner) setError(msg);
+    window.alert(msg);
+  };
+
+  const setBusinessDocError = (key, msg) => {
+    setBusinessDocErrors((prev) => ({ ...prev, [key]: msg }));
+    const label = BUSINESS_DOCS.find((d) => d.key === key)?.label || "Document";
+    showError(`${label}: ${msg}`, { banner: false });
+  };
+
+  const handleBusinessDocSelect = async (e, key) => {
+    const file = e.target.files[0];
+    e.target.value = ""; // allow picking the same file again
+    if (!file) return;
+
+    const validImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+    if (!validImageTypes.includes(file.type) && file.type !== "application/pdf") {
+      setBusinessDocError(key, "Only JPG, PNG, GIF, WEBP images or PDF files are allowed");
+      return;
+    }
+    if (file.size > MAX_RAW_DOC_BYTES) {
+      setBusinessDocError(key, "File is too large (max 25 MB before compression)");
+      return;
+    }
+
+    const jobId = ++businessDocJobRef.current[key];
+    setBusinessDocErrors((prev) => ({ ...prev, [key]: "" }));
+    setBusinessDocs((prev) => ({ ...prev, [key]: null }));
+    setBusinessDocCompressing((prev) => ({ ...prev, [key]: true }));
+    try {
+      const compressed = await compressDocument(file, ONE_MB);
+      if (jobId !== businessDocJobRef.current[key]) return;
+      setBusinessDocs((prev) => ({ ...prev, [key]: compressed }));
+    } catch (err) {
+      if (jobId !== businessDocJobRef.current[key]) return;
+      setBusinessDocError(key, err?.message || "Could not compress file to 1 MB. Please upload a smaller file.");
+    } finally {
+      if (jobId === businessDocJobRef.current[key]) {
+        setBusinessDocCompressing((prev) => ({ ...prev, [key]: false }));
+      }
+    }
+  };
+
+  const handleRemoveBusinessDoc = (key) => {
+    businessDocJobRef.current[key]++; // cancel any in-flight compression result
+    setBusinessDocs((prev) => ({ ...prev, [key]: null }));
+    setBusinessDocCompressing((prev) => ({ ...prev, [key]: false }));
+    setBusinessDocErrors((prev) => ({ ...prev, [key]: "" }));
+  };
 
   // Track if city/state was auto-filled from pincode
   const [autoFilledFields, setAutoFilledFields] = useState({
@@ -112,7 +279,7 @@ const AddVendor = () => {
           "Error fetching countries: ",
           error?.response?.data?.message || error?.message
         );
-        setError("Failed to load countries. Please refresh the page.");
+        showError("Failed to load countries. Please refresh the page.");
         setCountries([]); // keep empty – no fallback
       } finally {
         setLoadingCountries(false);
@@ -133,7 +300,7 @@ const AddVendor = () => {
           "Error fetching currencies: ",
           error?.response?.data?.message || error?.message
         );
-        setError("Failed to load currencies. Please refresh the page.");
+        showError("Failed to load currencies. Please refresh the page.");
         setCurrencies([]);
       } finally {
         setLoadingCurrency(false);
@@ -260,20 +427,6 @@ const AddVendor = () => {
     };
   }, [companyData.zipCode, companyData.country, fetchPincodeDetails, lastFetchedPincode]);
 
-  const filteredCountries = useMemo(() => {
-    if (!countrySearch) return countries;
-    return countries.filter((country) =>
-      country.toLowerCase().includes(countrySearch.toLowerCase())
-    );
-  }, [countries, countrySearch]);
-
-  const filteredCurrencies = useMemo(() => {
-    if (!currencySearch) return currencies;
-    return currencies.filter((currency) =>
-      currency.toLowerCase().includes(currencySearch.toLowerCase())
-    );
-  }, [currencies, currencySearch]);
-
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => {
@@ -282,57 +435,6 @@ const AddVendor = () => {
       return () => clearTimeout(timer);
     }
   }, [message]);
-
-  // Focus search input when dropdown opens
-  useEffect(() => {
-    if (showCountryDropdown && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [showCountryDropdown]);
-
-  useEffect(() => {
-    if (showCurrencyDropdown && currencySearchInputRef.current) {
-      currencySearchInputRef.current.focus();
-    }
-  }, [showCurrencyDropdown]);
-
-  // Handle click outside for both dropdowns
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Close country dropdown
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowCountryDropdown(false);
-        setCountrySearch("");
-      }
-
-      // Close currency dropdown
-      if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(event.target)) {
-        setShowCurrencyDropdown(false);
-        setCurrencySearch("");
-      }
-    };
-
-    const handleEscapeKey = (event) => {
-      if (event.key === "Escape") {
-        if (showCountryDropdown) {
-          setShowCountryDropdown(false);
-          setCountrySearch("");
-        }
-        if (showCurrencyDropdown) {
-          setShowCurrencyDropdown(false);
-          setCurrencySearch("");
-        }
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscapeKey);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscapeKey);
-    };
-  }, [showCountryDropdown, showCurrencyDropdown]);
 
   const formatGSTNumber = (value) => {
     const cleaned = value ? value.toUpperCase().replace(/[^0-9A-Z]/g, "") : "";
@@ -502,6 +604,8 @@ const AddVendor = () => {
     const error = validateFile(file);
     if (error) {
       setFileErrors(prev => ({ ...prev, [type]: error }));
+      showError(`${type === "aadhaar" ? "Aadhaar" : "PAN card"} document: ${error}`, { banner: false });
+      e.target.value = "";
       return;
     }
 
@@ -553,27 +657,6 @@ const AddVendor = () => {
     }
   };
 
-  // Get file icon based on type
-  const getFileIcon = (file) => {
-    if (!file) return null;
-
-    if (file.type === 'application/pdf') {
-      return <DocumentIcon className="h-5 w-5 text-red-500" />;
-    } else if (file.type.startsWith('image/')) {
-      return <PhotoIcon className="h-5 w-5 text-brand-700" />;
-    }
-    return <DocumentIcon className="h-5 w-5 text-ink-500" />;
-  };
-
-  // Format file size
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
   const handleCountrySelect = (country) => {
     setCompanyData((prevState) => ({
       ...prevState,
@@ -581,8 +664,6 @@ const AddVendor = () => {
       // Clear zipCode when country changes to avoid confusion
       zipCode: "",
     }));
-    setShowCountryDropdown(false);
-    setCountrySearch("");
 
     // Reset auto-filled fields when country changes
     setAutoFilledFields({
@@ -590,27 +671,6 @@ const AddVendor = () => {
       state: false
     });
     setLastFetchedPincode("");
-  };
-
-  const handleCountryDropdownToggle = () => {
-    const newState = !showCountryDropdown;
-    setShowCountryDropdown(newState);
-    setCountrySearch("");
-  };
-
-  const handleCurrencySelect = (currency) => {
-    setCompanyData((prevState) => ({
-      ...prevState,
-      currency: currency,
-    }));
-    setShowCurrencyDropdown(false);
-    setCurrencySearch("");
-  };
-
-  const handleCurrencyDropdownToggle = () => {
-    const newState = !showCurrencyDropdown;
-    setShowCurrencyDropdown(newState);
-    setCurrencySearch("");
   };
 
   // Handle zipCode/pincode blur - trigger immediate fetch (India only)
@@ -631,19 +691,28 @@ const AddVendor = () => {
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setError("Please fix the errors in the form");
+      window.alert(
+        "Please fix the following:\n\n" +
+          Object.values(errors).map((m) => `• ${m}`).join("\n")
+      );
       return;
     }
 
     // Validate files only if corresponding numbers are provided
     if (companyData.vendorAadhaar && !aadhaarFile) {
       setFieldErrors(prev => ({ ...prev, aadhaarFile: "Aadhaar document is required when Aadhaar number is provided" }));
-      setError("Please upload Aadhaar document");
+      showError("Please upload Aadhaar document");
       return;
     }
 
     if (companyData.vendorPanCard && !panCardFile) {
       setFieldErrors(prev => ({ ...prev, panCardFile: "PAN card document is required when PAN number is provided" }));
-      setError("Please upload PAN card document");
+      showError("Please upload PAN card document");
+      return;
+    }
+
+    if (isCompressingDocs) {
+      showError("Please wait, documents are still being compressed");
       return;
     }
 
@@ -671,6 +740,10 @@ const AddVendor = () => {
       if (panCardFile) {
         formData.append('pancardFile', panCardFile);
       }
+
+      BUSINESS_DOCS.forEach(({ key, formField }) => {
+        if (businessDocs[key]) formData.append(formField, businessDocs[key]);
+      });
 
       // Log FormData contents for debugging
       console.log("FormData contents:");
@@ -713,32 +786,28 @@ const AddVendor = () => {
 
           setFieldErrors(fieldErrorObj);
           errorMessage = "Please fix the errors in the form";
+
+          const details = Object.values(serverErrors)
+            .map((v) => (typeof v === "string" ? v : v?.msg || v?.message || JSON.stringify(v)))
+            .filter(Boolean);
+          if (details.length) {
+            setError(errorMessage);
+            window.alert(`${errorMessage}:\n\n${details.map((m) => `• ${m}`).join("\n")}`);
+            return;
+          }
         }
 
-        setError(errorMessage);
+        showError(errorMessage);
       } else if (err.request) {
-        setError("No response from server. Please check your network connection.");
+        showError("No response from server. Please check your network connection.");
       } else {
-        setError("Error: " + err.message);
+        showError("Error: " + err.message);
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const isFormValid = () => {
-    return (
-      companyData.name.trim() &&
-      companyData.contactPerson.trim() &&
-      companyData.address.trim() &&
-      companyData.city.trim() &&
-      companyData.state.trim() &&
-      companyData.country.trim() &&
-      companyData.currency.trim() &&
-      companyData.contactNumber.trim() &&
-      /^\d{10,15}$/.test(companyData.contactNumber)
-    );
-  };
 
   const clearForm = () => {
     setCompanyData({
@@ -761,17 +830,17 @@ const AddVendor = () => {
       accountNumber: "",
       ifscCode: "",
       referenceBy: "",
+      authorization_status: "White",
+      buy_item_category: "",
+      category: "",
     });
+    BUSINESS_DOCS.forEach(({ key }) => handleRemoveBusinessDoc(key));
     setAadhaarFile(null);
     setPanCardFile(null);
     setFieldErrors({});
     setFileErrors({ aadhaar: "", pancard: "" });
     setError("");
     setMessage("");
-    setCountrySearch("");
-    setCurrencySearch("");
-    setShowCountryDropdown(false);
-    setShowCurrencyDropdown(false);
     setAutoFilledFields({
       city: false,
       state: false
@@ -787,1261 +856,579 @@ const AddVendor = () => {
     }
   };
 
-  // Get field label and placeholder based on country
-  const getZipCodeFieldInfo = () => {
-    const isIndia = companyData.country.toLowerCase() === "india";
+  const isIndia = companyData.country.toLowerCase() === "india";
+  const zipLabel = isIndia ? "Pincode" : "Postal / Zip Code";
 
-    return {
-      label: isIndia ? "Pincode" : "Postal/Zip Code",
-      placeholder: isIndia ? "Enter 6-digit pincode" : "Enter postal/zip code",
-      maxLength: isIndia ? 6 : 20,
-      validationText: isIndia ? (
-        companyData.zipCode.length === 6 ? (
-          <p className="text-green-600 text-xs mt-0.5 flex items-center">
-            <CheckCircleIcon className="h-3 w-3 mr-0.5" />
-            Valid pincode format
-          </p>
-        ) : companyData.zipCode.length > 0 ? (
-          <p className="text-red-600 text-xs mt-0.5 flex items-center">
-            <XCircleIcon className="h-3 w-3 mr-0.5" />
-            Pincode must be 6 digits
-          </p>
-        ) : null
-      ) : null
-    };
+  // Required fields shown in the summary checklist; the submit button needs all of them.
+  const requiredChecks = [
+    { label: "Vendor name", done: !!companyData.name.trim() },
+    { label: "Reference by", done: !!companyData.referenceBy.trim() },
+    { label: "Country", done: !!companyData.country.trim() },
+    { label: "Currency", done: !!companyData.currency.trim() },
+    { label: "Address", done: !!companyData.address.trim() },
+    { label: "City", done: !!companyData.city.trim() },
+    { label: "State", done: !!companyData.state.trim() },
+    { label: "Contact person", done: !!companyData.contactPerson.trim() },
+    { label: "Contact number (10–15 digits)", done: /^\d{10,15}$/.test(companyData.contactNumber) },
+  ];
+  const doneCount = requiredChecks.filter((c) => c.done).length;
+  const allRequiredDone = doneCount === requiredChecks.length;
+  const submitDisabled = loading || !allRequiredDone || loadingCountries || loadingCurrency || isCompressingDocs;
+
+  const setField = (name, value) => {
+    setCompanyData((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const zipCodeFieldInfo = getZipCodeFieldInfo();
-
   return (
-    <div className="min-h-[60vh] bg-ink-50 py-4 px-3 sm:py-6 sm:px-4 md:px-6">
-      <div className="max-w-5xl mx-auto">
-        {/* Success Message */}
-        {message && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start">
-            <CheckCircleSolid className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <strong className="font-medium text-green-800">Success!</strong>
-              <p className="text-green-700 text-sm mt-0.5">{message}</p>
-            </div>
-            <button
-              onClick={() => setMessage("")}
-              className="text-green-500 hover:text-green-700 ml-2"
-            >
-              <XCircleIcon className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start">
-            <XCircleIcon className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <strong className="font-medium text-red-800">Error!</strong>
-              <p className="text-red-700 text-sm mt-0.5">{error}</p>
-            </div>
-            <button
-              onClick={() => setError("")}
-              className="text-red-500 hover:text-red-700 ml-2"
-            >
-              <XCircleIcon className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Form Card */}
-        <div className="bg-white border border-ink-200 rounded-lg">
-          {/* Form Header */}
-          <div className="border-b border-ink-200 px-4 py-3 sm:px-6 sm:py-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center space-x-2">
-                <DocumentTextIcon className="h-5 w-5 text-ink-700" />
-                <h2 className="text-base sm:text-lg font-medium text-ink-900">
-                  Vendor Registration Form
-                </h2>
-              </div>
-              <div className="text-ink-500 text-xs sm:text-sm">
-                <InformationCircleIcon className="h-3 w-3 sm:h-4 sm:w-4 inline mr-1" />
-                All fields marked with * are required
-              </div>
-            </div>
-          </div>
-
-          {/* Form Content */}
-          <div className="p-4 sm:p-6">
-            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
-              {/* Basic Information Section */}
-              <div>
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center mr-2">
-                    <BuildingOffice2Icon className="h-4 w-4 text-brand-700" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-ink-900">
-                      Basic Information
-                    </h3>
-                    <p className="text-ink-500 text-xs">
-                      Primary details about the vendor
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="name"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <BuildingOffice2Icon className="h-3 w-3 mr-1 text-ink-400" />
-                        Vendor Name{" "}
-                        <span className="text-red-500 ml-0.5">*</span>
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={companyData.name}
-                        onChange={handleChange}
-                        required
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.name
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="Enter vendor legal name"
-                      />
-                      <BuildingOffice2Icon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.name && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.name}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="referenceBy"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <BuildingOffice2Icon className="h-3 w-3 mr-1 text-ink-400" />
-                        Reference By{" "}
-                        <span className="text-red-500 ml-0.5">*</span>
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="referenceBy"
-                        name="referenceBy"
-                        value={companyData.referenceBy}
-                        onChange={handleChange}
-                        required
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.referenceBy
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="Enter reference By"
-                      />
-                      <BuildingOffice2Icon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.referenceBy && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.referenceBy}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* GST Number */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="gstNumber"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <DocumentTextIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        GST Number <span className="text-red-500 ml-0.5"></span>
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="gstNumber"
-                        name="gstNumber"
-                        value={companyData.gstNumber}
-                        onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.gstNumber
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="15-character GST number"
-                        maxLength="15"
-                      />
-                      <DocumentTextIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.gstNumber && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.gstNumber}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Country Dropdown */}
-                  <div className="sm:col-span-1 relative" ref={dropdownRef}>
-                    <label className="block text-xs sm:text-sm font-medium text-ink-700 mb-1">
-                      <span className="flex items-center">
-                        <GlobeAltIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        Country <span className="text-red-500 ml-0.5">*</span>
-                        {loadingCountries && (
-                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-brand-700" />
-                        )}
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <div
-                        className={`w-full px-3 py-2 border rounded-lg bg-white cursor-pointer flex justify-between items-center transition-colors text-sm ${
-                          showCountryDropdown
-                            ? "border-brand-500 ring-1 ring-brand-400/40"
-                            : fieldErrors.country
-                              ? "border-red-300 bg-red-50"
-                              : "border-ink-300 hover:border-ink-400"
-                        } ${
-                          loadingCountries
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
-                        onClick={() =>
-                          !loadingCountries && handleCountryDropdownToggle()
-                        }
-                        tabIndex={loadingCountries ? -1 : 0}
-                        role="button"
-                        aria-expanded={showCountryDropdown}
-                        aria-haspopup="listbox"
-                        aria-disabled={loadingCountries}
-                      >
-                        <span className="truncate flex items-center">
-                          <GlobeAltIcon className="h-4 w-4 text-ink-400 mr-1.5" />
-                          {companyData.country ||
-                            (loadingCountries
-                              ? "Loading countries..."
-                              : "Select a country")}
-                        </span>
-                        <span className="text-ink-400 ml-1 text-xs">
-                          {loadingCountries ? (
-                            <ArrowPathIcon className="h-3 w-3 animate-spin" />
-                          ) : showCountryDropdown ? (
-                            "▲"
-                          ) : (
-                            "▼"
-                          )}
-                        </span>
-                      </div>
-                      {fieldErrors.country && (
-                        <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                          <XCircleIcon className="h-3 w-3 mr-0.5" />
-                          {fieldErrors.country}
-                        </span>
-                      )}
-
-                      {showCountryDropdown && !loadingCountries && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-ink-300 rounded-lg shadow-sm overflow-hidden">
-                          <div className="p-2 border-b border-ink-200 bg-ink-50">
-                            <div className="relative">
-                              <input
-                                ref={searchInputRef}
-                                type="text"
-                                placeholder="Search countries..."
-                                value={countrySearch}
-                                onChange={(e) =>
-                                  setCountrySearch(e.target.value)
-                                }
-                                className="w-full pl-8 pr-3 py-1.5 border border-ink-300 rounded focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none text-sm"
-                              />
-                              <MagnifyingGlassIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                            </div>
-                          </div>
-                          <div className="max-h-48 overflow-y-auto">
-                            {filteredCountries.length > 0 ? (
-                              filteredCountries.map((country) => (
-                                <div
-                                  key={country}
-                                  className={`px-3 py-2 cursor-pointer transition-colors flex items-center text-sm ${
-                                    companyData.country === country
-                                      ? "bg-brand-50 text-ink-950 font-medium border-l-2 border-brand-500"
-                                      : "text-ink-700 hover:bg-ink-50"
-                                  }`}
-                                  onClick={() => handleCountrySelect(country)}
-                                  role="option"
-                                  aria-selected={
-                                    companyData.country === country
-                                  }
-                                >
-                                  {companyData.country === country && (
-                                    <CheckCircleIcon className="h-4 w-4 text-brand-700 mr-2" />
-                                  )}
-                                  <span
-                                    className={
-                                      companyData.country === country
-                                        ? "ml-0"
-                                        : ""
-                                    }
-                                  >
-                                    {country}
-                                  </span>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="px-3 py-2 text-ink-500 text-center text-sm">
-                                No countries found
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Currency Dropdown */}
-                  <div className="md:col-span-1 relative" ref={currencyDropdownRef}>
-                    <label className="block text-xs sm:text-sm font-medium text-ink-700 mb-1">
-                      <span className="flex items-center">
-                        <CurrencyDollarIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        Currency <span className="text-red-500 ml-0.5">*</span>
-                        {loadingCurrency && (
-                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-brand-700" />
-                        )}
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <div
-                        className={`w-full px-3 py-2 border rounded-lg bg-white cursor-pointer flex justify-between items-center transition-colors text-sm ${
-                          showCurrencyDropdown
-                            ? "border-brand-500 ring-1 ring-brand-400/40"
-                            : fieldErrors.currency
-                              ? "border-red-300 bg-red-50"
-                              : "border-ink-300 hover:border-ink-400"
-                        } ${
-                          loadingCurrency
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
-                        onClick={() =>
-                          !loadingCurrency && handleCurrencyDropdownToggle()
-                        }
-                        tabIndex={loadingCurrency ? -1 : 0}
-                        role="button"
-                        aria-expanded={showCurrencyDropdown}
-                        aria-haspopup="listbox"
-                        aria-disabled={loadingCurrency}
-                      >
-                        <span className="truncate flex items-center">
-                          <CurrencyDollarIcon className="h-4 w-4 text-ink-400 mr-1.5" />
-                          {companyData.currency ||
-                            (loadingCurrency
-                              ? "Loading currency..."
-                              : "Select currency")}
-                        </span>
-                        <span className="text-ink-400 ml-1 text-xs">
-                          {loadingCurrency ? (
-                            <ArrowPathIcon className="h-3 w-3 animate-spin" />
-                          ) : showCurrencyDropdown ? (
-                            "▲"
-                          ) : (
-                            "▼"
-                          )}
-                        </span>
-                      </div>
-                      {fieldErrors.currency && (
-                        <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                          <XCircleIcon className="h-3 w-3 mr-0.5" />
-                          {fieldErrors.currency}
-                        </span>
-                      )}
-
-                      {showCurrencyDropdown && !loadingCurrency && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-ink-300 rounded-lg shadow-sm overflow-hidden">
-                          <div className="p-2 border-b border-ink-200 bg-ink-50">
-                            <div className="relative">
-                              <input
-                                ref={currencySearchInputRef}
-                                type="text"
-                                placeholder="Search currencies..."
-                                value={currencySearch}
-                                onChange={(e) =>
-                                  setCurrencySearch(e.target.value)
-                                }
-                                className="w-full pl-8 pr-3 py-1.5 border border-ink-300 rounded focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none text-sm"
-                              />
-                              <MagnifyingGlassIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                            </div>
-                          </div>
-                          <div className="max-h-48 overflow-y-auto">
-                            {filteredCurrencies.length > 0 ? (
-                              filteredCurrencies.map((currency) => (
-                                <div
-                                  key={currency}
-                                  className={`px-3 py-2 cursor-pointer transition-colors flex items-center text-sm ${
-                                    companyData.currency === currency
-                                      ? "bg-brand-50 text-ink-950 font-medium border-l-2 border-brand-500"
-                                      : "text-ink-700 hover:bg-ink-50"
-                                  }`}
-                                  onClick={() => handleCurrencySelect(currency)}
-                                  role="option"
-                                  aria-selected={
-                                    companyData.currency === currency
-                                  }
-                                >
-                                  {companyData.currency === currency && (
-                                    <CheckCircleIcon className="h-4 w-4 text-brand-700 mr-2" />
-                                  )}
-                                  <span
-                                    className={
-                                      companyData.currency === currency
-                                        ? "ml-0"
-                                        : ""
-                                    }
-                                  >
-                                    {currency}
-                                  </span>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="px-3 py-2 text-ink-500 text-center text-sm">
-                                No currencies found
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    {companyData.country && !loadingCurrency && (
-                      <p className="text-xs text-ink-500 mt-1">
-                        Default currency for {companyData.country}. Click to select different currency.
-                      </p>
-                    )}
-                    {loadingCurrency && (
-                      <p className="text-xs text-brand-700 mt-1">
-                        Fetching currency...
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Address Details Section */}
-              <div>
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
-                    <MapPinIcon className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-ink-900">
-                      Address Details
-                    </h3>
-                    <p className="text-ink-500 text-xs">
-                      Business location information
-                    </p>
-                  </div>
-                </div>
-
-                {/* Address Textarea */}
-                <div className="mb-4">
-                  <label
-                    htmlFor="address"
-                    className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                  >
-                    <span className="flex items-center">
-                      <MapPinIcon className="h-3 w-3 mr-1 text-ink-400" />
-                      Complete Address{" "}
-                      <span className="text-red-500 ml-0.5">*</span>
-                    </span>
-                  </label>
-                  <div className="relative">
-                    <textarea
-                      id="address"
-                      name="address"
-                      value={companyData.address}
-                      onChange={handleChange}
-                      rows="3"
-                      required
-                      className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors resize-none text-sm ${
-                        fieldErrors.address
-                          ? "border-red-300 bg-red-50"
-                          : "border-ink-300 hover:border-ink-400"
-                      }`}
-                      placeholder="Enter complete street address with landmark"
-                    />
-                    <MapPinIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-2.5" />
-                  </div>
-                  {fieldErrors.address && (
-                    <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                      <XCircleIcon className="h-3 w-3 mr-0.5" />
-                      {fieldErrors.address}
-                    </span>
-                  )}
-                </div>
-
-                {/* Address Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  {/* City */}
-                  <div className="sm:col-span-1">
-                    <label
-                      htmlFor="city"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      City <span className="text-red-500">*</span>
-                      {autoFilledFields.city && (
-                        <span className="ml-1 text-xs text-green-600">
-                          (Auto-filled)
-                        </span>
-                      )}
-                    </label>
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      value={companyData.city}
-                      onChange={handleChange}
-                      required
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                        fieldErrors.city
-                          ? "border-red-300 bg-red-50"
-                          : "border-ink-300 hover:border-ink-400"
-                      } ${autoFilledFields.city ? 'bg-green-50' : ''}`}
-                      placeholder="Enter city"
-                    />
-                    {fieldErrors.city && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.city}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* State */}
-                  <div className="sm:col-span-1">
-                    <label
-                      htmlFor="state"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      State <span className="text-red-500">*</span>
-                      {autoFilledFields.state && (
-                        <span className="ml-1 text-xs text-green-600">
-                          (Auto-filled)
-                        </span>
-                      )}
-                    </label>
-                    <input
-                      type="text"
-                      id="state"
-                      name="state"
-                      value={companyData.state}
-                      onChange={handleChange}
-                      required
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                        fieldErrors.state
-                          ? "border-red-300 bg-red-50"
-                          : "border-ink-300 hover:border-ink-400"
-                      } ${autoFilledFields.state ? 'bg-green-50' : ''}`}
-                      placeholder="Enter state"
-                    />
-                    {fieldErrors.state && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.state}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* ZipCode/Pincode Field (Single Field) */}
-                  <div className="sm:col-span-1">
-                    <label
-                      htmlFor="zipCode"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center justify-between">
-                        {zipCodeFieldInfo.label} <span className="text-red-500"></span>
-                        {detectingState && companyData.country.toLowerCase() === "india" && (
-                          <span className="text-xs text-brand-700 flex items-center">
-                            <ArrowPathIcon className="h-3 w-3 mr-0.5 animate-spin" />
-                            Detecting...
-                          </span>
-                        )}
-                      </span>
-                      {companyData.country.toLowerCase() === "india" && (
-                        <span className="text-xs text-ink-500 block mt-0.5">
-                          Enter 6-digit Indian pincode for auto-fill
-                        </span>
-                      )}
-                    </label>
-                    <input
-                      type="text"
-                      id="zipCode"
-                      name="zipCode"
-                      value={companyData.zipCode}
-                      onChange={handleChange}
-                      onBlur={handleZipCodeBlur}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                        fieldErrors.zipCode
-                          ? "border-red-300 bg-red-50"
-                          : "border-ink-300 hover:border-ink-400"
-                      }`}
-                      placeholder={zipCodeFieldInfo.placeholder}
-                      maxLength={zipCodeFieldInfo.maxLength}
-                    />
-                    {fieldErrors.zipCode && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.zipCode}
-                      </span>
-                    )}
-                    {zipCodeFieldInfo.validationText}
-                  </div>
-                </div>
-              </div>
-
-              {/* Contact Information Section */}
-              <div>
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-2">
-                    <PhoneIcon className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-ink-900">
-                      Contact Information
-                    </h3>
-                    <p className="text-ink-500 text-xs">
-                      Primary contact details
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  {/* Contact Person Name */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="contactPerson"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <UserIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        Contact Person Name{" "}
-                        <span className="text-red-500 ml-0.5">*</span>
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="contactPerson"
-                        name="contactPerson"
-                        value={companyData.contactPerson}
-                        onChange={handleChange}
-                        required
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.contactPerson
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="John Smith"
-                      />
-                      <UserIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.contactPerson && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.contactPerson}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Contact Number */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="contactNumber"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <PhoneIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        Contact Number{" "}
-                        <span className="text-red-500 ml-0.5">*</span>
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="tel"
-                        id="contactNumber"
-                        name="contactNumber"
-                        value={companyData.contactNumber}
-                        onChange={handleChange}
-                        required
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.contactNumber
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="Enter contact number"
-                        maxLength="15"
-                      />
-                      <PhoneIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.contactNumber && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.contactNumber}
-                      </span>
-                    )}
-                    {companyData.contactNumber.length >= 10 && !fieldErrors.contactNumber && (
-                      <p className="text-green-600 text-xs mt-0.5 flex items-center">
-                        <CheckCircleIcon className="h-3 w-3 mr-0.5" />
-                        Valid contact number
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Alternate Number */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="alternateNumber"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <PhoneIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        Alternate Number
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="tel"
-                        id="alternateNumber"
-                        name="alternateNumber"
-                        value={companyData.alternateNumber}
-                        onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.alternateNumber
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="Enter alternate number"
-                        maxLength="15"
-                      />
-                      <PhoneIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.alternateNumber && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.alternateNumber}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Email Address */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="email"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <EnvelopeIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        Email Address
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={companyData.email}
-                        onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.email
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="vendor@example.com"
-                      />
-                      <EnvelopeIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.email && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.email}
-                      </span>
-                    )}
-                    {!fieldErrors.email &&
-                      companyData.email.includes("@") &&
-                      companyData.email.includes(".") && (
-                        <p className="text-green-600 text-xs mt-0.5 flex items-center">
-                          <CheckCircleIcon className="h-3 w-3 mr-0.5" />
-                          Valid email format
-                        </p>
-                      )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bank Account Information Section */}
-              <div>
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-2">
-                    <CurrencyDollarIcon className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-ink-900">
-                      Bank Account Information
-                    </h3>
-                    <p className="text-ink-500 text-xs">
-                      Bank details and ID documents
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  {/* Vendor Aadhaar */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="vendorAadhaar"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <UserIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        Vendor Aadhaar
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="vendorAadhaar"
-                        name="vendorAadhaar"
-                        value={companyData.vendorAadhaar || ""}
-                        onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.vendorAadhaar
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="Enter 12-digit Aadhaar"
-                        maxLength="12"
-                      />
-                      <UserIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.vendorAadhaar && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.vendorAadhaar}
-                      </span>
-                    )}
-                    {companyData.vendorAadhaar.length === 12 && !fieldErrors.vendorAadhaar && (
-                      <p className="text-green-600 text-xs mt-0.5 flex items-center">
-                        <CheckCircleIcon className="h-3 w-3 mr-0.5" />
-                        Valid Aadhaar format
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Aadhaar Document Upload */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label className="block text-xs sm:text-sm font-medium text-ink-700 mb-1">
-                      <span className="flex items-center">
-                        <PaperClipIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        Aadhaar Document{" "}
-                        {companyData.vendorAadhaar && (
-                          <span className="text-red-500 ml-0.5">*</span>
-                        )}
-                        {uploadingFiles.aadhaar && (
-                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-brand-700" />
-                        )}
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        ref={aadhaarFileInputRef}
-                        type="file"
-                        accept=".jpg,.jpeg,.png,.gif,.webp,.pdf"
-                        onChange={(e) => handleFileSelect(e, "aadhaar")}
-                        className="hidden"
-                        id="aadhaarFile"
-                      />
-                      <label
-                        htmlFor="aadhaarFile"
-                        className={`w-full px-3 py-2 border rounded-lg cursor-pointer flex items-center justify-center transition-colors text-sm ${
-                          fieldErrors.aadhaarFile || fileErrors.aadhaar
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400 bg-white"
-                        } ${uploadingFiles.aadhaar ? "opacity-50 cursor-not-allowed" : ""}`}
-                      >
-                        <PaperClipIcon className="h-4 w-4 text-ink-400 mr-2" />
-                        <span className="text-ink-600">
-                          {uploadingFiles.aadhaar
-                            ? "Uploading..."
-                            : aadhaarFile
-                              ? "Change file"
-                              : "Upload Aadhaar"}
-                        </span>
-                      </label>
-                      {(fieldErrors.aadhaarFile || fileErrors.aadhaar) && (
-                        <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                          <XCircleIcon className="h-3 w-3 mr-0.5" />
-                          {fieldErrors.aadhaarFile || fileErrors.aadhaar}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Selected Aadhaar File Preview */}
-                    {aadhaarFile && (
-                      <div className="mt-2 p-2 bg-ink-50 border border-ink-200 rounded-lg flex items-center justify-between">
-                        <div className="flex items-center">
-                          {getFileIcon(aadhaarFile)}
-                          <div className="ml-2">
-                            <p className="text-xs font-medium text-ink-700 truncate max-w-[180px]">
-                              {aadhaarFile.name}
-                            </p>
-                            <p className="text-xs text-ink-500">
-                              {formatFileSize(aadhaarFile.size)}
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFile("aadhaar")}
-                          className="text-red-500 hover:text-red-700 ml-2"
-                          disabled={uploadingFiles.aadhaar}
-                        >
-                          <XMarkIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Vendor PanCard */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="vendorPanCard"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <DocumentTextIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        Vendor PanCard
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="vendorPanCard"
-                        name="vendorPanCard"
-                        value={companyData.vendorPanCard || ""}
-                        onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.vendorPanCard
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="Enter PAN number (e.g., ABCDE1234F)"
-                        maxLength="10"
-                      />
-                      <DocumentTextIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.vendorPanCard && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.vendorPanCard}
-                      </span>
-                    )}
-                    {companyData.vendorPanCard.length === 10 && !fieldErrors.vendorPanCard && (
-                      <p className="text-green-600 text-xs mt-0.5 flex items-center">
-                        <CheckCircleIcon className="h-3 w-3 mr-0.5" />
-                        Valid PAN format
-                      </p>
-                    )}
-                  </div>
-
-                  {/* PAN Card Document Upload */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label className="block text-xs sm:text-sm font-medium text-ink-700 mb-1">
-                      <span className="flex items-center">
-                        <PaperClipIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        PAN Card Document{" "}
-                        {companyData.vendorPanCard && (
-                          <span className="text-red-500 ml-0.5">*</span>
-                        )}
-                        {uploadingFiles.pancard && (
-                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-brand-700" />
-                        )}
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        ref={panCardFileInputRef}
-                        type="file"
-                        accept=".jpg,.jpeg,.png,.gif,.webp,.pdf"
-                        onChange={(e) => handleFileSelect(e, "pancard")}
-                        className="hidden"
-                        id="panCardFile"
-                      />
-                      <label
-                        htmlFor="panCardFile"
-                        className={`w-full px-3 py-2 border rounded-lg cursor-pointer flex items-center justify-center transition-colors text-sm ${
-                          fieldErrors.panCardFile || fileErrors.pancard
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400 bg-white"
-                        } ${uploadingFiles.pancard ? "opacity-50 cursor-not-allowed" : ""}`}
-                      >
-                        <PaperClipIcon className="h-4 w-4 text-ink-400 mr-2" />
-                        <span className="text-ink-600">
-                          {uploadingFiles.pancard
-                            ? "Uploading..."
-                            : panCardFile
-                              ? "Change file"
-                              : "Upload PAN Card"}
-                        </span>
-                      </label>
-                      {(fieldErrors.panCardFile || fileErrors.pancard) && (
-                        <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                          <XCircleIcon className="h-3 w-3 mr-0.5" />
-                          {fieldErrors.panCardFile || fileErrors.pancard}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Selected PAN Card File Preview */}
-                    {panCardFile && (
-                      <div className="mt-2 p-2 bg-ink-50 border border-ink-200 rounded-lg flex items-center justify-between">
-                        <div className="flex items-center">
-                          {getFileIcon(panCardFile)}
-                          <div className="ml-2">
-                            <p className="text-xs font-medium text-ink-700 truncate max-w-[180px]">
-                              {panCardFile.name}
-                            </p>
-                            <p className="text-xs text-ink-500">
-                              {formatFileSize(panCardFile.size)}
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFile("pancard")}
-                          className="text-red-500 hover:text-red-700 ml-2"
-                          disabled={uploadingFiles.pancard}
-                        >
-                          <XMarkIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Bank Name */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="bankName"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <BuildingOffice2Icon className="h-3 w-3 mr-1 text-ink-400" />
-                        Bank Name
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="bankName"
-                        name="bankName"
-                        value={companyData.bankName || ""}
-                        onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.bankName
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="Enter bank name"
-                      />
-                      <BuildingOffice2Icon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.bankName && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.bankName}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Account Holder Name */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="accountHolder"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <UserIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        Account Holder Name
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="accountHolder"
-                        name="accountHolder"
-                        value={companyData.accountHolder || ""}
-                        onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.accountHolder
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="Enter account holder name"
-                      />
-                      <UserIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.accountHolder && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.accountHolder}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Account Number */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="accountNumber"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <DocumentTextIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        Account Number
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="accountNumber"
-                        name="accountNumber"
-                        value={companyData.accountNumber || ""}
-                        onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.accountNumber
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="Enter account number"
-                        maxLength="18"
-                      />
-                      <DocumentTextIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.accountNumber && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.accountNumber}
-                      </span>
-                    )}
-                    {companyData.accountNumber.length >= 9 && !fieldErrors.accountNumber && (
-                      <p className="text-green-600 text-xs mt-0.5 flex items-center">
-                        <CheckCircleIcon className="h-3 w-3 mr-0.5" />
-                        Valid account number format
-                      </p>
-                    )}
-                  </div>
-
-                  {/* IFSC Code */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label
-                      htmlFor="ifscCode"
-                      className="block text-xs sm:text-sm font-medium text-ink-700 mb-1"
-                    >
-                      <span className="flex items-center">
-                        <DocumentTextIcon className="h-3 w-3 mr-1 text-ink-400" />
-                        IFSC Code
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="ifscCode"
-                        name="ifscCode"
-                        value={companyData.ifscCode || ""}
-                        onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-1 focus:ring-brand-400/40 focus:border-brand-500 outline-none transition-colors text-sm ${
-                          fieldErrors.ifscCode
-                            ? "border-red-300 bg-red-50"
-                            : "border-ink-300 hover:border-ink-400"
-                        }`}
-                        placeholder="Enter IFSC code (e.g., SBIN0001234)"
-                        maxLength="11"
-                      />
-                      <DocumentTextIcon className="h-4 w-4 text-ink-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.ifscCode && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.ifscCode}
-                      </span>
-                    )}
-                    {companyData.ifscCode.length === 11 && !fieldErrors.ifscCode && (
-                      <p className="text-green-600 text-xs mt-0.5 flex items-center">
-                        <CheckCircleIcon className="h-3 w-3 mr-0.5" />
-                        Valid IFSC format
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Form Actions */}
-              <div className="pt-4 border-t border-ink-200">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0">
-                  <div className="text-xs text-ink-500 flex items-center w-full md:w-auto">
-                    <InformationCircleIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                    <span>
-                      {isFormValid() ? (
-                        <span className="text-green-600 font-medium">
-                          All required fields are filled
-                        </span>
-                      ) : (
-                        <span>
-                          Please fill all required fields marked with *
-                        </span>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full bg-brand-400 text-dark sm:w-auto">
-                    <Button
-                      type="submit"
-                      title={loading ? "Adding Vendor..." : "Add Vendor"}
-                      disabled={loading || !isFormValid() || loadingCountries || loadingCurrency}
-                      variant="primary"
-                      className="px-4 py-2 rounded-lg font-medium flex items-center justify-center text-sm"
-                      onClick={null}
-                    >
-                      {loading && (
-                        <ArrowPathIcon className="animate-spin h-4 w-4 mr-1.5" />
-                      )}
-                      {!loading && (
-                        <CheckCircleIcon className="h-4 w-4 mr-1.5" />
-                      )}
-                      <span>
-                        {loadingCountries || loadingCurrency
-                          ? "Loading data..."
-                          : loading
-                          ? "Adding..."
-                          : "Add Vendor"}
-                      </span>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
+    <div className="p-3 sm:p-6">
+      <div className="mx-auto max-w-7xl space-y-5">
+        {/* Page header */}
+        <div>
+          <h1 className="text-xl font-bold text-ink-950 sm:text-2xl">Add Vendor</h1>
+          <p className="text-sm text-ink-500">
+            Register a new vendor. Fields marked <span className="text-red-500">*</span> are required.
+          </p>
         </div>
+
+        {/* Alerts */}
+        {message && (
+          <div className="flex items-start gap-2 rounded-xl border border-green-300 bg-green-50 px-4 py-3">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+            <p className="flex-1 text-sm text-green-800">{message}</p>
+            <button type="button" onClick={() => setMessage("")} className="text-green-700 hover:text-green-900" aria-label="Dismiss">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+        {error && (
+          <div className="flex items-start gap-2 rounded-xl border border-red-300 bg-red-50 px-4 py-3">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+            <p className="flex-1 text-sm text-red-800">{error}</p>
+            <button type="button" onClick={() => setError("")} className="text-red-700 hover:text-red-900" aria-label="Dismiss">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start"
+        >
+          <div className="min-w-0 space-y-5">
+            {/* 1. Vendor details */}
+            <SectionCard step="1" icon={Building2} title="Vendor Details" subtitle="Identity and classification">
+              <Field label="Vendor Name" htmlFor="name" required error={fieldErrors.name}>
+                <input
+                  id="name"
+                  name="name"
+                  value={companyData.name}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.name)}
+                  placeholder="Vendor legal name"
+                />
+              </Field>
+
+              <Field label="Reference By" htmlFor="referenceBy" required error={fieldErrors.referenceBy}>
+                <input
+                  id="referenceBy"
+                  name="referenceBy"
+                  value={companyData.referenceBy}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.referenceBy)}
+                  placeholder="Who referred this vendor"
+                />
+              </Field>
+
+              <Field
+                label="GST Number"
+                htmlFor="gstNumber"
+                error={fieldErrors.gstNumber}
+                success={companyData.gstNumber.length === 15 ? "15 characters" : ""}
+              >
+                <input
+                  id="gstNumber"
+                  name="gstNumber"
+                  value={companyData.gstNumber}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.gstNumber, "uppercase")}
+                  placeholder="15-character GSTIN"
+                  maxLength={15}
+                />
+              </Field>
+
+              <Field label="Vendor Category" htmlFor="category" error={fieldErrors.category}>
+                <select
+                  id="category"
+                  name="category"
+                  value={companyData.category}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.category)}
+                >
+                  <option value="">Select category</option>
+                  {VENDOR_CATEGORIES.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="Buy Item Category" htmlFor="buy_item_category" error={fieldErrors.buy_item_category}>
+                <select
+                  id="buy_item_category"
+                  name="buy_item_category"
+                  value={companyData.buy_item_category}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.buy_item_category)}
+                >
+                  <option value="">Select buy item category</option>
+                  {VENDOR_BUY_ITEM_CATEGORIES.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="Authorization Status" error={fieldErrors.authorization_status}>
+                <div role="radiogroup" aria-label="Authorization status" className="grid grid-cols-4 gap-1 rounded-lg border border-ink-300 bg-ink-50 p-1">
+                  {VENDOR_AUTHORIZATION_STATUSES.map((s) => {
+                    const active = companyData.authorization_status === s;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        onClick={() => setField("authorization_status", s)}
+                        className={`flex min-w-0 items-center justify-center gap-1.5 rounded-md px-1 py-1.5 text-xs font-semibold transition ${
+                          active ? "bg-brand-400 text-ink-950 shadow-card ring-1 ring-brand-500" : "text-ink-600 hover:bg-ink-100 hover:text-ink-950"
+                        }`}
+                      >
+                        <span className={`h-3 w-3 shrink-0 rounded-full border ${AUTH_STATUS_SWATCH[s]}`} />
+                        <span className="truncate">{s}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+            </SectionCard>
+
+            {/* 2. Address */}
+            <SectionCard step="2" icon={MapPin} title="Address" subtitle="Business location and currency">
+              <Field
+                label="Country"
+                required
+                error={fieldErrors.country}
+                extra={loadingCountries && <Loader2 className="h-3.5 w-3.5 animate-spin text-ink-500" />}
+              >
+                <SearchableSelect
+                  options={countries.map((c) => ({ id: c, name: c }))}
+                  value={companyData.country}
+                  onChange={(c) => {
+                    handleCountrySelect(c);
+                    if (fieldErrors.country) setFieldErrors((prev) => ({ ...prev, country: "" }));
+                  }}
+                  loading={loadingCountries}
+                  invalid={!!fieldErrors.country}
+                  placeholder="Select country"
+                  searchPlaceholder="Search country…"
+                />
+              </Field>
+
+              <Field
+                label="Currency"
+                required
+                error={fieldErrors.currency}
+                hint={companyData.country && !loadingCurrency ? `Default for ${companyData.country}; change if needed` : ""}
+                extra={loadingCurrency && <Loader2 className="h-3.5 w-3.5 animate-spin text-ink-500" />}
+              >
+                <SearchableSelect
+                  options={currencies.map((c) => ({ id: c, name: c }))}
+                  value={companyData.currency}
+                  onChange={(c) => setField("currency", c)}
+                  loading={loadingCurrency}
+                  invalid={!!fieldErrors.currency}
+                  placeholder="Select currency"
+                  searchPlaceholder="Search currency…"
+                />
+              </Field>
+
+              <Field
+                label={zipLabel}
+                htmlFor="zipCode"
+                error={
+                  fieldErrors.zipCode ||
+                  (isIndia && companyData.zipCode.length > 0 && companyData.zipCode.length < 6 ? "Pincode must be 6 digits" : "")
+                }
+                success={isIndia && companyData.zipCode.length === 6 ? "Valid pincode" : ""}
+                hint={isIndia ? "6-digit pincode auto-fills city and state" : ""}
+                extra={
+                  detectingState &&
+                  isIndia && (
+                    <span className="flex items-center gap-1 text-xs font-medium text-brand-700">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Detecting…
+                    </span>
+                  )
+                }
+              >
+                <input
+                  id="zipCode"
+                  name="zipCode"
+                  value={companyData.zipCode}
+                  onChange={handleChange}
+                  onBlur={handleZipCodeBlur}
+                  className={inputCls(fieldErrors.zipCode)}
+                  placeholder={isIndia ? "6-digit pincode" : "Postal / zip code"}
+                  maxLength={isIndia ? 6 : 20}
+                  inputMode={isIndia ? "numeric" : "text"}
+                />
+              </Field>
+
+              <Field
+                label="Complete Address"
+                htmlFor="address"
+                required
+                error={fieldErrors.address}
+                className="sm:col-span-2 lg:col-span-3"
+              >
+                <textarea
+                  id="address"
+                  name="address"
+                  value={companyData.address}
+                  onChange={handleChange}
+                  rows={2}
+                  className={inputCls(fieldErrors.address, "resize-none")}
+                  placeholder="Street address with landmark"
+                />
+              </Field>
+
+              <Field
+                label="City"
+                htmlFor="city"
+                required
+                error={fieldErrors.city}
+                extra={autoFilledFields.city && <span className="badge-green">Auto-filled</span>}
+              >
+                <input
+                  id="city"
+                  name="city"
+                  value={companyData.city}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.city, autoFilledFields.city ? "bg-green-50" : "")}
+                  placeholder="City"
+                />
+              </Field>
+
+              <Field
+                label="State"
+                htmlFor="state"
+                required
+                error={fieldErrors.state}
+                extra={autoFilledFields.state && <span className="badge-green">Auto-filled</span>}
+              >
+                <input
+                  id="state"
+                  name="state"
+                  value={companyData.state}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.state, autoFilledFields.state ? "bg-green-50" : "")}
+                  placeholder="State"
+                />
+              </Field>
+            </SectionCard>
+
+            {/* 3. Contact */}
+            <SectionCard step="3" icon={Phone} title="Contact" subtitle="Primary contact details" cols="sm:grid-cols-2">
+              <Field label="Contact Person" htmlFor="contactPerson" required error={fieldErrors.contactPerson}>
+                <input
+                  id="contactPerson"
+                  name="contactPerson"
+                  value={companyData.contactPerson}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.contactPerson)}
+                  placeholder="Full name"
+                />
+              </Field>
+
+              <Field
+                label="Contact Number"
+                htmlFor="contactNumber"
+                required
+                error={fieldErrors.contactNumber}
+                success={/^\d{10,15}$/.test(companyData.contactNumber) ? "Valid contact number" : ""}
+              >
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  id="contactNumber"
+                  name="contactNumber"
+                  value={companyData.contactNumber}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.contactNumber)}
+                  placeholder="10–15 digits"
+                  maxLength={15}
+                />
+              </Field>
+
+              <Field label="Alternate Number" htmlFor="alternateNumber" error={fieldErrors.alternateNumber}>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  id="alternateNumber"
+                  name="alternateNumber"
+                  value={companyData.alternateNumber}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.alternateNumber)}
+                  placeholder="Optional"
+                  maxLength={15}
+                />
+              </Field>
+
+              <Field
+                label="Email"
+                htmlFor="email"
+                error={fieldErrors.email}
+                success={/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(companyData.email) ? "Valid email" : ""}
+              >
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={companyData.email}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.email)}
+                  placeholder="vendor@example.com"
+                />
+              </Field>
+            </SectionCard>
+
+            {/* 4. KYC & bank */}
+            <SectionCard step="4" icon={Landmark} title="KYC & Bank" subtitle="ID documents and bank account" cols="sm:grid-cols-2">
+              <Field
+                label="Aadhaar Number"
+                htmlFor="vendorAadhaar"
+                error={fieldErrors.vendorAadhaar}
+                success={companyData.vendorAadhaar.length === 12 ? "Valid Aadhaar format" : ""}
+              >
+                <input
+                  id="vendorAadhaar"
+                  name="vendorAadhaar"
+                  inputMode="numeric"
+                  value={companyData.vendorAadhaar}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.vendorAadhaar)}
+                  placeholder="12-digit Aadhaar"
+                  maxLength={12}
+                />
+              </Field>
+
+              <Field
+                label="Aadhaar Document"
+                required={!!companyData.vendorAadhaar}
+                error={fieldErrors.aadhaarFile || fileErrors.aadhaar}
+                hint="Image or PDF, max 5 MB"
+              >
+                <FilePicker
+                  id="aadhaarFile"
+                  inputRef={aadhaarFileInputRef}
+                  file={aadhaarFile}
+                  busy={uploadingFiles.aadhaar}
+                  busyText="Uploading..."
+                  hasError={!!(fieldErrors.aadhaarFile || fileErrors.aadhaar)}
+                  placeholder="Upload Aadhaar"
+                  onSelect={(e) => handleFileSelect(e, "aadhaar")}
+                  onRemove={() => handleRemoveFile("aadhaar")}
+                />
+              </Field>
+
+              <Field
+                label="PAN Number"
+                htmlFor="vendorPanCard"
+                error={fieldErrors.vendorPanCard}
+                success={companyData.vendorPanCard.length === 10 ? "Valid PAN format" : ""}
+              >
+                <input
+                  id="vendorPanCard"
+                  name="vendorPanCard"
+                  value={companyData.vendorPanCard}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.vendorPanCard)}
+                  placeholder="e.g. ABCDE1234F"
+                  maxLength={10}
+                />
+              </Field>
+
+              <Field
+                label="PAN Document"
+                required={!!companyData.vendorPanCard}
+                error={fieldErrors.panCardFile || fileErrors.pancard}
+                hint="Image or PDF, max 5 MB"
+              >
+                <FilePicker
+                  id="panCardFile"
+                  inputRef={panCardFileInputRef}
+                  file={panCardFile}
+                  busy={uploadingFiles.pancard}
+                  busyText="Uploading..."
+                  hasError={!!(fieldErrors.panCardFile || fileErrors.pancard)}
+                  placeholder="Upload PAN card"
+                  onSelect={(e) => handleFileSelect(e, "pancard")}
+                  onRemove={() => handleRemoveFile("pancard")}
+                />
+              </Field>
+
+              <Field label="Bank Name" htmlFor="bankName" error={fieldErrors.bankName}>
+                <input
+                  id="bankName"
+                  name="bankName"
+                  value={companyData.bankName}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.bankName)}
+                  placeholder="Bank name"
+                />
+              </Field>
+
+              <Field label="Account Holder Name" htmlFor="accountHolder" error={fieldErrors.accountHolder}>
+                <input
+                  id="accountHolder"
+                  name="accountHolder"
+                  value={companyData.accountHolder}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.accountHolder)}
+                  placeholder="As per bank records"
+                />
+              </Field>
+
+              <Field
+                label="Account Number"
+                htmlFor="accountNumber"
+                error={fieldErrors.accountNumber}
+                success={companyData.accountNumber.length >= 9 ? "Valid account number format" : ""}
+              >
+                <input
+                  id="accountNumber"
+                  name="accountNumber"
+                  inputMode="numeric"
+                  value={companyData.accountNumber}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.accountNumber)}
+                  placeholder="Account number"
+                  maxLength={18}
+                />
+              </Field>
+
+              <Field
+                label="IFSC Code"
+                htmlFor="ifscCode"
+                error={fieldErrors.ifscCode}
+                success={companyData.ifscCode.length === 11 ? "Valid IFSC format" : ""}
+              >
+                <input
+                  id="ifscCode"
+                  name="ifscCode"
+                  value={companyData.ifscCode}
+                  onChange={handleChange}
+                  className={inputCls(fieldErrors.ifscCode)}
+                  placeholder="e.g. SBIN0001234"
+                  maxLength={11}
+                />
+              </Field>
+            </SectionCard>
+
+            {/* 5. Business documents */}
+            <SectionCard
+              step="5"
+              icon={Paperclip}
+              title="Business Documents"
+              subtitle="Image or PDF, compressed to 1 MB automatically"
+              cols="sm:grid-cols-2"
+            >
+              {BUSINESS_DOCS.map(({ key, label }) => (
+                <Field key={key} label={label} error={businessDocErrors[key]}>
+                  <FilePicker
+                    id={`${key}File`}
+                    file={businessDocs[key]}
+                    busy={businessDocCompressing[key]}
+                    hasError={!!businessDocErrors[key]}
+                    placeholder={`Upload ${label}`}
+                    onSelect={(e) => handleBusinessDocSelect(e, key)}
+                    onRemove={() => handleRemoveBusinessDoc(key)}
+                  />
+                </Field>
+              ))}
+            </SectionCard>
+          </div>
+
+          {/* Summary + actions */}
+          <aside className="lg:sticky lg:top-4">
+            <div className="card">
+              <div className="border-b border-ink-200 px-4 py-3 sm:px-5">
+                <h2 className="text-base font-semibold text-ink-950">Summary</h2>
+                <p className="truncate text-xs text-ink-500" title={companyData.name}>
+                  {companyData.name.trim() || "New vendor"}
+                </p>
+              </div>
+
+              <div className="space-y-4 px-4 py-4 sm:px-5">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1.5 text-ink-600">
+                    <ShieldCheck className="h-4 w-4" /> Authorization
+                  </span>
+                  <span className="flex items-center gap-1.5 font-semibold text-ink-950">
+                    <span className={`h-3 w-3 rounded-full border ${AUTH_STATUS_SWATCH[companyData.authorization_status]}`} />
+                    {companyData.authorization_status}
+                  </span>
+                </div>
+
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between text-xs font-medium text-ink-600">
+                    <span>Required fields</span>
+                    <span className="tabular-nums">
+                      {doneCount}/{requiredChecks.length}
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-ink-200">
+                    <div
+                      className={`h-full rounded-full transition-[width] duration-300 ${allRequiredDone ? "bg-green-500" : "bg-brand-500"}`}
+                      style={{ width: `${(doneCount / requiredChecks.length) * 100}%` }}
+                    />
+                  </div>
+                  <ul className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
+                    {requiredChecks.map((c) => (
+                      <li key={c.label} className={`flex items-center gap-2 text-xs ${c.done ? "text-ink-900" : "text-ink-500"}`}>
+                        {c.done ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-green-600" />
+                        ) : (
+                          <Circle className="h-3.5 w-3.5 shrink-0 text-ink-300" />
+                        )}
+                        {c.label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 border-t border-ink-200 px-4 py-4 sm:px-5">
+                <button type="submit" disabled={submitDisabled} className="btn-primary w-full">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  {loadingCountries || loadingCurrency
+                    ? "Loading data..."
+                    : isCompressingDocs
+                    ? "Compressing documents..."
+                    : loading
+                    ? "Adding vendor..."
+                    : "Add Vendor"}
+                </button>
+                <button type="button" onClick={clearForm} disabled={loading} className="btn-outline w-full">
+                  <RotateCcw className="h-4 w-4" />
+                  Reset form
+                </button>
+              </div>
+            </div>
+          </aside>
+        </form>
       </div>
     </div>
   );
