@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Api from "../../auth/Api";
 import { useUser } from "../../Context/UserContext";
+import SearchableSelect from "../../components/dropdown/SearchableSelect";
 import {
   Search,
   X,
@@ -51,6 +52,7 @@ const PrePoRequestHistory = () => {
   const [actionMessage, setActionMessage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [vendorFilter, setVendorFilter] = useState("all");
   const [expanded, setExpanded] = useState({});
 
   useEffect(() => {
@@ -172,9 +174,29 @@ const PrePoRequestHistory = () => {
     {},
   );
 
+  // Vendor dropdown: every vendor that appears in the requests, with its request count
+  const vendorKey = (r) => String(r.vendor?.id || r.vendorId || r.vendor?.name || "");
+  const vendorOptions = [
+    { id: "all", name: "All Vendors", hint: `${prepoHistory.length}` },
+    ...[
+      ...prepoHistory
+        .reduce((map, r) => {
+          const id = vendorKey(r);
+          if (!id) return map;
+          const entry = map.get(id) || { id, name: r.vendor?.name || "Unnamed vendor", count: 0 };
+          entry.count += 1;
+          return map.set(id, entry);
+        }, new Map())
+        .values(),
+    ]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((v) => ({ id: v.id, name: v.name, hint: `${v.count}` })),
+  ];
+
   const term = searchTerm.trim().toLowerCase();
   const visible = prepoHistory.filter((r) => {
     if (statusFilter !== "all" && r.status !== statusFilter) return false;
+    if (vendorFilter !== "all" && vendorKey(r) !== vendorFilter) return false;
     if (!term) return true;
     const v = r.vendor || {};
     return (
@@ -372,6 +394,27 @@ const PrePoRequestHistory = () => {
                 onClick={() => setSearchTerm("")}
                 aria-label="Clear search"
                 className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-ink-400 hover:bg-ink-100 hover:text-ink-900"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 lg:w-64">
+            <div className="min-w-0 flex-1">
+              <SearchableSelect
+                options={vendorOptions}
+                value={vendorFilter}
+                onChange={setVendorFilter}
+                placeholder="All Vendors"
+                searchPlaceholder="Search vendor…"
+              />
+            </div>
+            {vendorFilter !== "all" && (
+              <button
+                onClick={() => setVendorFilter("all")}
+                aria-label="Clear vendor filter"
+                title="Clear vendor filter"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-ink-300 text-ink-500 hover:bg-ink-100 hover:text-ink-900"
               >
                 <X className="h-4 w-4" />
               </button>

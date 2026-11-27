@@ -12,7 +12,6 @@ import {
 import {
   flatMenuItems,
   nestedMenus,
-  CHANGE_PASSWORD_ROLES,
   getInitials,
 } from "./menuConfig";
 
@@ -196,17 +195,16 @@ const SideMenubar = ({ collapsed = false, mobileOpen = false, onToggleCollapse, 
 
         {/* Footer: user, password, logout */}
         <div className="border-t border-ink-200 bg-white p-2.5 space-y-1">
-          {CHANGE_PASSWORD_ROLES.includes(user.role) && (
-            <NavLink
-              to="change-password"
-              title={collapsed ? "Change Password" : undefined}
-              className={({ isActive }) => linkClass(isActive, collapsed)}
-              onClick={onCloseMobile}
-            >
-              <FaKey className="text-[18px] shrink-0" />
-              {!collapsed && <span>Change Password</span>}
-            </NavLink>
-          )}
+          {/* Shown to every role */}
+          <NavLink
+            to="change-password"
+            title={collapsed ? "Change Password" : undefined}
+            className={({ isActive }) => linkClass(isActive, collapsed)}
+            onClick={onCloseMobile}
+          >
+            <FaKey className="text-[18px] shrink-0" />
+            {!collapsed && <span>Change Password</span>}
+          </NavLink>
 
           <div className={`flex items-center gap-3 rounded-xl bg-ink-100 p-2 ${collapsed ? "flex-col" : ""}`}>
             <div className="h-9 w-9 rounded-full bg-ink-950 text-white font-bold text-sm flex items-center justify-center shrink-0">

@@ -30,7 +30,7 @@ const VENDOR_CATEGORIES = ["Manufacture", "Trader"];
 
 // Business documents: existing file URL from the API, and the upload field name.
 const BUSINESS_DOCS = [
-  { key: "bgDocument", urlField: "bg_document", formField: "bgDocumentFile", label: "BG Document" },
+  { key: "bgDocument", urlField: "bg_document", formField: "bgDocumentFile", label: "BG Document/PDI", required: true },
   { key: "balanceSheet", urlField: "balance_sheet", formField: "balanceSheetFile", label: "Balance Sheet" },
 ];
 const MAX_RAW_DOC_BYTES = 25 * 1024 * 1024; // accept up to 25 MB, then compress to 1 MB
@@ -208,6 +208,15 @@ const UpdateVendor = () => {
 
     if (isCompressingDocs) {
       alert("Please wait, documents are still being compressed.");
+      return;
+    }
+
+    // Compulsory business documents: an already uploaded file or a new one is needed
+    const missingDoc = BUSINESS_DOCS.find(
+      (d) => d.required && !companyDetails?.[d.urlField] && !businessDocs[d.key]
+    );
+    if (missingDoc) {
+      alert(`Please upload ${missingDoc.label}. It is required.`);
       return;
     }
 
@@ -982,7 +991,7 @@ const UpdateVendor = () => {
                   Business Documents
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {BUSINESS_DOCS.map(({ key, urlField, label }) => {
+                  {BUSINESS_DOCS.map(({ key, urlField, label, required }) => {
                     const url = companyDetails?.[urlField];
                     const newFile = businessDocs[key];
                     const compressing = businessDocCompressing[key];
@@ -991,6 +1000,7 @@ const UpdateVendor = () => {
                       <div key={key}>
                         <label className="block text-sm font-medium text-ink-700 mb-2">
                           {label}
+                          {required && <span className="ml-0.5 text-red-500">*</span>}
                         </label>
                         {url ? (
                           <a

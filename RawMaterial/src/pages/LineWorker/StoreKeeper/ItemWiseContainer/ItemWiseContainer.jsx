@@ -3,6 +3,7 @@ import Api from "../../../../auth/Api";
 import { Boxes, CheckCircle2, AlertCircle, Trash2, Send } from "lucide-react";
 import ContainerMultiSelect from "../../../../components/dropdown/ContainerMultiSelect";
 import SearchableSelect from "../../../../components/dropdown/SearchableSelect";
+import { getUserWarehouseId, containerListUrl, apiErrorText } from "../../../../utils/warehouse";
 
 // Accepts { data: [...] } or a bare array; records may use id or _id
 const normalizeList = (payload) => {
@@ -44,14 +45,20 @@ const ItemWiseContainer = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        const warehouseId = getUserWarehouseId();
+        if (!warehouseId) {
+          setError("No warehouse is assigned to your login. Please contact the admin.");
+          return;
+        }
+        // Only this warehouse's containers can receive stock here
         const [itemRes, containerRes] = await Promise.all([
           Api.get("/store-keeper/getWarehouseRawMaterialList"),
-          Api.get("/common/container"),
+          Api.get(containerListUrl(warehouseId)),
         ]);
         setItems(mergeWarehouseItems(normalizeList(itemRes.data)));
         setContainers(normalizeList(containerRes.data));
       } catch (err) {
-        setError(err?.response?.data?.message || err.message || "Failed to load items/containers");
+        setError(apiErrorText(err, "Failed to load items/containers"));
       } finally {
         setLoading(false);
       }
@@ -118,7 +125,7 @@ const ItemWiseContainer = () => {
         resetForm();
       }
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || "Failed to add item container stock");
+      setError(apiErrorText(err, "Failed to add item container stock"));
     } finally {
       setSubmitting(false);
     }
