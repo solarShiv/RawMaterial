@@ -62,6 +62,8 @@ const getContainerNames = (payload) => {
 };
 
 const RawMaterialStock = () => {
+  const role = localStorage.getItem("roleName");
+  const canViewAllWarehouses = ["Purchase", "Admin", "Production"].includes(role);
   const [rawMaterials, setRawMaterials] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
@@ -71,15 +73,15 @@ const RawMaterialStock = () => {
   const [usageTab, setUsageTab] = useState("used");
   const [viewMode, setViewMode] = useState("grid");
   const [warehouseList, setWarehouseList] = useState([]);
-  // Users tied to a warehouse only ever see that warehouse's stock
+  // Keep the assigned warehouse restriction for roles without cross-warehouse access.
   const [userWarehouseId] = useState(getUserWarehouseId);
-  const [selectedWarehouse, setSelectedWarehouse] = useState(userWarehouseId);
+  const [selectedWarehouse, setSelectedWarehouse] = useState(
+    canViewAllWarehouses ? null : userWarehouseId
+  );
   const [warehouseLoading, setWarehouseLoading] = useState(true);
   const [containerFilter, setContainerFilter] = useState("all");
   const [apiContainers, setApiContainers] = useState([]);
   const [containersLoading, setContainersLoading] = useState(true);
-
-  const role = localStorage.getItem("roleName");
 
   // Out of stock only matters for materials that are in use
   const isOutOfStock = (item) => item.isUsed && item.outOfStock;
@@ -95,7 +97,7 @@ const RawMaterialStock = () => {
         value: w._id ?? w.id,
       }));
 
-      if (userWarehouseId) {
+      if (userWarehouseId && !canViewAllWarehouses) {
         // Keep only the logged-in user's warehouse
         const match = all.filter((w) => String(w.value) === String(userWarehouseId));
         setWarehouseList(match.length > 0 ? match : [{ label: "Assigned Warehouse", value: userWarehouseId }]);
@@ -434,8 +436,12 @@ const RawMaterialStock = () => {
               <select
                 value={selectedWarehouse ?? ""}
                 onChange={(e) => setSelectedWarehouse(e.target.value)}
-                disabled={warehouseLoading || !!userWarehouseId}
-                title={userWarehouseId ? "Showing stock for your assigned warehouse" : undefined}
+                disabled={warehouseLoading || (!!userWarehouseId && !canViewAllWarehouses)}
+                title={
+                  userWarehouseId && !canViewAllWarehouses
+                    ? "Showing stock for your assigned warehouse"
+                    : undefined
+                }
                 className="input pl-9 disabled:cursor-not-allowed"
               >
                 {warehouseLoading ? (
