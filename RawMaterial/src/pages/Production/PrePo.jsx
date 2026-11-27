@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Api from "../../auth/Api";
+import SearchableSelect from "../../components/dropdown/SearchableSelect";
 
 const PrePo = () => {
   const [vendorsList, setVendorsList] = useState([]);
@@ -514,22 +515,19 @@ const PrePo = () => {
 
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div>
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-ink-700 mb-2">
                   Select Vendor *
                 </label>
-                <select
+                {/* Searchable vendor dropdown: type to filter the long vendor list */}
+                <SearchableSelect
+                  options={vendorsList.map((v) => ({ id: v.id, name: v.displayName || v.name || "" }))}
                   value={selectedVendor}
-                  onChange={(e) => setSelectedVendor(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-ink-300 rounded-lg focus:ring-2 focus:ring-brand-400/40 focus:border-brand-500 transition-colors duration-200"
-                >
-                  <option value="">-- Select Vendor --</option>
-                  {vendorsList.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.displayName}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(id) => setSelectedVendor(id)}
+                  placeholder="-- Select Vendor --"
+                  searchPlaceholder="Search vendor…"
+                  wrapText
+                />
               </div>
             </div>
           </div>

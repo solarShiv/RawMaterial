@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Api from "../../../../auth/Api";
-import { Box, CheckCircle2, AlertCircle, Plus, Search, RefreshCw } from "lucide-react";
+import { Box, CheckCircle2, AlertCircle, Plus, Search, RefreshCw, Warehouse } from "lucide-react";
+import { getUserWarehouseId, containerListUrl, apiErrorText } from "../../../../utils/warehouse";
+
+const NO_WAREHOUSE_MSG = "No warehouse is assigned to your login. Please contact the admin.";
 
 // Accepts { data: [...] } or a bare array; containers may use id or _id
 const normalizeContainers = (payload) => {
@@ -11,6 +14,9 @@ const normalizeContainers = (payload) => {
 };
 
 const AddContainer = () => {
+  const [warehouseId] = useState(getUserWarehouseId);
+  const [warehouseName, setWarehouseName] = useState("");
+  const [warehouseLoading, setWarehouseLoading] = useState(!!warehouseId);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -22,10 +28,16 @@ const AddContainer = () => {
   const [search, setSearch] = useState("");
 
   const fetchContainers = async () => {
+    if (!warehouseId) {
+      setListError(NO_WAREHOUSE_MSG);
+      setContainers([]);
+      setListLoading(false);
+      return;
+    }
     try {
       setListLoading(true);
       setListError("");
-      const response = await Api.get("/common/container");
+      const response = await Api.get(containerListUrl(warehouseId));
       if (response.data?.success === false) {
         setListError(response.data?.message || "Failed to fetch containers");
         setContainers([]);
@@ -34,7 +46,7 @@ const AddContainer = () => {
       }
     } catch (err) {
       console.error("Error fetching containers:", err);
-      setListError(err.response?.data?.message || "Failed to fetch containers");
+      setListError(apiErrorText(err, "Failed to fetch containers"));
       setContainers([]);
     } finally {
       setListLoading(false);
@@ -45,11 +57,40 @@ const AddContainer = () => {
     fetchContainers();
   }, []);
 
+  // Login saves only the warehouse ID; look up its name to show on screen
+  useEffect(() => {
+    if (!warehouseId) return;
+    const fetchWarehouseName = async () => {
+      try {
+        const res = await Api.get("/purchase/warehouses");
+        const match = (res?.data?.data || []).find(
+          (w) => String(w._id ?? w.id) === String(warehouseId)
+        );
+        setWarehouseName(match?.warehouseName || "");
+      } catch (err) {
+        console.error("Error fetching warehouses:", err);
+      } finally {
+        setWarehouseLoading(false);
+      }
+    };
+    fetchWarehouseName();
+  }, [warehouseId]);
+
+  const warehouseLabel = !warehouseId
+    ? "Not assigned"
+    : warehouseLoading
+    ? "Loading…"
+    : warehouseName || "Assigned warehouse";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!name.trim()) {
       setError("Container name is required");
+      return;
+    }
+    if (!warehouseId) {
+      setError(NO_WAREHOUSE_MSG);
       return;
     }
 
@@ -60,16 +101,17 @@ const AddContainer = () => {
     try {
       const response = await Api.post("/common/container", {
         name: name.trim(),
+        warehouseId,
       });
       if (response.data?.success === false) {
         setError(response.data?.message || "Failed to add container");
       } else {
-        setMessage(`Container "${name.trim()}" added successfully!`);
+        setMessage(`Container "${name.trim()}" added to ${warehouseName || "your warehouse"}!`);
         setName("");
         fetchContainers();
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Failed to add container. Please try again.");
+      setError(apiErrorText(err, "Failed to add container. Please try again."));
       console.error("Error adding container:", err);
     } finally {
       setLoading(false);
@@ -95,6 +137,25 @@ const AddContainer = () => {
           </div>
 
           <div className="card-body space-y-4">
+            {/* Read-only: containers are created in the logged-in user's warehouse */}
+            <div>
+              <label htmlFor="container-warehouse" className="label">
+                Warehouse
+              </label>
+              <div className="relative">
+                <Warehouse className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+                <input
+                  id="container-warehouse"
+                  type="text"
+                  value={warehouseLabel}
+                  readOnly
+                  disabled
+                  title="Containers are created in your assigned warehouse"
+                  className={`input pl-9 disabled:cursor-not-allowed ${!warehouseId ? "text-red-600" : ""}`}
+                />
+              </div>
+            </div>
+
             <div>
               <label htmlFor="container-name" className="label">
                 Container name <span className="text-red-500">*</span>
@@ -142,7 +203,9 @@ const AddContainer = () => {
           <div className="card-header">
             <div>
               <h2 className="card-title">Containers</h2>
-              <p className="text-xs text-ink-500">{containers.length} total</p>
+              <p className="text-xs text-ink-500">
+                {containers.length} total{warehouseId ? ` in ${warehouseLabel}` : ""}
+              </p>
             </div>
             <button
               type="button"

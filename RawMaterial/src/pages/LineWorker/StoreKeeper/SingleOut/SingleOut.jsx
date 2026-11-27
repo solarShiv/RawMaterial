@@ -3,6 +3,7 @@ import Api from "../../../../auth/Api";
 import { ArchiveBoxIcon, ArrowUturnLeftIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import ContainerMultiSelect from "../../../../components/dropdown/ContainerMultiSelect";
 import { compressVideo, MAX_VIDEO_BYTES } from "../../../../utils/compressVideo";
+import { getUserWarehouseId, containerListUrl, apiErrorText } from "../../../../utils/warehouse";
 
 const formatSize = (bytes) =>
   bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(2)} MB` : `${(bytes / 1024).toFixed(1)} KB`;
@@ -96,11 +97,13 @@ const SingleOut = () => {
     };
 
     const fetchContainers = async () => {
+      const warehouseId = getUserWarehouseId();
+      if (!warehouseId) return; // no assigned warehouse: no containers to offer
       try {
-        const res = await Api.get("/common/container");
+        const res = await Api.get(containerListUrl(warehouseId));
         setContainers(res?.data?.data || []);
       } catch (err) {
-        alert(err?.response?.data?.message || err.message);
+        alert(apiErrorText(err, "Failed to load containers"));
       }
     };
 
@@ -503,7 +506,8 @@ const SingleOut = () => {
       alert("Items Issued Successfully ✅");
       handleReset();
     } catch (err) {
-      alert(err?.response?.data?.message || err.message);
+      // directItemIssue puts the useful text in `error` (e.g. no container stock in this warehouse)
+      alert(apiErrorText(err, "Failed to issue items"));
     } finally {
       setSubmitting(false);
     }

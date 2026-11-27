@@ -51,7 +51,6 @@ const PENDING_LINE_WORKER_ROLES = [
   "Winding",
   "Winding Connection",
 ];
-export const CHANGE_PASSWORD_ROLES = ["Purchase", "Verification", "Admin", "Accounts"];
 
 // -------- Flat menu items (standalone links) --------
 export const flatMenuItems = [
@@ -67,7 +66,7 @@ export const flatMenuItems = [
   { path: "add-container", label: "Add Container", icon: MdAllInbox, roles: ["Store"] },
   { path: "item-wise-container", label: "Item Wise Container", icon: MdInventory, roles: ["Store"] },
   { path: "user-stock-data", label: "User Stock History", icon: MdManageHistory, roles: ["Store", "Production"] },
-  { path: "register-employee", label: "Register Employee", icon: MdPersonAdd, roles: ["Production"] },
+  { path: "register-employee", label: "Register Employee", icon: MdPersonAdd, roles: ["Admin", "Purchase"] },
   { path: "direct-item-issue-history", label: "Direct Item Issue History", icon: MdReceiptLong, roles: ["Store", "Production"] },
   { path: "purchase-dashboard", label: "Purchase Dashboard", icon: MdDashboard, roles: ["Purchase", "Admin"] },
   { path: "price-comparision", label: "Price Comparision", icon: MdCompareArrows, roles: ["Purchase", "Admin"] },
@@ -146,7 +145,7 @@ export const nestedMenus = [
     key: "vendor",
     label: "Vendor",
     icon: MdGroups,
-    roles: ["Purchase", "Production"],
+    roles: ["Purchase", "PrePurchase", "Production"],
     items: [
       { path: "add-vendor", label: "Add Vendor" },
       { path: "update-vendor", label: "Update Vendor" },

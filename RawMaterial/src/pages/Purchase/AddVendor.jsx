@@ -27,7 +27,7 @@ const VENDOR_CATEGORIES = ["Manufacture", "Trader"];
 
 // Business documents: compressed in the browser to <= 1 MB each before upload.
 const BUSINESS_DOCS = [
-  { key: "bgDocument", formField: "bgDocumentFile", label: "BG Document" },
+  { key: "bgDocument", formField: "bgDocumentFile", label: "BG Document/PDI", required: true },
   { key: "balanceSheet", formField: "balanceSheetFile", label: "Balance Sheet" },
 ];
 const MAX_RAW_DOC_BYTES = 25 * 1024 * 1024; // accept up to 25 MB, then compress to 1 MB
@@ -716,6 +716,14 @@ const AddVendor = () => {
       return;
     }
 
+    // Compulsory business documents (BG Document/PDI)
+    const missingDoc = BUSINESS_DOCS.find((d) => d.required && !businessDocs[d.key]);
+    if (missingDoc) {
+      setBusinessDocErrors((prev) => ({ ...prev, [missingDoc.key]: `${missingDoc.label} is required` }));
+      showError(`Please upload ${missingDoc.label}`);
+      return;
+    }
+
     setFieldErrors({});
     setLoading(true);
     setMessage("");
@@ -870,6 +878,7 @@ const AddVendor = () => {
     { label: "State", done: !!companyData.state.trim() },
     { label: "Contact person", done: !!companyData.contactPerson.trim() },
     { label: "Contact number (10–15 digits)", done: /^\d{10,15}$/.test(companyData.contactNumber) },
+    ...BUSINESS_DOCS.filter((d) => d.required).map((d) => ({ label: d.label, done: !!businessDocs[d.key] })),
   ];
   const doneCount = requiredChecks.filter((c) => c.done).length;
   const allRequiredDone = doneCount === requiredChecks.length;
@@ -1345,8 +1354,8 @@ const AddVendor = () => {
               subtitle="Image or PDF, compressed to 1 MB automatically"
               cols="sm:grid-cols-2"
             >
-              {BUSINESS_DOCS.map(({ key, label }) => (
-                <Field key={key} label={label} error={businessDocErrors[key]}>
+              {BUSINESS_DOCS.map(({ key, label, required }) => (
+                <Field key={key} label={label} required={required} error={businessDocErrors[key]}>
                   <FilePicker
                     id={`${key}File`}
                     file={businessDocs[key]}

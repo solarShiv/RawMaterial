@@ -9,7 +9,6 @@ import { UserProvider, useUser } from "./Context/UserContext";
 
 import Layout from "./pages/Layout/Layout";
 import Login from "./pages/Login/Login";
-
 // Pages are code-split: each one is downloaded only when its route is opened
 const AdminDashboard = lazy(() => import("./pages/Admin/AdminDashboard/AdminDashboard"));
 const ItemRequest = lazy(() => import("./pages/ItemRequest/ItemRequest"));
@@ -39,7 +38,7 @@ const ActiveDeactivateCompany = lazy(() => import("./pages/Purchase/ActiveDeacti
 const AddRawMaterial = lazy(() => import("./pages/Purchase/AddRawMaterial"));
 const ShowDebitNot = lazy(() => import("./pages/Purchase/ShowDebitNot"));
 const ItemDetails = lazy(() => import("./pages/Purchase/ItemDetails"));
-const ChangePassword = lazy(() => import("./pages/Purchase/ChangePassword"));
+const ChangePassword = lazy(() => import("./pages/auth/ChangePassword"));
 const InstallationStock = lazy(() => import("./pages/Purchase/InstallationStock"));
 const SingleOut = lazy(() => import("./pages/LineWorker/StoreKeeper/SingleOut/SingleOut"));
 const ReturnMaterial = lazy(() => import("./pages/LineWorker/StoreKeeper/ReturnMaterial/ReturnMaterial"));
@@ -340,12 +339,11 @@ const AppRoutes = () => {
           }
         />
 
+        {/* Change password: every logged-in user, whatever the role */}
         <Route
           path="change-password"
           element={
-            <ProtectedRoute
-              allowedRoles={["Purchase", "Verification", "Accounts", "Admin"]}
-            >
+            <ProtectedRoute>
               <ChangePassword />
             </ProtectedRoute>
           }
@@ -570,7 +568,7 @@ const AppRoutes = () => {
         <Route
           path="register-employee"
           element={
-            <ProtectedRoute allowedRoles={["Production"]}>
+            <ProtectedRoute allowedRoles={["Admin", "Purchase"]}>
               <RegisterEmployee />
             </ProtectedRoute>
           }

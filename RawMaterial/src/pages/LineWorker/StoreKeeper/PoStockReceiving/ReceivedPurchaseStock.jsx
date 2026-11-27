@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Api from "../../../../auth/Api";
 import ContainerMultiSelect from "../../../../components/dropdown/ContainerMultiSelect";
+import { getUserWarehouseId, containerListUrl, apiErrorText } from "../../../../utils/warehouse";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -124,31 +125,7 @@ const ReceivedPurchaseStock = () => {
 
   // Get warehouse ID from logged-in user data
   useEffect(() => {
-    const getWarehouseId = () => {
-      // Option 1: From localStorage
-      const storedWarehouse = localStorage.getItem("warehouseId");
-      if (storedWarehouse) return storedWarehouse;
-
-      // Option 2: From sessionStorage
-      const sessionWarehouse = sessionStorage.getItem("warehouseId");
-      if (sessionWarehouse) return sessionWarehouse;
-
-      // Option 3: From user object in localStorage
-      const userData = localStorage.getItem("user");
-      if (userData) {
-        try {
-          const user = JSON.parse(userData);
-          if (user.warehouseId) return user.warehouseId;
-          if (user.warehouse?.id) return user.warehouse.id;
-        } catch (e) {
-          console.error("Error parsing user data:", e);
-        }
-      }
-
-      return null;
-    };
-
-    setUserWarehouseId(getWarehouseId());
+    setUserWarehouseId(getUserWarehouseId());
   }, []);
 
   // Fetch vehicles whenever userWarehouseId changes
@@ -160,11 +137,17 @@ const ReceivedPurchaseStock = () => {
     }
   }, [userWarehouseId]);
 
-  // Load containers for the per-item container dropdown
+  // Load the receiving warehouse's containers for the per-item container dropdown
   useEffect(() => {
+    if (userWarehouseId === null) {
+      // Wait for the warehouse to be read; stop loading if none is assigned
+      if (!getUserWarehouseId()) setContainersLoading(false);
+      return;
+    }
     const fetchContainers = async () => {
       try {
-        const response = await Api.get("/common/container");
+        setContainersLoading(true);
+        const response = await Api.get(containerListUrl(userWarehouseId));
         setContainers(normalizeContainers(response.data));
       } catch (error) {
         console.error("Error fetching containers:", error);
@@ -174,7 +157,7 @@ const ReceivedPurchaseStock = () => {
       }
     };
     fetchContainers();
-  }, []);
+  }, [userWarehouseId]);
 
   // Initialize items when poData changes
   useEffect(() => {
@@ -420,7 +403,7 @@ const ReceivedPurchaseStock = () => {
       navigate(-1);
     } catch (error) {
       console.error("Submission error:", error);
-      alert(error?.response?.data?.message || "Submission failed");
+      alert(apiErrorText(error, "Submission failed"));
     } finally {
       setIsSubmitting(false);
     }

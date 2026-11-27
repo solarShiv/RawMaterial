@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
+import * as XLSX from "xlsx";
 import Api from "../../auth/Api";
+import { containerListUrl } from "../../utils/warehouse";
 import {
+  ArrowDownTrayIcon,
   CheckCircleIcon,
   ArrowPathIcon,
   ExclamationTriangleIcon,
@@ -122,11 +125,18 @@ const RawMaterialStock = () => {
     }
   }, [role]);
 
-  // Master container list for the Container filter
+  // Container list for the Container filter: containers belong to one warehouse, so reload on change
   useEffect(() => {
+    setContainerFilter("all");
+    setApiContainers([]);
+    if (selectedWarehouse === null || selectedWarehouse === "") {
+      setContainersLoading(false);
+      return;
+    }
     const fetchContainers = async () => {
       try {
-        const res = await Api.get("/common/container");
+        setContainersLoading(true);
+        const res = await Api.get(containerListUrl(selectedWarehouse));
         setApiContainers(getContainerNames(res?.data));
       } catch (err) {
         console.error("Error fetching containers:", err);
@@ -135,7 +145,7 @@ const RawMaterialStock = () => {
       }
     };
     fetchContainers();
-  }, []);
+  }, [selectedWarehouse]);
 
   const fetchRawMaterials = async () => {
     try {
@@ -252,6 +262,48 @@ const RawMaterialStock = () => {
       .map(([name, rows]) => ({ name, rows }));
   })();
 
+  const selectedWarehouseName =
+    warehouseList.find((w) => String(w.value) === String(selectedWarehouse))?.label || "All Warehouses";
+
+  // Export the filtered materials (both In Use and Not Used) with the warehouse name on every row
+  const downloadExcel = () => {
+    if (filtered.length === 0) {
+      alert("No materials to download.");
+      return;
+    }
+
+    const rows = filtered.map((item, idx) => {
+      const assigned = item.containers.reduce((sum, c) => sum + c.qty, 0);
+      const unassigned = toNum(item.stock) - assigned;
+      const containerText = [
+        ...item.containers.map((c) => `${c.name}: ${c.qty}`),
+        ...(unassigned > 0 ? [`${NO_CONTAINER_LABEL}: ${unassigned}`] : []),
+      ].join(", ");
+
+      return {
+        "S.No": idx + 1,
+        Warehouse: item.warehouseName || selectedWarehouseName,
+        Material: item.name,
+        Stock: toNum(item.stock),
+        Unit: item.unit || "",
+        Containers: containerText || "NA",
+        Usage: item.isUsed ? "In Use" : "Not Used",
+        Status: !item.isUsed ? "Not in Use" : item.outOfStock ? "Out of Stock" : "In Stock",
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    worksheet["!cols"] = [
+      { wch: 6 }, { wch: 24 }, { wch: 40 }, { wch: 10 }, { wch: 8 }, { wch: 40 }, { wch: 10 }, { wch: 14 },
+    ];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Raw Material Stock");
+
+    const safeName = selectedWarehouseName.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "");
+    const date = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(workbook, `RawMaterialStock_${safeName}_${date}.xlsx`);
+  };
+
   const pct = (n) => (stats.total > 0 ? `${Math.round((n / stats.total) * 100)}%` : "0%");
 
   if (loading && warehouseLoading) {
@@ -319,16 +371,17 @@ const RawMaterialStock = () => {
           <span
             key={c.name}
             title={c.qty === 0 ? `${c.name} is empty` : undefined}
-            className={`inline-flex items-center gap-1 rounded-lg border px-2 py-0.5 text-xs ${
+            className={`inline-flex items-center gap-1 rounded-lg border bg-yellow-200 px-2 py-0.5 text-xs text-ink-950 ${
               containerFilter === c.name
-                ? "border-brand-400 bg-brand-100 text-ink-950"
+                ? "border-yellow-600 ring-1 ring-yellow-600"
                 : c.qty === 0
-                ? "border-dashed border-ink-300 bg-ink-50 text-ink-500"
-                : "border-ink-200 bg-white text-ink-700"
+                ? "border-dashed border-yellow-500"
+                : "border-yellow-400"
             }`}
           >
-            <ArchiveBoxIcon className="h-3 w-3 text-ink-400" />
-            {c.name}
+            <ArchiveBoxIcon className="h-3 w-3 text-ink-600" />
+            <span className="font-medium">{c.name}</span>
+            <span>:</span>
             <span className={`font-semibold tabular-nums ${c.qty === 0 ? "text-red-600" : ""}`}>{c.qty}</span>
           </span>
         ))}
@@ -530,6 +583,16 @@ const RawMaterialStock = () => {
             <button onClick={fetchRawMaterials} disabled={loading} className="btn-outline" title="Refresh">
               <ArrowPathIcon className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               <span className="hidden sm:inline">Refresh</span>
+            </button>
+
+            <button
+              onClick={downloadExcel}
+              disabled={loading || filtered.length === 0}
+              className="btn-outline"
+              title={`Download ${selectedWarehouseName} stock as Excel`}
+            >
+              <ArrowDownTrayIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">Excel</span>
             </button>
           </div>
         </div>
