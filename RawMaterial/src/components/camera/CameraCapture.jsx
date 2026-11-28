@@ -10,6 +10,10 @@ const AUDIO_BPS = 64_000;
 const PHOTO_MAX_SIDE = 1600; // px; keeps photos small without losing detail
 const PHOTO_QUALITY = 0.85;
 
+// Browsers allow the live camera only on HTTPS (or localhost)
+export const canUseLiveCamera = () =>
+  typeof window !== "undefined" && window.isSecureContext && !!navigator.mediaDevices?.getUserMedia;
+
 const fmtTime = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 const fmtSize = (b) => (b >= 1024 * 1024 ? `${(b / (1024 * 1024)).toFixed(2)} MB` : `${(b / 1024).toFixed(0)} KB`);
 

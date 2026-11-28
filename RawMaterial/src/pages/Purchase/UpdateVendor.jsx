@@ -30,7 +30,7 @@ const VENDOR_CATEGORIES = ["Manufacture", "Trader"];
 
 // Business documents: existing file URL from the API, and the upload field name.
 const BUSINESS_DOCS = [
-  { key: "bgDocument", urlField: "bg_document", formField: "bgDocumentFile", label: "BG Document/PDI", required: true },
+  { key: "bgDocument", urlField: "bg_document", formField: "bgDocumentFile", label: "BG Document/PDC/Undertaking", required: false },
   { key: "balanceSheet", urlField: "balance_sheet", formField: "balanceSheetFile", label: "Balance Sheet" },
 ];
 const MAX_RAW_DOC_BYTES = 25 * 1024 * 1024; // accept up to 25 MB, then compress to 1 MB
