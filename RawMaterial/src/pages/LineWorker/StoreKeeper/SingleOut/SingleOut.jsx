@@ -3,6 +3,7 @@ import Api from "../../../../auth/Api";
 import { ArchiveBoxIcon, ArrowUturnLeftIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import ContainerMultiSelect from "../../../../components/dropdown/ContainerMultiSelect";
 import { compressVideo, MAX_VIDEO_BYTES } from "../../../../utils/compressVideo";
+import CameraCapture from "../../../../components/camera/CameraCapture";
 import { getUserWarehouseId, containerListUrl, apiErrorText } from "../../../../utils/warehouse";
 
 const formatSize = (bytes) =>
@@ -50,7 +51,6 @@ const SingleOut = () => {
   // --- FILE UPLOAD STATE ---
   const [file, setFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
-  const fileInputRef = useRef(null);
 
   // --- VIDEO UPLOAD STATE (optional, compressed to <= 5 MB) ---
   const [videoFile, setVideoFile] = useState(null);
@@ -58,8 +58,10 @@ const SingleOut = () => {
   const [videoOriginalSize, setVideoOriginalSize] = useState(0);
   const [videoCompressing, setVideoCompressing] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
-  const videoInputRef = useRef(null);
   const videoJobRef = useRef(0);
+
+  // Proof photo and video come only from the in-page camera (no gallery): null | "photo" | "video"
+  const [cameraMode, setCameraMode] = useState(null);
 
   const dropdownRef = useRef(null);
 
@@ -292,30 +294,24 @@ const SingleOut = () => {
     }
   };
 
-  const handleFileChange = (e) => {
-    const selected = e.target.files && e.target.files[0];
-    if (!selected) return;
-
-    if (!selected.type.startsWith("image/")) {
-      setErrors(prev => ({ ...prev, file: "Only image files are allowed" }));
-      e.target.value = "";
-      return;
-    }
-
-    setFile(selected);
-    setErrors(prev => ({ ...prev, file: undefined }));
-  };
-
   const handleRemoveFile = () => {
     setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+  };
+
+  // Camera result: the photo is used as-is
+  const handleCameraCapture = (captured) => {
+    const mode = cameraMode;
+    setCameraMode(null);
+    if (mode === "photo") {
+      setFile(captured);
+      setErrors(prev => ({ ...prev, file: undefined }));
+    } else {
+      processVideo(captured);
     }
   };
 
-  const handleVideoChange = async (e) => {
-    const selected = e.target.files && e.target.files[0];
-    e.target.value = "";
+  // Recordings are already small; compress only if one still ends up over 5 MB
+  const processVideo = async (selected) => {
     if (!selected) return;
 
     if (!selected.type.startsWith("video/")) {
@@ -528,9 +524,6 @@ const SingleOut = () => {
     
     // Reset File
     setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
     handleRemoveVideo();
   };
 
@@ -992,6 +985,15 @@ const SingleOut = () => {
             )}
           </div>
 
+          <CameraCapture
+            open={!!cameraMode}
+            mode={cameraMode || "photo"}
+            maxBytes={MAX_VIDEO_BYTES}
+            maxSeconds={60}
+            onCapture={handleCameraCapture}
+            onClose={() => setCameraMode(null)}
+          />
+
           {/* IMAGE UPLOAD + REMARKS (2 per row on md+) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           {/* IMAGE UPLOAD UI */}
@@ -1003,20 +1005,12 @@ const SingleOut = () => {
               </svg>
               Attach Image <span className="text-red-500">*</span>
             </label>
-            <p className="mb-2 text-xs text-ink-500">PNG, JPG or JPEG image.</p>
-
-            <input
-              id="proof-image"
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              ref={fileInputRef}
-              className="hidden"
-            />
+            <p className="mb-2 text-xs text-ink-500">Take a photo with the camera.</p>
 
             {!file ? (
-              <label
-                htmlFor="proof-image"
+              <button
+                type="button"
+                onClick={() => setCameraMode("photo")}
                 className={`flex flex-col items-center justify-center w-full px-4 py-4 border-2 border-dashed rounded-lg cursor-pointer transition text-center ${
                   errors.file
                     ? 'border-red-400 bg-red-50 hover:bg-red-100'
@@ -1027,10 +1021,10 @@ const SingleOut = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
                 <span className="text-sm font-medium text-brand-700">
-                  Tap to upload image
+                  Tap to take photo
                 </span>
-                <span className="mt-0.5 text-xs text-ink-500">PNG, JPG, JPEG</span>
-              </label>
+                <span className="mt-0.5 text-xs text-ink-500">Opens the camera</span>
+              </button>
             ) : (
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border border-green-300 bg-green-50 rounded-lg">
                 {filePreview && (
@@ -1045,7 +1039,7 @@ const SingleOut = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    Image selected
+                    Photo taken
                   </div>
                   <p className="text-sm text-ink-700 truncate mt-0.5" title={file.name}>
                     {file.name}
@@ -1055,15 +1049,16 @@ const SingleOut = () => {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <label
-                    htmlFor="proof-image"
+                  <button
+                    type="button"
+                    onClick={() => setCameraMode("photo")}
                     className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-white border border-ink-300 text-ink-700 rounded-lg cursor-pointer hover:bg-ink-100 transition"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    Change
-                  </label>
+                    Retake
+                  </button>
                   <button
                     type="button"
                     onClick={handleRemoveFile}
@@ -1097,17 +1092,8 @@ const SingleOut = () => {
               Attach Video <span className="text-red-500">*</span>
             </label>
             <p className="mb-2 text-xs text-ink-500">
-              Max 5 MB. Larger videos are compressed automatically.
+              Record with the camera. Up to 60 seconds; kept under 5 MB.
             </p>
-
-            <input
-              id="proof-video"
-              type="file"
-              accept="video/*"
-              onChange={handleVideoChange}
-              ref={videoInputRef}
-              className="hidden"
-            />
 
             {videoCompressing ? (
               <div className="p-4 border border-brand-300 bg-brand-50 rounded-lg">
@@ -1138,8 +1124,9 @@ const SingleOut = () => {
                 </div>
               </div>
             ) : !videoFile ? (
-              <label
-                htmlFor="proof-video"
+              <button
+                type="button"
+                onClick={() => setCameraMode("video")}
                 className={`flex flex-col items-center justify-center w-full px-4 py-4 border-2 border-dashed rounded-lg cursor-pointer transition text-center ${
                   errors.video
                     ? 'border-red-400 bg-red-50 hover:bg-red-100'
@@ -1150,10 +1137,10 @@ const SingleOut = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
                 <span className="text-sm font-medium text-brand-700">
-                  Tap to upload video
+                  Tap to record video
                 </span>
-                <span className="mt-0.5 text-xs text-ink-500">MP4, MOV, WEBM</span>
-              </label>
+                <span className="mt-0.5 text-xs text-ink-500">Opens the camera</span>
+              </button>
             ) : (
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border border-green-300 bg-green-50 rounded-lg">
                 {videoPreview && (
@@ -1181,12 +1168,13 @@ const SingleOut = () => {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <label
-                    htmlFor="proof-video"
+                  <button
+                    type="button"
+                    onClick={() => setCameraMode("video")}
                     className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-white border border-ink-300 text-ink-700 rounded-lg cursor-pointer hover:bg-ink-100 transition"
                   >
-                    Change
-                  </label>
+                    Retake
+                  </button>
                   <button
                     type="button"
                     onClick={handleRemoveVideo}
