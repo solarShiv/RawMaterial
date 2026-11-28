@@ -5,8 +5,13 @@
 export const MAX_VIDEO_BYTES = 5 * 1024 * 1024; // 5 MB
 
 const AUDIO_BPS = 64_000;
-const MIN_VIDEO_BPS = 150_000;
-const SAFETY = 0.85; // aim below the limit; MediaRecorder bitrate is approximate
+const LOW_AUDIO_BPS = 32_000; // used when the size budget is tight
+const MIN_VIDEO_BPS = 100_000;
+const SAFETY = 0.8; // aim below the limit; MediaRecorder bitrate is approximate
+
+// Each retry gets smaller and smoother to encode, so the result reliably lands under the limit
+const HEIGHT_STEPS = [720, 480, 360, 240];
+const FPS_STEPS = [30, 24, 20, 15];
 
 const MIME_CANDIDATES = [
   "video/mp4;codecs=avc1,mp4a",
@@ -16,7 +21,7 @@ const MIME_CANDIDATES = [
   "video/webm",
 ];
 
-const pickMimeType = () =>
+export const pickMimeType = () =>
   typeof MediaRecorder !== "undefined"
     ? MIME_CANDIDATES.find((t) => MediaRecorder.isTypeSupported(t)) || ""
     : "";
@@ -47,7 +52,7 @@ const loadVideo = (url) =>
     video.onerror = () => reject(new Error("This video format cannot be read by the browser"));
   });
 
-const encodeOnce = async (file, videoBps, maxHeight, onProgress) => {
+const encodeOnce = async (file, { videoBps, audioBps, maxHeight, fps }, onProgress) => {
   const url = URL.createObjectURL(file);
   let video;
   let audioCtx;
@@ -67,7 +72,7 @@ const encodeOnce = async (file, videoBps, maxHeight, onProgress) => {
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d");
-    const stream = canvas.captureStream(30);
+    const stream = canvas.captureStream(fps);
 
     // Route audio through Web Audio so it works in Safari too (no video.captureStream there)
     let hasAudio = false;
@@ -88,7 +93,7 @@ const encodeOnce = async (file, videoBps, maxHeight, onProgress) => {
     const recorder = new MediaRecorder(stream, {
       ...(mimeType ? { mimeType } : {}),
       videoBitsPerSecond: Math.round(videoBps),
-      ...(hasAudio ? { audioBitsPerSecond: AUDIO_BPS } : {}),
+      ...(hasAudio ? { audioBitsPerSecond: audioBps } : {}),
     });
 
     const chunks = [];
@@ -163,23 +168,33 @@ export const compressVideo = async (file, { maxBytes = MAX_VIDEO_BYTES, onProgre
     throw new Error("Could not read the video duration");
   }
 
-  let videoBps = (maxBytes * 8 * SAFETY) / duration - AUDIO_BPS;
+  // Bitrate budget from the duration: total bits allowed / seconds
+  const budgetBps = (maxBytes * 8 * SAFETY) / duration;
+  const audioBps = budgetBps > 600_000 ? AUDIO_BPS : LOW_AUDIO_BPS;
+  let videoBps = budgetBps - audioBps;
   if (videoBps < MIN_VIDEO_BPS) {
-    const maxSeconds = Math.floor((maxBytes * 8 * SAFETY) / (MIN_VIDEO_BPS + AUDIO_BPS));
+    const maxSeconds = Math.floor((maxBytes * 8 * SAFETY) / (MIN_VIDEO_BPS + LOW_AUDIO_BPS));
     throw new Error(`Video is too long to fit in 5 MB. Please record a clip shorter than ${maxSeconds} seconds.`);
   }
 
-  // Lower resolution when the bitrate budget is small
-  const maxHeight = videoBps > 1_500_000 ? 720 : videoBps > 600_000 ? 480 : 360;
+  // Start resolution from the budget: a small budget starts lower
+  let step = videoBps > 1_500_000 ? 0 : videoBps > 600_000 ? 1 : videoBps > 300_000 ? 2 : 3;
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const out = await encodeOnce(file, videoBps, maxHeight, onProgress);
+  for (let attempt = 0; attempt < HEIGHT_STEPS.length; attempt++) {
+    const settings = {
+      videoBps,
+      audioBps,
+      maxHeight: HEIGHT_STEPS[step],
+      fps: FPS_STEPS[Math.min(attempt, FPS_STEPS.length - 1)],
+    };
+    const out = await encodeOnce(file, settings, onProgress);
     if (out.size <= maxBytes) {
       onProgress?.(100);
       return out;
     }
-    // Encoder overshot the target: shrink the bitrate proportionally and retry
-    videoBps = Math.max(MIN_VIDEO_BPS, videoBps * (maxBytes / out.size) * 0.85);
+    // Encoder overshot: shrink the bitrate in proportion, and drop resolution and frame rate
+    videoBps = Math.max(MIN_VIDEO_BPS, videoBps * (maxBytes / out.size) * 0.8);
+    step = Math.min(step + 1, HEIGHT_STEPS.length - 1);
   }
   throw new Error("Could not compress the video below 5 MB. Please record a shorter clip.");
 };
