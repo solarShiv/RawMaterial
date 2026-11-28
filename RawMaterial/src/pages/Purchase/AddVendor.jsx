@@ -27,7 +27,7 @@ const VENDOR_CATEGORIES = ["Manufacture", "Trader"];
 
 // Business documents: compressed in the browser to <= 1 MB each before upload.
 const BUSINESS_DOCS = [
-  { key: "bgDocument", formField: "bgDocumentFile", label: "BG Document/PDI", required: true },
+  { key: "bgDocument", formField: "bgDocumentFile", label: "BG Document/PDC/Undertaking", required: false },
   { key: "balanceSheet", formField: "balanceSheetFile", label: "Balance Sheet" },
 ];
 const MAX_RAW_DOC_BYTES = 25 * 1024 * 1024; // accept up to 25 MB, then compress to 1 MB
@@ -716,7 +716,7 @@ const AddVendor = () => {
       return;
     }
 
-    // Compulsory business documents (BG Document/PDI)
+    // Compulsory business documents (those marked required)
     const missingDoc = BUSINESS_DOCS.find((d) => d.required && !businessDocs[d.key]);
     if (missingDoc) {
       setBusinessDocErrors((prev) => ({ ...prev, [missingDoc.key]: `${missingDoc.label} is required` }));

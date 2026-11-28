@@ -3,7 +3,7 @@ import Api from "../../../../auth/Api";
 import { ArchiveBoxIcon, ArrowUturnLeftIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import ContainerMultiSelect from "../../../../components/dropdown/ContainerMultiSelect";
 import { compressVideo, MAX_VIDEO_BYTES } from "../../../../utils/compressVideo";
-import CameraCapture from "../../../../components/camera/CameraCapture";
+import CameraCapture, { canUseLiveCamera } from "../../../../components/camera/CameraCapture";
 import { getUserWarehouseId, containerListUrl, apiErrorText } from "../../../../utils/warehouse";
 
 const formatSize = (bytes) =>
@@ -62,6 +62,38 @@ const SingleOut = () => {
 
   // Proof photo and video come only from the in-page camera (no gallery): null | "photo" | "video"
   const [cameraMode, setCameraMode] = useState(null);
+  // Fallback when the live camera is blocked (site not on HTTPS): the phone's own camera app
+  const photoFallbackRef = useRef(null);
+  const videoFallbackRef = useRef(null);
+
+  const openCamera = (mode) => {
+    if (canUseLiveCamera()) {
+      setCameraMode(mode);
+      return;
+    }
+    (mode === "photo" ? photoFallbackRef : videoFallbackRef).current?.click();
+  };
+
+  // A file from the phone's camera app (fallback path)
+  const handleFallbackCapture = (e, mode) => {
+    const captured = e.target.files?.[0];
+    e.target.value = "";
+    if (!captured) return;
+    const expected = mode === "photo" ? "image/" : "video/";
+    if (!captured.type.startsWith(expected)) {
+      setErrors(prev => ({
+        ...prev,
+        [mode === "photo" ? "file" : "video"]: mode === "photo" ? "Please take a photo" : "Please record a video",
+      }));
+      return;
+    }
+    if (mode === "photo") {
+      setFile(captured);
+      setErrors(prev => ({ ...prev, file: undefined }));
+    } else {
+      processVideo(captured);
+    }
+  };
 
   const dropdownRef = useRef(null);
 
@@ -993,6 +1025,23 @@ const SingleOut = () => {
             onCapture={handleCameraCapture}
             onClose={() => setCameraMode(null)}
           />
+          {/* Fallback only when the live camera is blocked; `capture` opens the camera app directly */}
+          <input
+            ref={photoFallbackRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={(e) => handleFallbackCapture(e, "photo")}
+            className="hidden"
+          />
+          <input
+            ref={videoFallbackRef}
+            type="file"
+            accept="video/*"
+            capture="environment"
+            onChange={(e) => handleFallbackCapture(e, "video")}
+            className="hidden"
+          />
 
           {/* IMAGE UPLOAD + REMARKS (2 per row on md+) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
@@ -1010,7 +1059,7 @@ const SingleOut = () => {
             {!file ? (
               <button
                 type="button"
-                onClick={() => setCameraMode("photo")}
+                onClick={() => openCamera("photo")}
                 className={`flex flex-col items-center justify-center w-full px-4 py-4 border-2 border-dashed rounded-lg cursor-pointer transition text-center ${
                   errors.file
                     ? 'border-red-400 bg-red-50 hover:bg-red-100'
@@ -1051,7 +1100,7 @@ const SingleOut = () => {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setCameraMode("photo")}
+                    onClick={() => openCamera("photo")}
                     className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-white border border-ink-300 text-ink-700 rounded-lg cursor-pointer hover:bg-ink-100 transition"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1126,7 +1175,7 @@ const SingleOut = () => {
             ) : !videoFile ? (
               <button
                 type="button"
-                onClick={() => setCameraMode("video")}
+                onClick={() => openCamera("video")}
                 className={`flex flex-col items-center justify-center w-full px-4 py-4 border-2 border-dashed rounded-lg cursor-pointer transition text-center ${
                   errors.video
                     ? 'border-red-400 bg-red-50 hover:bg-red-100'
@@ -1170,7 +1219,7 @@ const SingleOut = () => {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setCameraMode("video")}
+                    onClick={() => openCamera("video")}
                     className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm bg-white border border-ink-300 text-ink-700 rounded-lg cursor-pointer hover:bg-ink-100 transition"
                   >
                     Retake
